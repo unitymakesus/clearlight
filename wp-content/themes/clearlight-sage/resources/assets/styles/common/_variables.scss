@@ -1,13 +1,31 @@
+// Fonts
+$font-family: 'Lato', sans-serif;
+$light: 200;
+
 // Colors
+$frosty-green: #DFFFF8;
 $light-green: #E9F7F5;
 $dark-green: #007C66;
 $button-green: #00A686;
 $button-hover: #5EDDC1;
 $neon-green: #58FFDA;
 $dark-gray: #444444;
+$darker-gray: #222222;
+$white: #ffffff;
 
-$brand-primary: $dark-green;
+$primary-color: $dark-green;
 
-// Fonts
-$font-family: 'Lato', sans-serif;
-$lighter: 300;
+// Gradients
+// Utility mixin from Compass
+@mixin filter-gradient($start-color, $end-color, $orientation: vertical) {
+  $gradient-type: if($orientation == vertical, 0, 1);
+  filter: progid:DXImageTransform.Microsoft.gradient(gradientType=#{$gradient-type}, startColorstr='#{ie-hex-str($start-color)}', endColorstr='#{ie-hex-str($end-color)}');
+}
+
+@mixin trans-gray-gradient-left() {
+  @include filter-gradient(rgba($darker-gray, .5), rgba($darker-gray, 0), horizontal);
+  background-image: -o-linear-gradient(90deg, rgba($darker-gray, .5) 50%, rgba($darker-gray, 0) 75%);
+  background-image: -moz-linear-gradient(90deg, rgba($darker-gray, .5) 50%, rgba($darker-gray, 0) 75%);
+  background-image: -ms-linear-gradient(90deg, rgba($darker-gray, .5) 50%, rgba($darker-gray, 0) 75%);
+  background-image: linear-gradient(90deg, rgba($darker-gray, .5) 50%, rgba($darker-gray, 0) 75%);
+}

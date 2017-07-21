@@ -1,6 +1,6 @@
 <header class="banner">
-  <nav>
-    <div class="nav-wrapper">
+  <nav class="container">
+    <div class="nav-wrapper row">
       <a class="brand-logo" href="{{ home_url('/') }}" rel="home">
         @if (has_custom_logo())
           @php
@@ -10,7 +10,7 @@
           @endphp
           <img src="{{ $logo[0] }}"
                srcset="{{ $logo[0] }} 1x, {{ $logo_2x[0] }} 2x"
-               alt="{{ get_bloginfo('name', 'display') }}">
+               alt="{{ get_bloginfo('name', 'display') }}" width="189" height="90">
         @else
           {{ get_bloginfo('name', 'display') }}
         @endif
@@ -19,7 +19,7 @@
         <a href="#" data-activates="mobile-menu" id="mobile-menu-button" class="right button-collapse"><i class="material-icons">menu</i></a>
         {!! wp_nav_menu(['theme_location' => 'primary_navigation', 'menu_class' => 'right hide-on-med-and-down']) !!}
         <div aria-hidden="true">
-          {!! wp_nav_menu(['theme_location' => 'primary_navigation', 'menu_class' => 'side-nav', 'menu_id' => 'mobile-menu', 'walker' => new App\MobileNavWalker()]) !!}
+          {!! wp_nav_menu(['theme_location' => 'primary_navigation', 'menu_class' => 'side-nav hide-on-large-only', 'menu_id' => 'mobile-menu', 'walker' => new App\MobileNavWalker()]) !!}
         </div>
       @endif
     </div>

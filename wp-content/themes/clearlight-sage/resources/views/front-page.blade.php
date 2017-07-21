@@ -4,10 +4,25 @@
 
   {{-- Hero --}}
   <div class="hero">
-    <div class="looking">
-      <h1>Looking for custom glass or mirror products?</h1>
-      <p class="hero-text">Serving the community for nearly 25 years, we are North Carolina's premier custom glass and mirror fabricator and can make the perfect piece for your project.</p>
-      <button class="hero-button">What can we do for you?</button>
+    <video class="background-video blur" playsinline mute loop autoplay>
+      <source src="{{ App\asset_path('images/ClearLight-Extended-v2-blur.mp4') }}" type="video/mp4" />
+    </video>
+    <div class="sharp-container">
+      <video class="background-video sharp" playsinline mute loop autoplay>
+        <source src="{{ App\asset_path('images/ClearLight-Extended-v2.mp4') }}" type="video/mp4" />
+      </video>
+    </div>
+
+    <div class="hero-text">
+      <div class="container">
+        <div class="row">
+          <div class="col s12 m7 l6">
+            <h1>Looking for custom glass or mirror products?</h1>
+            <p>Serving the community for nearly 25 years, we are North Carolina's premier custom glass and mirror fabricator and can make the perfect piece for your project.</p>
+            <a class="btn" href="#">What can we do for you?</a>
+          </div>
+        </div>
+      </div>
     </div>
   </div>
 

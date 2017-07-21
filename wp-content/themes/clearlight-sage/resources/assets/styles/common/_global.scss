@@ -1,0 +1,13 @@
+.main {
+  position: relative;
+}
+
+// Change default container widths
+.container {
+  @media #{$large-and-up} {
+    width: 95%;
+  }
+  @media #{$extra-large-and-up} {
+    width: 90%;
+  }
+}

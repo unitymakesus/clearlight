@@ -1,0 +1,21 @@
+.btn {
+  text-transform: none;
+  border-radius: 50px;
+  background: $white;
+  color: $primary-color;
+  font-weight: normal;
+
+  &:hover, &:active, &:focus {
+    color: $white;
+  }
+}
+
+.nav-btn {
+  line-height: 36px;
+  padding-top: 12px;
+  padding-left: 15px;
+
+  a {
+    @extend .btn;
+  }
+}

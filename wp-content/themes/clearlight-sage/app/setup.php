@@ -71,8 +71,8 @@ add_action('after_setup_theme', function () {
     /**
      * Enable logo uploader in customizer
      */
-     add_image_size('clearlight-logo', 300, 60, false);
-     add_image_size('clearlight-logo-2x', 600, 120, false);
+     add_image_size('clearlight-logo', 189, 90, false);
+     add_image_size('clearlight-logo-2x', 378, 180, false);
      add_theme_support('custom-logo', array(
        'size' => 'clearlight-logo-2x'
      ));
