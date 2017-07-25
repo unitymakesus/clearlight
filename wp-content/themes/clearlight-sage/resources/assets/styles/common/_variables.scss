@@ -7,6 +7,7 @@ $dark-green: #007C66;
 $medium-green: #00A686;
 $neon-green: #58FFDA;
 
+$frosty-gray: #C7C5C3;
 $dark-gray: #444444;
 $darker-gray: #222222;
 
@@ -22,7 +23,7 @@ $primary-color: $dark-green;
   filter: progid:DXImageTransform.Microsoft.gradient(gradientType=#{$gradient-type}, startColorstr='#{ie-hex-str($start-color)}', endColorstr='#{ie-hex-str($end-color)}');
 }
 
-@mixin trans-gray-gradient-left() {
+@mixin trans-gray-gradient-left {
   @include filter-gradient(rgba($darker-gray, .5), rgba($darker-gray, 0), horizontal);
   background-image: -o-linear-gradient(90deg, rgba($darker-gray, .5) 50%, rgba($darker-gray, 0) 75%);
   background-image: -moz-linear-gradient(90deg, rgba($darker-gray, .5) 50%, rgba($darker-gray, 0) 75%);
@@ -30,7 +31,7 @@ $primary-color: $dark-green;
   background-image: linear-gradient(90deg, rgba($darker-gray, .5) 50%, rgba($darker-gray, 0) 75%);
 }
 
-@mixin white-frosty-gradient-down() {
+@mixin white-frosty-gradient-down {
   @include filter-gradient($white, $frosty-green, vertical);
   background-image: -o-linear-gradient(180deg, $white 0%, $frosty-green 100%);
   background-image: -moz-linear-gradient(180deg, $white 0%, $frosty-green 100%);
@@ -38,10 +39,14 @@ $primary-color: $dark-green;
   background-image: linear-gradient(180deg, $white 0%, $frosty-green 100%);
 }
 
-@mixin cover() {
+@mixin cover {
   position: absolute;
   top: 0;
   left: 0;
   width: 100%;
   height: 100%;
+}
+
+@mixin soft-corners {
+  border-radius: 4px;
 }

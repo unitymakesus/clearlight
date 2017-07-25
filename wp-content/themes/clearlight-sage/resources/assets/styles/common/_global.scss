@@ -24,32 +24,3 @@ html {
     }
   }
 }
-
-.background-frosted {
-  background: rgba($frosty-green, .9);
-  padding: 40px 35px 60px;
-  color: $white;
-  position: relative;
-  z-index: 5;
-  @extend .size-medium;
-
-  h2 {
-    color: $white;
-  }
-
-  a {
-    color: $neon-green;
-    text-decoration: underline;
-  }
-
-  &:before {
-    content: '';
-    @include cover;
-    z-index: -1;
-    background: rgba($darker-gray, .3);
-  }
-}
-
-.corners-soft {
-  border-radius: 4px;
-}

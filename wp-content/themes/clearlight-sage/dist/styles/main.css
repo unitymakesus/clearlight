@@ -13230,38 +13230,6 @@ html {
   color: #ffffff;
 }
 
-.background-frosted {
-  background: rgba(233, 247, 245, 0.9);
-  padding: 40px 35px 60px;
-  color: #ffffff;
-  position: relative;
-  z-index: 5;
-}
-
-.background-frosted h2 {
-  color: #ffffff;
-}
-
-.background-frosted a {
-  color: #58FFDA;
-  text-decoration: underline;
-}
-
-.background-frosted:before {
-  content: '';
-  position: absolute;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  z-index: -1;
-  background: rgba(34, 34, 34, 0.3);
-}
-
-.corners-soft {
-  border-radius: 4px;
-}
-
 .flex-grid {
   display: -webkit-box;
   display: -ms-flexbox;
@@ -13572,6 +13540,68 @@ h3 {
   fill: #007C66;
 }
 
+.background-inspiration {
+  background-image: url(../images/gallery.png);
+  background-attachment: fixed;
+  background-repeat: repeat;
+  background-position: center center;
+  box-shadow: inset 0 0 32px rgba(34, 34, 34, 0.35);
+  padding: 80px 0;
+}
+
+.background-inspiration h2 {
+  font-weight: normal;
+}
+
+.background-inspiration p {
+  font-size: 21px;
+  font-weight: 300;
+}
+
+.background-frosted {
+  padding: 40px 35px 60px;
+  color: #ffffff;
+  position: relative;
+  z-index: 5;
+}
+
+.background-frosted h2 {
+  color: #ffffff;
+}
+
+.background-frosted a {
+  color: #58FFDA;
+  text-decoration: underline;
+}
+
+.background-frosted:before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  border-radius: 4px;
+  z-index: -2;
+  background-image: url(../images/gallery.png);
+  background-attachment: fixed;
+  background-repeat: repeat;
+  background-position: center center;
+  filter: blur(20px);
+}
+
+.background-frosted:after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  border-radius: 4px;
+  z-index: -1;
+  background: rgba(199, 197, 195, 0.5);
+}
+
 .unity-link {
   display: block;
   max-width: 120px;
@@ -13808,23 +13838,6 @@ footer .row:last-child a:hover,
 footer .row:last-child a:active,
 footer .row:last-child a:focus {
   color: #00A686;
-}
-
-.background-inspiration {
-  background-image: url(../images/gallery.png);
-  background-attachment: fixed;
-  background-repeat: repeat;
-  box-shadow: inset 0 0 32px rgba(34, 34, 34, 0.35);
-  padding: 80px 0;
-}
-
-.background-inspiration h2 {
-  font-weight: normal;
-}
-
-.background-inspiration p {
-  font-size: 21px;
-  font-weight: 300;
 }
 
 body#tinymce {

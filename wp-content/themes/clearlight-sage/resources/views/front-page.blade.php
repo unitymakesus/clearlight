@@ -112,7 +112,7 @@
     <div class="container">
       <div class="row">
         <div class="col s12 m6 l5">
-          <div class="z-depth-4 background-frosted corners-soft">
+          <div class="z-depth-4 background-frosted">
             <h2>Need some inspiration?</h2>
             <p>Explore the endless possibilies of custom glass and mirror fabrication.</p>
             <p><a href="#">Check out our Gallery &rsaquo;</a></p>
