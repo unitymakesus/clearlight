@@ -1,0 +1,78 @@
+.card {
+  a.card-image {
+    display: block;
+
+    .valign-wrapper {
+      @include cover;
+      overflow: hidden;
+      transition: background .3s ease;
+    }
+
+    .card-title {
+      position: relative;
+      display: block;
+      width: 100%;
+      z-index: 5;
+      text-align: center;
+      background: rgba($frosty-green, .8);
+      color: $dark-gray;
+      font-size: 18px;
+      font-weight: normal;
+      padding: 10px;
+      transition: all .3s ease;
+    }
+
+    &:hover, &:active, &:focus {
+      .valign-wrapper {
+        background: rgba($dark-green, .8);
+      }
+
+      .card-title {
+        background: none;
+        color: $white;
+        text-decoration: underline;
+      }
+    }
+  }
+}
+
+.card-panel {
+  padding: 32px;
+  position: relative;
+  transition: all .3s ease;
+
+  a.mega-link {
+    display: block;
+    @include cover;
+  }
+
+  .small-icon {
+    height: 48px;
+    text-align: left;
+
+    svg {
+      max-height: 100%;
+    }
+  }
+
+  .learn-more {
+    color: $neon-green;
+    text-decoration: underline;
+  }
+
+  &:hover, &:active, &:focus {
+    background: $white;
+    color: $dark-gray;
+    @extend .z-depth-3;
+
+    .learn-more {
+      color: $dark-green;
+    }
+
+    .small-icon {
+      path {
+        fill: $dark-green;
+      }
+    }
+  }
+}

@@ -14,7 +14,7 @@ var WebFont = require('webfontloader');
 
 WebFont.load({
  google: {
-   families: ['Lato:200,400,700'],
+   families: ['Lato:300,400,700'],
  },
 });
 

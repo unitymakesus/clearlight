@@ -1,0 +1,59 @@
+.flex-grid {
+  display: flex;
+  flex-flow: row wrap;
+  justify-content: flex-start;
+
+  .col.col {
+    flex: 0 0 auto;
+    margin-right: 0;
+
+    &:not([class*="offset"]) {
+      margin-left: 0;
+    }
+  }
+
+  .card-panel {
+    height: calc(100%-1.5em);
+  }
+}
+
+.block-grid {
+  display: flex;
+  flex-flow: row wrap;
+
+  @for $i from 1 through 6 {
+    &.up-s#{$i} {
+       @media #{$small-and-down} {
+         .col {
+           width: 100% / $i;
+         }
+       }
+    }
+
+    &.up-m#{$i} {
+      @media #{$medium-and-up} {
+        .col {
+          width: 100% / $i;
+        }
+      }
+    }
+
+    &.up-l#{$i} {
+      @media #{$large-and-up} {
+        .col {
+          width: 100% / $i;
+        }
+      }
+    }
+  }
+}
+
+// Change default container widths
+.container {
+  @media #{$large-and-up} {
+    width: 95%;
+  }
+  @media #{$extra-large-and-up} {
+    width: 90%;
+  }
+}

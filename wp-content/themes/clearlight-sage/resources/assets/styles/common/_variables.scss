@@ -1,17 +1,17 @@
 // Fonts
 $font-family: 'Lato', sans-serif;
-$light: 200;
 
 // Colors
-$frosty-green: #DFFFF8;
-$light-green: #E9F7F5;
+$frosty-green: #E9F7F5;
 $dark-green: #007C66;
-$button-green: #00A686;
-$button-hover: #5EDDC1;
+$medium-green: #00A686;
 $neon-green: #58FFDA;
+
 $dark-gray: #444444;
 $darker-gray: #222222;
+
 $white: #ffffff;
+$black: #000000;
 
 $primary-color: $dark-green;
 
@@ -28,4 +28,20 @@ $primary-color: $dark-green;
   background-image: -moz-linear-gradient(90deg, rgba($darker-gray, .5) 50%, rgba($darker-gray, 0) 75%);
   background-image: -ms-linear-gradient(90deg, rgba($darker-gray, .5) 50%, rgba($darker-gray, 0) 75%);
   background-image: linear-gradient(90deg, rgba($darker-gray, .5) 50%, rgba($darker-gray, 0) 75%);
+}
+
+@mixin white-frosty-gradient-down() {
+  @include filter-gradient($white, $frosty-green, vertical);
+  background-image: -o-linear-gradient(180deg, $white 0%, $frosty-green 100%);
+  background-image: -moz-linear-gradient(180deg, $white 0%, $frosty-green 100%);
+  background-image: -ms-linear-gradient(180deg, $white 0%, $frosty-green 100%);
+  background-image: linear-gradient(180deg, $white 0%, $frosty-green 100%);
+}
+
+@mixin cover() {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
 }

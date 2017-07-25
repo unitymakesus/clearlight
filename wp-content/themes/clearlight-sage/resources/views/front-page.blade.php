@@ -3,12 +3,12 @@
 @section('content')
 
   {{-- Hero --}}
-  <div class="hero">
-    <video class="background-video blur" playsinline mute loop autoplay>
+  <section class="hero">
+    <video class="background-video blur" id="video-blur" playsinline mute loop preload="auto">
       <source src="{{ App\asset_path('images/ClearLight-Extended-v2-blur.mp4') }}" type="video/mp4" />
     </video>
     <div class="sharp-container">
-      <video class="background-video sharp" playsinline mute loop autoplay>
+      <video class="background-video sharp" id="video-sharp" playsinline mute loop preload="auto">
         <source src="{{ App\asset_path('images/ClearLight-Extended-v2.mp4') }}" type="video/mp4" />
       </video>
     </div>
@@ -19,95 +19,122 @@
           <div class="col s12 m7 l6">
             <h1>Looking for custom glass or mirror products?</h1>
             <p>Serving the community for nearly 25 years, we are North Carolina's premier custom glass and mirror fabricator and can make the perfect piece for your project.</p>
-            <a class="btn" href="#">What can we do for you?</a>
+            <a class="btn-large" href="#">What can we do for you?</a>
           </div>
         </div>
       </div>
     </div>
-  </div>
+  </section>
 
   {{-- Customization tiles --}}
-  <div class="custom">
-    <div class="row">
-      <div class="row s2 m3 l6">
-        <a href="#" alt="Custom Shapes">
-          <div class="card-panel custom-shapes">
-          </div>
-        </a>
-        <a href="#" alt="Edging">
-          <div class="card-panel edging">
-          </div>
-        </a>
-        <a href="#" alt="Etching">
-          <div class="card-panel etching">
-          </div>
-        </a>
-        <a href="#" alt="Design">
-          <div class="card-panel design">
-          </div>
-        </a>
-        <a href="#" alt="Glass Patterns">
-          <div class="card-panel glass-patterns">
-          </div>
-        </a>
-        <a href="#" alt="Mirror Colors">
-          <div class="card-panel mirror-colors">
-          </div>
-        </a>
+  <section class="background-white">
+    <div class="container">
+      <div class="row block-grid up-s2 up-m3 up-l6">
+        @include('partials.card-image', [
+          'cards'     => [
+            [
+              'img'   => App\asset_path('images/product-thumb1.jpg'),
+              'title' => 'Custom Shapes',
+              'link'  => '#'
+            ],
+            [
+              'img'   => App\asset_path('images/product-thumb2.jpg'),
+              'title' => 'Edging',
+              'link'  => '#'
+            ],
+            [
+              'img'   => App\asset_path('images/product-thumb3.jpg'),
+              'title' => 'Etching',
+              'link'  => '#'
+            ],
+            [
+              'img'   => App\asset_path('images/product-thumb4.jpg'),
+              'title' => 'Design',
+              'link'  => '#'
+            ],
+            [
+              'img'   => App\asset_path('images/product-thumb5.jpg'),
+              'title' => 'Glass Patterns',
+              'link'  => '#'
+            ],
+            [
+              'img'   => App\asset_path('images/product-thumb6.jpg'),
+              'title' => 'Mirror Colors',
+              'link'  => '#'
+            ],
+          ]
+        ])
       </div>
     </div>
-  </div>
+  </section>
 
   {{-- We're not like the other guys --}}
-  <div class="difference">
-    <div class="tile-container">
-      <div class="offer">
-        <h2 class="offer-statement">We're not like the other guys</h2>
-        <p>See for yourself why we’re North Carolina’s premier custom glass and mirror fabricator! We offer:</p>
+  <section class="background-frosty-green">
+    <div class="container">
+      <div class="row flex-grid">
+        <div class="col s12 m6 l3">
+          <h2 class="offer-statement">We’re not like the other guys</h2>
+          <p class="size-medium">See for yourself why we’re North Carolina’s premier custom glass and mirror fabricator! We offer:</p>
+        </div>
+
+        @include('partials.card-panel', [
+          'cards'     => [
+            [
+              'class' => 'craftsmanship',
+              'img'   => App\asset_path('images/drill.svg'),
+              'title' => 'Quality<br />Craftsmanship',
+              'text'  => 'We enjoy an enduring reputation for superior quality craftsmanship and our highly experienced employees possess decades of industry experience.',
+              'link'  => '#',
+            ],
+            [
+              'class' => 'manufacturing',
+              'img'   => App\asset_path('images/leaf.svg'),
+              'title' => 'Eco Friendly<br />Manufacturing',
+              'text'  => 'We take seriously our responsibility to protect the environment, our employees, customers, and others who may be impacted by our business.',
+              'link'  => '#',
+            ],
+            [
+              'class' => 'pricing',
+              'img'   => App\asset_path('images/tag.svg'),
+              'title' => 'Transparent<br />Pricing',
+              'text'  => 'Transparency is all around us at Clearlight, from the glass we work with to our simple practice of sharing information in an open and honest manner.',
+              'link'  => '#',
+            ],
+          ]
+        ])
+
       </div>
-      <a href="#">
-        <div class="craftsmanship">
-          <img src="./images/drill.svg" alt="Power Drill Icon" class="small-icon">
-          <h3>Quality Craftsmanship</h3>
-          <span>We enjoy an enduring reputation for superior quality craftsmanship and our highly experienced employees possess decades of industry experience.</span>
-          <a href="#" class="learn-more" alt="Learn More">Learn More</a>
-        </div>
-      </a>
-      <a href="#">
-        <div class="manufacturing">
-          <img src="./images/leaf.svg" alt="Eco Friendly Icon" class="small-icon">
-          <h3>Eco Friendly Manufacturing</h3>
-          <span>We take seriously our responsibility to protect the environment, our employees, customers, and others who may be impacted by our business.</span>
-          <a href="#" class="learn-more" alt="Learn More">Learn More</a>
-        </div>
-      </a>
-      <a href="#">
-        <div class="pricing">
-          <img src="./images/tag.svg" alt="Price Tag Icon" class="small-icon">
-          <h3>Transparent Pricing</h3>
-          <span>Transparency is all around us at Clearlight, from the glass we work with to our simple practice of sharing information in an open and honest manner.</span>
-          <a href="#" class="learn-more" alt="Learn More">Learn More</a>
-        </div>
-      </a>
     </div>
-  </div>
+  </section>
 
   {{-- Inspiration --}}
-  <div class="inspiration">
-    <div class="background-image">
-      <img src="./images/gallery.png" alt="Image Gallery">
+  <section class="background-inspiration">
+    <div class="container">
+      <div class="row">
+        <div class="col s12 m6 l5">
+          <div class="z-depth-4 background-frosted corners-soft">
+            <h2>Need some inspiration?</h2>
+            <p>Explore the endless possibilies of custom glass and mirror fabrication.</p>
+            <p><a href="#">Check out our Gallery &rsaquo;</a></p>
+          </div>
+        </div>
+      </div>
     </div>
-  </div>
+  </section>
 
   {{-- Getting Started --}}
-  <div class="started">
-    <div class= "info">
-      <h2 class="get-started">Ready to get started?</h2>
-      <p class="perfect-piece">Contact us today to discover how we can make the perfect piece for your project.</p>
+  <section class="background-dark-green">
+    <div class="container">
+      <div class="row flex-grid">
+        <div class="col s12 m6 l5">
+          <h2>Ready to get started?</h2>
+          <p class="size-medium">Contact us today to discover how we can make the perfect piece for your project.</p>
+        </div>
+        <div class="col s12 m5 l4 offset-l1 valign-wrapper offset-">
+          <a href="#" class="btn-large" href="#">Request a Quote</a>
+        </div>
+      </div>
     </div>
-    <div class="request-quote">
-      <button class="body-quote" href="#">Request a Quote</button>
-    </div>
-  </div>
+  </section>
 
 @endsection

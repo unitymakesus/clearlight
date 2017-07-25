@@ -1,13 +1,55 @@
-.main {
+* {
+  box-sizing: border-box;
+}
+
+html {
+  font-family: $font-family;
+  font-size: 16px;
+}
+
+.wrap, .main {
   position: relative;
 }
 
-// Change default container widths
-.container {
-  @media #{$large-and-up} {
-    width: 95%;
+// Background colors
+@each $color_name, $color in ('white':$white, 'frosty-green':$frosty-green, 'dark-green':$dark-green) {
+  .background-#{$color_name} {
+    padding: 5rem 0;
+    background: $color;
+
+    @if ($color_name == 'dark-green') {
+      &, h2 {
+        color: $white;
+      }
+    }
   }
-  @media #{$extra-large-and-up} {
-    width: 90%;
+}
+
+.background-frosted {
+  background: rgba($frosty-green, .9);
+  padding: 40px 35px 60px;
+  color: $white;
+  position: relative;
+  z-index: 5;
+  @extend .size-medium;
+
+  h2 {
+    color: $white;
   }
+
+  a {
+    color: $neon-green;
+    text-decoration: underline;
+  }
+
+  &:before {
+    content: '';
+    @include cover;
+    z-index: -1;
+    background: rgba($darker-gray, .3);
+  }
+}
+
+.corners-soft {
+  border-radius: 4px;
 }

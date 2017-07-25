@@ -2,12 +2,18 @@
 
 // Import npm dependencies
 @import "~materialize-css/sass/materialize";
+$fa-font-path: "~font-awesome/fonts";
+@import "~font-awesome/scss/font-awesome";
 
 @import "common/global";
+@import "common/grid";
+@import "common/typography";
 
 @import "components/buttons";
+@import "components/cards";
 @import "components/comments";
 @import "components/forms";
+@import "components/unity";
 @import "components/wp-classes";
 
 @import "layouts/header";
