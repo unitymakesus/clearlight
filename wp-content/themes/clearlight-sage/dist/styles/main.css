@@ -13714,38 +13714,41 @@ nav ul li.active > a::after {
 .hero {
   position: relative;
   overflow: hidden;
+  width: 100%;
 }
 
 .hero .background-video {
   position: absolute;
-  top: 0;
-  left: 50%;
-  min-width: 100%;
-  min-height: 100%;
-  width: auto;
-  height: auto;
-  -webkit-transform: translateX(-50%);
-       -o-transform: translateX(-50%);
-          transform: translateX(-50%);
-  -o-object-fit: contain;
-     object-fit: contain;
-  display: block;
-}
-
-.hero .background-video.sharp {
-  top: -100px;
-}
-
-.hero .sharp-container {
-  position: absolute;
-  top: 100px;
+  bottom: 0;
   left: 0;
   width: 100%;
   height: 100%;
   overflow: hidden;
 }
 
-.hero .sharp-container::after {
+.hero .background-video video {
+  -o-object-fit: cover;
+     object-fit: cover;
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+
+.hero .background-video.sharp {
+  position: absolute;
+  top: 100px;
+  left: 0;
+  width: 100%;
+  height: calc(100% - 100px);
+  overflow: hidden;
+}
+
+.hero .background-video.sharp video {
+  -o-object-position: 50% -200px;
+     object-position: 50% -200px;
+}
+
+.hero .background-video.sharp::after {
   content: '';
   position: absolute;
   z-index: 5;

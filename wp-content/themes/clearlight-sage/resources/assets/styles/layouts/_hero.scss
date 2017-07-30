@@ -1,41 +1,45 @@
 .hero {
   position: relative;
   overflow: hidden;
+  width: 100%;
 
   .background-video {
     position: absolute;
-    top: 0;
-    left: 50%;
-    min-width: 100%;
-    min-height: 100%;
-    width: auto;
-    height: auto;
-    transform: translateX(-50%);
-    object-fit: contain;
-    display: block;
-
-    &.sharp {
-      top: -100px;
-    }
-  }
-
-  .sharp-container {
-    position: absolute;
-    top: 100px;
+    bottom: 0;
     left: 0;
     width: 100%;
     height: 100%;
     overflow: hidden;
 
-    &::after {
-      content: '';
-      position: absolute;
-      z-index: 5;
-      top: 0;
-      left: 0;
+    video {
+      object-fit: cover;
+      display: block;
       width: 100%;
       height: 100%;
-      @include trans-gray-gradient-left;
+    }
+
+    &.sharp {
+      position: absolute;
+      top: 100px;
+      left: 0;
+      width: 100%;
+      height: calc(100% - 100px);
+      overflow: hidden;
+
+      video {
+        object-position: 50% -200px;
+      }
+
+      &::after {
+        content: '';
+        position: absolute;
+        z-index: 5;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        @include trans-gray-gradient-left;
+      }
     }
   }
 }
