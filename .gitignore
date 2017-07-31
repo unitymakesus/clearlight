@@ -27,10 +27,6 @@ wp-content/wp-cache-config.php
 wp-content/plugins/hello.php
 wp-content/ai1wm-backups/
 
-# pro plugins
-wp-content/plugins/advanced-custom-fields-pro/*
-wp-content/plugins/wp-migrate-db-pro/*
-
 # wp core (as of 3.4.1)
 /db-config.php
 /index.php
