@@ -1,0 +1,8 @@
+.hentry {
+  table {
+    background: $white;
+    @extend .responsive-table;
+    @extend .highlight;
+    @extend .z-depth-1;
+  }
+}

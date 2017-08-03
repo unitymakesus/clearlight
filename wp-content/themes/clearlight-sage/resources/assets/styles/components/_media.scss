@@ -1,0 +1,16 @@
+img {
+  max-width: 100%;
+  height: auto;
+
+  .hentry & {
+    @extend .z-depth-1;
+  }
+
+  &.alignleft {
+    float: left;
+  }
+
+  &.alignright {
+    float: right;
+  }
+}

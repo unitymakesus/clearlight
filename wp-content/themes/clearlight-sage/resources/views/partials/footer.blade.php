@@ -1,3 +1,18 @@
+{{-- Getting Started --}}
+<section class="background-dark-green">
+  <div class="container">
+    <div class="row flex-grid">
+      <div class="col s12 m6 l5">
+        <h2>Ready to get started?</h2>
+        <p class="size-medium">Contact us today to discover how we can make the perfect piece for your project.</p>
+      </div>
+      <div class="col s12 m5 l4 offset-l1 valign-wrapper offset-">
+        <a href="#" class="btn-large" href="#">Request a Quote</a>
+      </div>
+    </div>
+  </div>
+</section>
+
 <footer>
   <div class="container">
     <div class="row">

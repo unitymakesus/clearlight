@@ -1,0 +1,44 @@
+.sidebar-primary {
+
+  .wrap {
+    @extend .container;
+  }
+
+  .content {
+    @extend .row;
+  }
+
+  .main {
+    @extend .col;
+    @extend .m8;
+  }
+
+  .sidebar {
+    @extend .col;
+    @extend .m3;
+    @extend .offset-m1;
+
+    .widget:first-child {
+      margin-top: 2.1rem;
+
+      &.card-panel {
+        .widgettitle {
+          margin-top: 0;
+        }
+
+        .current_page_item {
+          a {
+            color: $white;
+            text-decoration: none;
+          }
+        }
+
+        &:hover, &:active, &:focus {
+          .current_page_item a {
+            color: $dark-gray;
+          }
+        }
+      }
+    }
+  }
+}

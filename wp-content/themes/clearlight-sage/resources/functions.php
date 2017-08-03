@@ -55,7 +55,7 @@ array_map(function ($file) use ($sage_error) {
     if (!locate_template($file, true, true)) {
         $sage_error(sprintf(__('Error locating <code>%s</code> for inclusion.', 'sage'), $file), 'File not found');
     }
-}, ['helpers', 'setup', 'filters', 'admin', 'mobile_nav_walker']);
+}, ['helpers', 'setup', 'filters', 'admin', 'mobile_nav_walker', 'custom_post_types']);
 
 /**
  * Here's what's happening with these hooks:
@@ -89,3 +89,23 @@ if ($sage_views !== get_option('stylesheet')) {
     wp_redirect($_SERVER['REQUEST_URI']);
     exit();
 }
+
+
+/**
+ * Define which templates have a sidebar
+ */
+add_filter('sage/display_sidebar', function ($display) {
+  static $display;
+
+  // Show sidebar
+  isset($display) || $display = in_array(true, [
+    is_page()
+  ]);
+
+  // Hide sidebar
+  isset($display) || $display = in_array(false, [
+    is_page('home')
+  ]);
+
+  return $display;
+});

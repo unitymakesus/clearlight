@@ -1,3 +1,7 @@
+html {
+  color: $dark-gray;
+}
+
 .extra-large-light {
   font-weight: 300;
   font-size: 50px;
@@ -23,6 +27,11 @@
 
 h1 {
   @extend .extra-large-light;
+
+  &.entry-title, .entry-content & {
+    @extend .large-green;
+    font-weight: 400;
+  }
 }
 
 h2 {
@@ -31,4 +40,23 @@ h2 {
 
 h3 {
   @extend .medium-bold;
+}
+
+.hentry {
+  font-size: 17px;
+  line-height: 1.6em;
+
+  ul {
+    padding-left: 2rem;
+    position: relative;
+
+    li {
+      &::before {
+        content: '\2022';
+        color: $medium-green;
+        position: absolute;
+        left: .5rem;
+      }
+    }
+  }
 }

@@ -1,11 +1,16 @@
 .banner {
-  position: absolute;
   top: 0;
   width: 100%;
-  background: rgba($frosty-green, .5);
-  z-index: 10;
-  @extend .z-depth-2;
   height: 100px;
+  background: $white;
+  @extend .z-depth-1;
+
+  body.home & {
+    position: absolute;
+    background: rgba($frosty-green, .5);
+    z-index: 10;
+    @extend .z-depth-2;
+  }
 }
 
 nav {
@@ -45,22 +50,38 @@ nav {
       letter-spacing: .5px;
 
       &:hover, &:focus, &:active {
-        // background-color: rgba(255, 255, 255, .15);
+        background: $frosty-green;
       }
     }
 
-    li.active > a {
-      position: relative;
+    li.active {
+      background: none;
 
-      &::after {
-        content: '';
-        height: 2px;
-        background: $primary-color;
-        position: absolute;
-        bottom: 0px;
-        left: 15px;
-        right: 15px;
+      & > a {
+        position: relative;
+
+        &::after {
+          content: '';
+          height: 2px;
+          background: $primary-color;
+          position: absolute;
+          bottom: 0px;
+          left: 15px;
+          right: 15px;
+        }
       }
+    }
+  }
+}
+
+.sub-menu {
+  li.active {
+    background-color: $frosty-green;
+  }
+
+  a {
+    &:hover, &:active, &:focus {
+      text-decoration: underline;
     }
   }
 }
