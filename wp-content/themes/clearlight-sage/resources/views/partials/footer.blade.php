@@ -43,7 +43,7 @@
       </div>
 
       <div class="col s6 m7 l8">
-        <img src="./images/map.png" alt="Location Map">
+        {!! do_shortcode ('[wpgmza id="1"]') !!}
       </div>
     </div>
 

@@ -15352,6 +15352,15 @@ nav ul li.active > a::after {
   display: none;
 }
 
+.menu-capabilities .sub-menu {
+  -webkit-column-count: 2;
+          column-count: 2;
+}
+
+.sub-menu li a {
+  text-transform: capitalize;
+}
+
 .hero {
   position: relative;
   overflow: hidden;

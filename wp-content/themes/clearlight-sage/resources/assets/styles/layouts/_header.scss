@@ -127,3 +127,12 @@ nav {
     }
   }
 }
+
+.menu-capabilities .sub-menu{
+  column-count: 2;
+}
+
+.sub-menu li a {
+  text-transform: capitalize;
+
+}
