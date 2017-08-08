@@ -7,7 +7,7 @@
 
   &:hover, &:active, &:focus {
     color: $white;
-    backgroun: $medium-green;
+    background: $medium-green;
   }
 }
 
@@ -18,5 +18,16 @@
 
   a {
     @extend .btn;
+
+    .side-nav & {
+      background: $medium-green;
+      color: $white;
+      font-weight: 500;
+
+      &:hover, &:active, &:focus {
+        background: $neon-green;
+        color: $dark-gray;
+      }
+    }
   }
 }

@@ -114,7 +114,7 @@ class MobileNavWalker extends \Walker_Nav_Menu {
 
     if ($item->is_subitem) {
       $output .= '<ul class="collapsible collapsible-accordion"><li>';
-      $output .= '<div class="collapsible-header">' . $item->title . ' <i class="material-icons right">arrow_drop_down</i></div>';
+      $output .= '<div class="collapsible-header">' . $item->title . ' <i class="fa fa-chevron-down" aria-hidden="true"></i></div>';
     } else {
       $output .= '<a href="' . $url . '">' . $item->title . '</a>';
     }
