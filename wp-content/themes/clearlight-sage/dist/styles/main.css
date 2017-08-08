@@ -15591,6 +15591,17 @@ footer .sidebar-primary .content:last-child a:focus,
   color: #00A686;
 }
 
+@media only screen and (max-width: 425px) {
+  .brand-logo {
+    display: none;
+  }
+
+  .size-medium,
+  .background-frosted {
+    text-align: center;
+  }
+}
+
 .page:not(.home) {
   background: #E9F7F5;
 }
