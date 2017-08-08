@@ -1,0 +1,12 @@
+# Include your project-specific ignores in this file
+# Read about how to use .gitignore: https://help.github.com/articles/ignoring-files
+bower_components
+config.json
+node_modules
+npm-debug.log
+yarn-error.log
+/vendor/*
+<<<<<<< HEAD
+resources/assets/config.json
+=======
+>>>>>>> e789ea9fbc41e967e7b31b81b691644c824fe8b3
