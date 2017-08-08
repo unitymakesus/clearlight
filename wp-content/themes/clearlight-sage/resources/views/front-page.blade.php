@@ -5,13 +5,15 @@
   {{-- Hero --}}
   <section class="hero">
     <div class="background-video">
-      <video class="" id="video-blur" playsinline mute loop preload="auto">
-        <source src="{{ App\asset_path('images/ClearLight-v4-Final-blur.mp4') }}" type="video/mp4" />
+      <video class="" id="video-blur" playsinline mute loop preload="auto"
+             poster="{{ App\asset_path('images/hero-blur-poster.jpg') }}">
+        <source src="{{ App\asset_path('images/hero-blur-min.mp4') }}" type="video/mp4" />
       </video>
     </div>
     <div class="background-video sharp">
-      <video class="" id="video-sharp" playsinline mute loop preload="auto">
-        <source src="{{ App\asset_path('images/ClearLight-v4-Final.mp4') }}" type="video/mp4" />
+      <video class="" id="video-sharp" playsinline mute loop preload="auto"
+             poster="{{ App\asset_path('images/hero-poster.jpg') }}">
+        <source src="{{ App\asset_path('images/hero-min.mp4') }}" type="video/mp4" />
       </video>
     </div>
 
