@@ -1,5 +1,6 @@
 /** import external dependencies */
 import 'jquery';
+import 'materialize-css/dist/js/materialize';
 
 /** import local dependencies */
 import Router from './util/Router';

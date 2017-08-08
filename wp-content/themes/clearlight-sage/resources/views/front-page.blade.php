@@ -18,7 +18,7 @@
     <div class="hero-text">
       <div class="container">
         <div class="row">
-          <div class="col s12 m7 l6">
+          <div class="col s12 m9 l6">
             <h1>Looking for custom glass or mirror products?</h1>
             <p>Serving the community for nearly 25 years, we are North Carolina's premier custom glass and mirror fabricator and can make the perfect piece for your project.</p>
             <a class="btn-large" href="#">What can we do for you?</a>
@@ -35,32 +35,32 @@
         @include('partials.card-image', [
           'cards'     => [
             [
-              'img'   => App\asset_path('images/product-thumb1.jpg'),
+              'img'   => App\asset_path('images/custom-shapes.jpg'),
               'title' => 'Custom Shapes',
               'link'  => '#'
             ],
             [
-              'img'   => App\asset_path('images/product-thumb2.jpg'),
+              'img'   => App\asset_path('images/edging.jpg'),
               'title' => 'Edging',
               'link'  => '#'
             ],
             [
-              'img'   => App\asset_path('images/product-thumb3.jpg'),
+              'img'   => App\asset_path('images/etching.jpg'),
               'title' => 'Etching',
               'link'  => '#'
             ],
             [
-              'img'   => App\asset_path('images/product-thumb4.jpg'),
+              'img'   => App\asset_path('images/design.jpg'),
               'title' => 'Design',
               'link'  => '#'
             ],
             [
-              'img'   => App\asset_path('images/product-thumb5.jpg'),
+              'img'   => App\asset_path('images/glass-pattern.jpg'),
               'title' => 'Glass Patterns',
               'link'  => '#'
             ],
             [
-              'img'   => App\asset_path('images/product-thumb6.jpg'),
+              'img'   => App\asset_path('images/mirror-color.jpg'),
               'title' => 'Mirror Colors',
               'link'  => '#'
             ],
@@ -74,7 +74,7 @@
   <section class="background-frosty-green">
     <div class="container">
       <div class="row flex-grid">
-        <div class="col s12 m6 l3">
+        <div class="col s12 m8 l3">
           <h2 class="offer-statement">We’re not like the other guys</h2>
           <p class="size-medium">See for yourself why we’re North Carolina’s premier custom glass and mirror fabricator! We offer:</p>
         </div>

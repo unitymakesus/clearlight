@@ -4,11 +4,11 @@
   height: 100px;
   background: $white;
   @extend .z-depth-1;
+  z-index: 999;
 
   body.home & {
     position: absolute;
     background: rgba($frosty-green, .5);
-    z-index: 10;
     @extend .z-depth-2;
   }
 }
@@ -17,6 +17,14 @@ nav {
   background: none;
   box-shadow: none;
   height: 100%;
+
+  a.button-collapse {
+    top: 15px;
+    i {
+      font-size: 1.5rem;
+      color: color('grey', 'darken-4');
+    }
+  }
 
   .nav-wrapper {
     margin-bottom: 0;
@@ -28,6 +36,7 @@ nav {
     top: 50%;
     transform: translateY(-50%);
     margin-left: 15px;
+    left: 0;
 
     img {
       vertical-align: middle;
@@ -75,13 +84,35 @@ nav {
 }
 
 .sub-menu {
-  li.active {
-    background-color: $frosty-green;
+  @extend .dropdown-content;
+  @include soft-corners;
+
+  .menu-capabilities &, .menu-gallery & {
+    column-count: 2;
   }
 
-  a {
-    &:hover, &:active, &:focus {
-      text-decoration: underline;
+  li {
+    min-height: 0;
+
+    & > a {
+      color: color('grey', 'darken-4');
+      text-transform: none;
+      padding-top: 8px;
+      padding-bottom: 8px;
+      display: inline-block;
+      width: 100%;
+
+      &:hover, &:active, &:focus {
+        text-decoration: underline;
+      }
+    }
+
+    &.active {
+      background-color: $frosty-green;
+
+      & > a::after {
+        display: none;
+      }
     }
   }
 }
@@ -94,11 +125,36 @@ nav {
 
     a {
       font-size: 16px;
+
+      &:hover, &:focus, &:active {
+        background: $frosty-green;
+      }
+    }
+
+    & > a {
+      font-weight: 300;
+      padding: 0 16px;
     }
 
     .collapsible-header {
       color: #444;
       margin: 0;
+
+      &:hover, &:focus, &:active, &.active {
+        background: $frosty-green;
+      }
+
+      i {
+        float: right;
+        height: 100%;
+        font-size: .5rem;
+      }
+    }
+
+    .collapsible-body {
+      li a {
+        text-transform: none;
+      }
     }
   }
 }
@@ -112,26 +168,4 @@ nav {
       opacity: 1;
     }
   }
-}
-
-.sub-menu {
-  @extend .dropdown-content;
-
-  li {
-    & > a {
-      color: color('grey', 'darken-4');
-    }
-
-    &.active > a::after {
-      display: none;
-    }
-  }
-}
-
-.menu-capabilities .sub-menu, .menu-gallery .sub-menu{
-  column-count: 2;
-}
-
-.sub-menu li a {
-  text-transform: capitalize;
 }
