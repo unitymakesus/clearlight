@@ -16,7 +16,7 @@
 <footer>
   <div class="container">
     <div class="row">
-      <div class="col s6 m5 l4">
+      <div class="col s12 m5 l4">
         <a class="brand-logo" href="{{ home_url('/') }}" rel="home">
           @if (has_custom_logo())
             @php
@@ -42,7 +42,7 @@
         </ul>
       </div>
 
-      <div class="col s6 m7 l8">
+      <div class="col s12 m7 l8">
         {!! do_shortcode ('[wpgmza id="1"]') !!}
       </div>
     </div>
@@ -53,7 +53,7 @@
       </div>
     </div>
 
-    <div class="row block-grid up-s1 up-m3 up-l5">
+    <div class="row block-grid up-s12 up-m3 up-l5">
       <div class="col"><img src="{{ App\asset_path('images/homebuilders.png') }}" alt="Home Builders Association of Winston Salem"></div>
       <div class="col"><img src="{{ App\asset_path('images/nc.png') }}" alt="North Carolina Home Builders Association"></div>
       <div class="col"><img src="{{ App\asset_path('images/gborobuilders.png') }}" alt="Greensboro Builders Association"></div>

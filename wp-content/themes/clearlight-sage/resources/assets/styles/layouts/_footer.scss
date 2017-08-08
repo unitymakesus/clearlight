@@ -34,3 +34,13 @@ footer {
     }
   }
 }
+
+@media only screen and (max-width: 425px) {
+  .brand-logo {
+    display: none;
+  }
+  .size-medium {
+    text-align: center;
+  
+  }
+}
