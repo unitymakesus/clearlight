@@ -103,9 +103,9 @@ add_filter('sage/display_sidebar', function ($display) {
   ]);
 
   // Hide sidebar
-  $display = in_array(false, [
-    is_page('home'),
-    is_front_page()
+  $display = !in_array(true, [
+    is_front_page(),
+    is_singular('gallery')
   ]);
 
   return $display;
