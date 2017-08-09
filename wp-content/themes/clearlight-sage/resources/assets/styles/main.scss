@@ -1,6 +1,7 @@
 @import "common/variables";
 
 // Import npm dependencies
+$roboto-font-path: "~materialize-css/dist/fonts/roboto/";
 @import "~materialize-css/sass/materialize";
 $fa-font-path: "~font-awesome/fonts";
 @import "~font-awesome/scss/font-awesome";

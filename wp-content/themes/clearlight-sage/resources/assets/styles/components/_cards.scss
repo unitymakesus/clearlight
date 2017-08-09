@@ -55,7 +55,7 @@
     }
   }
 
-  .link {
+  .link, a {
     color: $neon-green;
     text-decoration: underline;
   }
@@ -65,7 +65,7 @@
     color: $dark-gray;
     @extend .z-depth-3;
 
-    .link {
+    .link, a {
       color: $dark-green;
     }
 

@@ -17,7 +17,7 @@
   <div class="container">
     <div class="row">
       <div class="col s12 m5 l4">
-        <a class="brand-logo" href="{{ home_url('/') }}" rel="home">
+        <a class="brand-logo hide-on-small-only" href="{{ home_url('/') }}" rel="home">
           @if (has_custom_logo())
             @php
               $custom_logo_id = get_theme_mod( 'custom_logo' );
@@ -62,13 +62,13 @@
     </div>
 
     <div class="row">
-      <div class="col s12 m6 l4">
+      <div class="col s12 m4">
         <a href="/wp-content/uploads/2017/08/ClearlightTermsAndConditions.pdf">Terms &amp; Conditions</a> &nbsp; <a href="{{ get_permalink(get_page_by_path('privacy-policy')) }}">Privacy Policy</a>
       </div>
-      <div class="col s12 m6 l4 center-align">
+      <div class="col s12 m4 center-align">
         &copy; {{ current_time('Y') }} Clearlight Glass &amp; Mirror. All rights reserved.
       </div>
-      <div class="col s12 l4 right-align">
+      <div class="col s12 m4 right-align">
         @include('partials.unity')
       </div>
     </div>

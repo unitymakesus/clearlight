@@ -32,15 +32,11 @@ footer {
         color: $medium-green;
       }
     }
-  }
-}
 
-@media only screen and (max-width: 425px) {
-  .brand-logo {
-    display: none;
-  }
-  .size-medium {
-    text-align: center;
-  
+    @media #{$small-and-down} {
+      .center-align, .right-align {
+        text-align: left;
+      }
+    }
   }
 }
