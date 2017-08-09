@@ -55,7 +55,7 @@
     }
   }
 
-  .learn-more, a {
+  .link {
     color: $neon-green;
     text-decoration: underline;
   }
@@ -65,13 +65,8 @@
     color: $dark-gray;
     @extend .z-depth-3;
 
-    .learn-more, a {
+    .link {
       color: $dark-green;
-
-      &:hover, &:active, &:focus {
-        color: $medium-green;
-        text-decoration: none;
-      }
     }
 
     .small-icon {

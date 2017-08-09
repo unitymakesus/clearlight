@@ -16,8 +16,8 @@
         @endif
       </a>
       @if (has_nav_menu('primary_navigation'))
-        <a href="#" data-activates="mobile-menu" id="mobile-menu-button" class="right button-collapse"><i class="fa fa-bars" aria-hidden="true"></i></a>
         {!! wp_nav_menu(['theme_location' => 'primary_navigation', 'menu_class' => 'right hide-on-med-and-down']) !!}
+        <a href="#" data-activates="mobile-menu" id="mobile-menu-button" class="right button-collapse" aria-hidden="true"><i class="fa fa-bars"></i></a>
         <div aria-hidden="true">
           {!! wp_nav_menu(['theme_location' => 'primary_navigation', 'menu_class' => 'side-nav hide-on-large-only', 'menu_id' => 'mobile-menu', 'walker' => new App\MobileNavWalker()]) !!}
         </div>

@@ -26,17 +26,26 @@
   position: relative;
   z-index: 5;
   @extend .size-medium;
+  transition: all .3s ease;
+
+  a.mega-link {
+    display: block;
+    @include cover;
+  }
 
   h2 {
     color: $white;
+    transition: all .3s ease;
   }
 
-  a {
+  .link {
     color: $neon-green;
+    font-weight: 500;
     text-decoration: underline;
+    transition: all .3s ease;
   }
 
-  &:before {
+  &::before {
     content: '';
     @include cover;
     @include soft-corners;
@@ -45,11 +54,27 @@
     filter: blur(20px);
   }
 
-  &:after {
+  &::after {
     content: '';
     @include cover;
     @include soft-corners;
     z-index: -1;
     background: rgba($frosty-gray, .5);
+    transition: all .3s ease;
+  }
+
+  &:hover, &:active, &:focus {
+    .link {
+      color: $medium-green;
+    }
+
+    h2, & {
+      color: $dark-gray;
+    }
+
+    &::after {
+      background: rgba($white, .8);
+      @extend .z-depth-5;
+    }
   }
 }

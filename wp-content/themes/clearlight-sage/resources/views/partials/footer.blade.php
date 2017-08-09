@@ -38,7 +38,7 @@
             <i class="fa fa-fax" aria-label="Fax"></i> 336-993-1431
           </li>
           <li>1318 Shields Road<br />Kernersville, NC 27284</li>
-          <li><a href="{{ get_permalink(get_page_by_path('contact')) }}" class="contact-us">Contact Us ›</a></li>
+          <li><a href="{{ get_permalink(get_page_by_path('about/contact')) }}" class="contact-us">Contact Us ›</a></li>
         </ul>
       </div>
 

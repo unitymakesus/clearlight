@@ -11,6 +11,14 @@
     background: rgba($frosty-green, .5);
     @extend .z-depth-2;
   }
+
+  .admin-bar & {
+    top: 32px;
+
+    @media screen and (max-width: 782px) {
+      top: 46px;
+    }
+  }
 }
 
 nav {
@@ -60,6 +68,7 @@ nav {
 
       &:hover, &:focus, &:active {
         background: $frosty-green;
+        border-radius: 4px 4px 0 0;
       }
     }
 
@@ -85,7 +94,8 @@ nav {
 
 .sub-menu {
   @extend .dropdown-content;
-  @include soft-corners;
+  border-radius: 0 4px 4px 4px;
+  padding-bottom: 10px;
 
   .menu-capabilities &, .menu-gallery & {
     column-count: 2;

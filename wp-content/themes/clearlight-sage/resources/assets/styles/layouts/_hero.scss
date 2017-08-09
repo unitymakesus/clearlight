@@ -11,7 +11,7 @@
     height: 100%;
     overflow: hidden;
 
-    video {
+    video, img {
       object-fit: cover;
       display: block;
       width: 100%;
@@ -26,7 +26,7 @@
       height: calc(100% - 100px);
       overflow: hidden;
 
-      video {
+      video, img {
         object-position: 50% -200px;
       }
 
