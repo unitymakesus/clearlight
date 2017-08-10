@@ -70,8 +70,7 @@
     }
   },
   "stylelint": {
-    "rules": {
-    }
+    "rules": {}
   },
   "scripts": {
     "build": "webpack --progress --config resources/assets/build/webpack.config.js",
@@ -127,7 +126,8 @@
   "dependencies": {
     "font-awesome": "^4.7.0",
     "jquery": "1.12.4 - 3",
-    "materialize-css": "^0.99.0",
+    "macy": "^2.1.0",
+    "materialize-css": "^0.100.1",
     "webfontloader": "^1.6.28"
   }
 }

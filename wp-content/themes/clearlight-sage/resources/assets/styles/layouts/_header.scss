@@ -2,15 +2,10 @@
   top: 0;
   width: 100%;
   height: 100px;
-  // background: $white;
-  // @extend .z-depth-1;
   z-index: 999;
-
-  // body.home & {
-    position: absolute;
-    background: rgba($frosty-green, .5);
-    @extend .z-depth-2;
-  // }
+  position: absolute;
+  background: rgba($frosty-green, .5);
+  @extend .z-depth-2;
 
   .admin-bar & {
     top: 32px;
@@ -63,16 +58,15 @@ nav {
       font-size: 16px;
       text-transform: uppercase;
       font-size: 16px;
-      font-weight: 400;
+      font-weight: 300;
       letter-spacing: .5px;
 
       &:hover, &:focus, &:active {
-        background: $frosty-green;
-        border-radius: 4px 4px 0 0;
+        background: none;
       }
     }
 
-    li.active {
+    li.active, li:hover, li:focus, li:active {
       background: none;
 
       & > a {
@@ -114,16 +108,12 @@ nav {
       font-weight: 300;
 
       &:hover, &:active, &:focus {
-        text-decoration: underline;
+        background: none;
       }
     }
 
-    &.active {
-      background-color: $frosty-green;
-
-      & > a::after {
-        display: none;
-      }
+    &.active, &:hover, &:active, &:focus {
+      background: none;
     }
   }
 }

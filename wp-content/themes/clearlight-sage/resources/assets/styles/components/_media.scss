@@ -19,4 +19,8 @@ img {
       max-width: 75%;
     }
   }
+
+  .material-placeholder & {
+    max-width: none;
+  }
 }

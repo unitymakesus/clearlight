@@ -1,3 +1,5 @@
+// import Materialize from 'materialize-css';
+
 export default {
   init() {
     // Mobile side nav
@@ -10,5 +12,12 @@ export default {
   },
   finalize() {
     // JavaScript to be fired on all pages, after page specific JS is fired
+    // Materialize.scrollFire([
+    //   {selector: 'img.lazyload', offset: 500, callback: function(el) {
+    //     Materialize.fadeInImage($(el));
+    //   }},
+    // ]);
+
+    $('[class*="gallery-size"] img').materialbox();
   },
 };

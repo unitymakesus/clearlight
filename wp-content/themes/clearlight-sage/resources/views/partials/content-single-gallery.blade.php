@@ -1,44 +1,34 @@
-<article @php(post_class('container'))>
-  <div class="entry-content">
+@include('partials.page-header')
 
-    <div class="row">
-      <div class="col m8">
-        @php(the_content())
-      </div>
-
-      <div class="col m3 offset-m1">
-        @php
-          //GET OTHER GALLERIES
-          $args = array(
-            'post_type' => 'gallery',
-            'title_li' => '',
-            'depth' => 1
-          );
-        @endphp
-        <div class="widget subpages card-panel background-dark-green">
-          <h3 class="widgettitle">More Inspiration</h3>
-          <ul class="pages-list">
-            {{wp_list_pages($args)}}
-          </ul>
+<article @php(post_class())>
+  <section class="background-white">
+    <div class="container">
+      <div class="row">
+        <div class="col l9">
+          @php(the_content())
         </div>
       </div>
     </div>
+  </section>
 
-    <div class="gallery">
-      @php
-        $images = get_field('photos');
-      @endphp
+  <section class="background-frosty-green">
+    <div class="container">
+      <div class="row">
+        <div class="col s12 gallery" id="bricks">
+          @php
+            $images = get_field('photos');
+          @endphp
 
-      @if($images)
-        @php(shuffle($images))
-        <ul>
-          @foreach($images as $image)
-            <li>
-              <img src="<?php echo $image['sizes']['medium']; ?>" alt="<?php echo $image['alt']; ?>" />
-            </li>
-          @endforeach
-        </ul>
-      @endif
+          @if($images)
+            @php(shuffle($images))
+            @foreach($images as $image)
+              <div class="child">
+                <img src="<?php echo $image['sizes']['medium']; ?>" alt="<?php echo $image['alt']; ?>" />
+              </div>
+            @endforeach
+          @endif
+        </div>
+      </div>
     </div>
-  </div>
+  </section>
 </article>
