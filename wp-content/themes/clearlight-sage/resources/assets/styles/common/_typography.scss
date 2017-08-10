@@ -47,8 +47,16 @@ h3 {
 }
 
 .hentry {
-  font-size: 17px;
+  font-size: 19px;
   line-height: 1.6em;
+
+  h2, h3 {
+    margin: 1.5em 0 .5em;
+
+    &:first-child {
+      margin-top: 1rem;
+    }
+  }
 
   ul {
     padding-left: 2rem;

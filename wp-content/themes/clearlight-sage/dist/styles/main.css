@@ -2639,8 +2639,7 @@ nav,
 .collapsible,
 .side-nav,
 .hentry img,
-.hentry table,
-.banner {
+.hentry table {
   -webkit-box-shadow: 0 2px 2px 0 rgba(0, 0, 0, 0.14), 0 1px 5px 0 rgba(0, 0, 0, 0.12), 0 3px 1px -2px rgba(0, 0, 0, 0.2);
           box-shadow: 0 2px 2px 0 rgba(0, 0, 0, 0.14), 0 1px 5px 0 rgba(0, 0, 0, 0.12), 0 3px 1px -2px rgba(0, 0, 0, 0.2);
 }
@@ -2655,7 +2654,7 @@ nav,
 }
 
 .z-depth-2,
-body.home .banner {
+.banner {
   -webkit-box-shadow: 0 4px 5px 0 rgba(0, 0, 0, 0.14), 0 1px 10px 0 rgba(0, 0, 0, 0.12), 0 2px 4px -1px rgba(0, 0, 0, 0.3);
           box-shadow: 0 4px 5px 0 rgba(0, 0, 0, 0.14), 0 1px 10px 0 rgba(0, 0, 0, 0.12), 0 2px 4px -1px rgba(0, 0, 0, 0.3);
 }
@@ -14979,8 +14978,18 @@ h1.entry-title,
 }
 
 .hentry {
-  font-size: 17px;
+  font-size: 19px;
   line-height: 1.6em;
+}
+
+.hentry h2,
+.hentry h3 {
+  margin: 1.5em 0 .5em;
+}
+
+.hentry h2:first-child,
+.hentry h3:first-child {
+  margin-top: 1rem;
 }
 
 .hentry ul {
@@ -15330,10 +15339,24 @@ img.alignleft {
 
 img.alignright {
   float: right;
+  max-width: 50%;
+}
+
+@media only screen and (min-width: 993px) {
+  img.alignright {
+    margin: 0 -33% 20px 20px;
+    max-width: 75%;
+  }
 }
 
 .hentry table {
   background: #ffffff;
+}
+
+@media only screen and (min-width: 993px) {
+  .hentry table {
+    width: 133%;
+  }
 }
 
 .unity-link {
@@ -15352,11 +15375,7 @@ img.alignright {
   top: 0;
   width: 100%;
   height: 100px;
-  background: #ffffff;
   z-index: 999;
-}
-
-body.home .banner {
   position: absolute;
   background: rgba(233, 247, 245, 0.5);
 }
@@ -15418,7 +15437,7 @@ nav ul .collapsible-header {
   font-size: 16px;
   text-transform: uppercase;
   font-size: 16px;
-  font-weight: 300;
+  font-weight: 400;
   letter-spacing: .5px;
 }
 
@@ -15472,6 +15491,7 @@ nav ul li.active > a::after {
   padding-bottom: 8px;
   display: inline-block;
   width: 100%;
+  font-weight: 300;
 }
 
 .sub-menu li > a:hover,
@@ -15704,8 +15724,62 @@ footer .sidebar-primary .content:last-child a:focus,
   }
 }
 
-.page:not(.home) {
-  background: #E9F7F5;
+.page:not(.home) .main section {
+  padding: 30px 0 20px;
+}
+
+.page-header {
+  position: relative;
+  overflow: hidden;
+  width: 100%;
+}
+
+.page-header .wp-post-image {
+  position: absolute;
+  display: block;
+  bottom: 50%;
+  left: 50%;
+  -webkit-transform: translate3d(-50%, 50%, 0);
+          transform: translate3d(-50%, 50%, 0);
+  min-height: 100%;
+  min-width: 100%;
+  max-width: none;
+  z-index: -100;
+}
+
+.page-header .container,
+.page-header .sidebar-primary .wrap,
+.sidebar-primary .page-header .wrap {
+  padding: 150px 0 25px;
+  z-index: 10;
+  position: relative;
+}
+
+.page-header h1 {
+  color: #ffffff;
+  margin: 0;
+}
+
+.page-header::after {
+  content: '';
+  position: absolute;
+  z-index: 5;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  filter: progid:DXImageTransform.Microsoft.gradient(gradientType=1, startColorstr='#80222222', endColorstr='#00222222');
+  background-image: -o-linear-gradient(90deg, rgba(34, 34, 34, 0.5) 50%, rgba(34, 34, 34, 0) 75%);
+  background-image: -webkit-gradient(linear, left top, right top, color-stop(50%, rgba(34, 34, 34, 0.5)), color-stop(75%, rgba(34, 34, 34, 0)));
+  background-image: -webkit-linear-gradient(left, rgba(34, 34, 34, 0.5) 50%, rgba(34, 34, 34, 0) 75%);
+  background-image: -o-linear-gradient(left, rgba(34, 34, 34, 0.5) 50%, rgba(34, 34, 34, 0) 75%);
+  background-image: linear-gradient(90deg, rgba(34, 34, 34, 0.5) 50%, rgba(34, 34, 34, 0) 75%);
+}
+
+@media only screen and (max-width: 600px) {
+  .page-header::after {
+    background: rgba(34, 34, 34, 0.5);
+  }
 }
 
 body#tinymce {

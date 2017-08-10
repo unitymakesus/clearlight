@@ -2,15 +2,15 @@
   top: 0;
   width: 100%;
   height: 100px;
-  background: $white;
-  @extend .z-depth-1;
+  // background: $white;
+  // @extend .z-depth-1;
   z-index: 999;
 
-  body.home & {
+  // body.home & {
     position: absolute;
     background: rgba($frosty-green, .5);
     @extend .z-depth-2;
-  }
+  // }
 
   .admin-bar & {
     top: 32px;
@@ -63,7 +63,7 @@ nav {
       font-size: 16px;
       text-transform: uppercase;
       font-size: 16px;
-      font-weight: 300;
+      font-weight: 400;
       letter-spacing: .5px;
 
       &:hover, &:focus, &:active {
@@ -111,6 +111,7 @@ nav {
       padding-bottom: 8px;
       display: inline-block;
       width: 100%;
+      font-weight: 300;
 
       &:hover, &:active, &:focus {
         text-decoration: underline;

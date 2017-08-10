@@ -12,5 +12,11 @@ img {
 
   &.alignright {
     float: right;
+    max-width: 50%;
+
+    @media #{$large-and-up} {
+      margin: 0 -33% 20px 20px;
+      max-width: 75%;
+    }
   }
 }

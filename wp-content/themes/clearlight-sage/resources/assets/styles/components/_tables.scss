@@ -4,5 +4,9 @@
     @extend .responsive-table;
     @extend .highlight;
     @extend .z-depth-1;
+
+    @media #{$large-and-up} {
+      width: 133%;
+    }
   }
 }

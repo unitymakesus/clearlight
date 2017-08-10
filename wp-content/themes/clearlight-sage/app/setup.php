@@ -78,6 +78,9 @@ add_action('after_setup_theme', function () {
        'size' => 'clearlight-logo-2x'
      ));
 
+     // Set up featured image sizes for interior page headers
+     add_image_size('featured-banner', 1000, 300, true);
+
 }, 20);
 
 /**

@@ -1,3 +1,11 @@
 <article @php(post_class())>
-  @php(the_content())
+  <section class="background-white">
+    <div class="container">
+      <div class="row">
+        <div class="col l9">
+          @php(the_content())
+        </div>
+      </div>
+    </div>
+  </section>
 </article>
