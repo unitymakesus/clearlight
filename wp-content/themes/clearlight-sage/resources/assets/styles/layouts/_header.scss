@@ -14,6 +14,21 @@
       top: 46px;
     }
   }
+
+  &::before {
+    content: '';
+    @include cover;
+    background-position: center;
+    background-size: cover;
+    z-index: -2;
+    filter: blur(20px);
+  }
+
+  &::after {
+    content: '';
+    @include cover;
+    z-index: -1;
+  }
 }
 
 nav {

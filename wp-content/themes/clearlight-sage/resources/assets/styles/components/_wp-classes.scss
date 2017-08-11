@@ -23,4 +23,20 @@
       width: calc(100% / 4);
     }
   }
+
+  &.gallery-columns-2 {
+    .gallery-item {
+      @media #{$medium-and-up} {
+        width: calc(100% / 2);
+      }
+    }
+  }
+
+  &.gallery-columns-3 {
+    .gallery-item {
+      @media #{$large-and-up} {
+        width: calc(100% / 3);
+      }
+    }
+  }
 }

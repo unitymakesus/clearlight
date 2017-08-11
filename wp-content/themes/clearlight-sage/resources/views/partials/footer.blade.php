@@ -34,7 +34,7 @@
 
         <ul class="size-medium">
           <li>
-            <i class="fa fa-phone" aria-label="Phone"></i> <tel>336-993-7300</tel><br />
+            <i class="fa fa-phone" aria-label="Phone"></i> <a href="tel:+1-336-993-7300">336-993-7300</a><br />
             <i class="fa fa-fax" aria-label="Fax"></i> 336-993-1431
           </li>
           <li>1318 Shields Road<br />Kernersville, NC 27284</li>

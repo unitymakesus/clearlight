@@ -90,6 +90,15 @@ if ($sage_views !== get_option('stylesheet')) {
     exit();
 }
 
+/**
+ * Remove span wrappers from around CF7 radio button elements
+ */
+// add_filter('wpcf7_form_elements', function($content) {
+//   $content = preg_replace('/<(span).*?class="\s*(?:.*\s)?wpcf7-form-control-wrap(?:\s[^"]+)?\s*"[^\>]*>(.*)<\/\1>/i', '\2', $content);
+//
+//   return $content;
+// });
+
 
 /**
  * Define which templates have a sidebar

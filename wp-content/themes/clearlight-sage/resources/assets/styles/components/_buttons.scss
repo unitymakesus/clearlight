@@ -19,6 +19,10 @@
   a {
     @extend .btn;
 
+    &::after {
+      display: none !important;
+    }
+
     .side-nav & {
       background: $medium-green;
       color: $white;

@@ -2,7 +2,8 @@ import Macy from "macy";
 
 export default {
   init() {
-    Macy({
+    // Masonry layout for the image galleries
+    let gallery = Macy({
       container: '#bricks',
       trueOrder: false,
       waitForImages: false,
@@ -14,6 +15,10 @@ export default {
         600: 2,
         400: 1,
       },
+    });
+
+    gallery.runOnImageLoad(function () {
+      gallery.recalculate(true, true);
     });
   },
 };

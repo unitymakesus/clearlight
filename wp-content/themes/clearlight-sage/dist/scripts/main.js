@@ -12879,6 +12879,24 @@ Router.prototype.loadEvents = function loadEvents () {
 "use strict";
 /* WEBPACK VAR INJECTION */(function($) {/* harmony default export */ __webpack_exports__["a"] = ({
   init: function init() {
+    // Mobile side nav
+    $('#mobile-menu-button').sideNav({
+      menuWidth: 300, // Default is 300
+      edge: 'right', // Choose the horizontal origin
+      closeOnClick: true, // Closes side-nav on <a> clicks, useful for Angular/Meteor
+      draggable: true, // Choose whether you can drag to open on touch screens
+    });
+  },
+  finalize: function finalize() {
+    // Blur the background of the head banner thing
+    var bg_img = $('body.page .page-header').attr('style');
+    $('head').append(
+      '<style type="text/css">.banner::before {' + bg_img + '} .banner::after {background-color:rgba(233, 247, 245, .5);}</style>'
+    );
+
+    // Lightbox gallery thumbnail images
+    $('[class*="gallery-size"] img').materialbox();
+
     // Lazy load images a la David Walsh
     // https://davidwalsh.name/lazyload-image-fade
     [].forEach.call(document.querySelectorAll('noscript'), function(noscript) {
@@ -12890,18 +12908,6 @@ Router.prototype.loadEvents = function loadEvents () {
       };
       img.src = noscript.getAttribute('data-src');
     });
-
-    // Mobile side nav
-    $('#mobile-menu-button').sideNav({
-      menuWidth: 300, // Default is 300
-      edge: 'right', // Choose the horizontal origin
-      closeOnClick: true, // Closes side-nav on <a> clicks, useful for Angular/Meteor
-      draggable: true, // Choose whether you can drag to open on touch screens
-    });
-  },
-  finalize: function finalize() {
-    // JavaScript to be fired on all pages, after page specific JS is fired
-    $('[class*="gallery-size"] img').materialbox();
   },
 });
 
@@ -13010,7 +13016,8 @@ Router.prototype.loadEvents = function loadEvents () {
 
 /* harmony default export */ __webpack_exports__["a"] = ({
   init: function init() {
-    __WEBPACK_IMPORTED_MODULE_0_macy___default()({
+    // Masonry layout for the image galleries
+    var gallery = __WEBPACK_IMPORTED_MODULE_0_macy___default()({
       container: '#bricks',
       trueOrder: false,
       waitForImages: false,
@@ -13022,6 +13029,10 @@ Router.prototype.loadEvents = function loadEvents () {
         600: 2,
         400: 1,
       },
+    });
+
+    gallery.runOnImageLoad(function () {
+      gallery.recalculate(true, true);
     });
   },
 });

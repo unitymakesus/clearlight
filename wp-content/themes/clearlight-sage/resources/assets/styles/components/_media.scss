@@ -2,8 +2,12 @@ img {
   max-width: 100%;
   height: auto;
 
-  .hentry &:not('.no-shadow') {
+  .hentry & {
     @extend .z-depth-1;
+  }
+
+  .hentry &.no-shadow {
+    box-shadow: none;
   }
 
   @media #{$medium-and-up} {
