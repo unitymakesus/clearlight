@@ -12877,7 +12877,7 @@ Router.prototype.loadEvents = function loadEvents () {
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
-/* WEBPACK VAR INJECTION */(function($) {// import Materialize from 'materialize-css';
+/* WEBPACK VAR INJECTION */(function($) {// import Materialize from 'materialize-css/dist/js/materialize';
 
 /* harmony default export */ __webpack_exports__["a"] = ({
   init: function init() {

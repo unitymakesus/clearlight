@@ -1,4 +1,4 @@
-// import Materialize from 'materialize-css';
+// import Materialize from 'materialize-css/dist/js/materialize';
 
 export default {
   init() {
