@@ -1,7 +1,17 @@
-// import Materialize from 'materialize-css/dist/js/materialize';
-
 export default {
   init() {
+    // Lazy load images a la David Walsh
+    // https://davidwalsh.name/lazyload-image-fade
+    [].forEach.call(document.querySelectorAll('noscript'), function(noscript) {
+      var img = new Image();
+      img.setAttribute('data-src', '');
+      noscript.parentNode.insertBefore(img, noscript);
+      img.onload = function() {
+        img.removeAttribute('data-src');
+      };
+      img.src = noscript.getAttribute('data-src');
+    });
+
     // Mobile side nav
     $('#mobile-menu-button').sideNav({
       menuWidth: 300, // Default is 300
@@ -12,12 +22,6 @@ export default {
   },
   finalize() {
     // JavaScript to be fired on all pages, after page specific JS is fired
-    // Materialize.scrollFire([
-    //   {selector: 'img.lazyload', offset: 500, callback: function(el) {
-    //     Materialize.fadeInImage($(el));
-    //   }},
-    // ]);
-
     $('[class*="gallery-size"] img').materialbox();
   },
 };

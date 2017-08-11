@@ -24,7 +24,7 @@
               $logo = wp_get_attachment_image_src( $custom_logo_id , 'clearlight-logo' );
               $logo_2x = wp_get_attachment_image_src( $custom_logo_id, 'clearlight-logo-2x' );
             @endphp
-            <img src="{{ $logo[0] }}"
+            <img data-src="{{ $logo[0] }}"
                  srcset="{{ $logo[0] }} 1x, {{ $logo_2x[0] }} 2x"
                  alt="{{ get_bloginfo('name', 'display') }}">
           @else
@@ -54,11 +54,36 @@
     </div>
 
     <div class="row block-grid up-s12 up-m3 up-l5">
-      <div class="col"><img src="{{ App\asset_path('images/homebuilders.png') }}" alt="Home Builders Association of Winston Salem"></div>
-      <div class="col"><img src="{{ App\asset_path('images/nc.png') }}" alt="North Carolina Home Builders Association"></div>
-      <div class="col"><img src="{{ App\asset_path('images/gborobuilders.png') }}" alt="Greensboro Builders Association"></div>
-      <div class="col"><img src="{{ App\asset_path('images/nahb.png') }}" alt="National Association of Home Builders"></div>
-      <div class="col"><img src="{{ App\asset_path('images/BBB.png') }}" alt="Better Business Bureau Rating"></div>
+      <div class="col">
+        @include('partials.lazy-image', [
+          'src'   => App\asset_path('images/homebuilders.png'),
+          'alt' => 'Home Builders Association of Winston Salem',
+        ])
+      </div>
+      <div class="col">
+        @include('partials.lazy-image', [
+          'src'   => App\asset_path('images/nc.png'),
+          'alt' => 'North Carolina Home Builders Association',
+        ])
+      </div>
+      <div class="col">
+        @include('partials.lazy-image', [
+          'src'   => App\asset_path('images/gborobuilders.png'),
+          'alt' => 'Greensboro Builders Association',
+        ])
+      </div>
+      <div class="col">
+        @include('partials.lazy-image', [
+          'src'   => App\asset_path('images/nahb.png'),
+          'alt' => 'National Association of Home Builders',
+        ])
+      </div>
+      <div class="col">
+        @include('partials.lazy-image', [
+          'src'   => App\asset_path('images/BBB.png'),
+          'alt' => 'Better Business Bureau Rating',
+        ])
+      </div>
     </div>
 
     <div class="row">

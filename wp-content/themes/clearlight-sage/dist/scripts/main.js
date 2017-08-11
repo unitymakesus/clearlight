@@ -85,8 +85,8 @@ module.exports = __webpack_require__(13);
 Object.defineProperty(__webpack_exports__, "__esModule", { value: true });
 /* WEBPACK VAR INJECTION */(function(jQuery) {/* harmony import */ var __WEBPACK_IMPORTED_MODULE_0_jquery__ = __webpack_require__(0);
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_0_jquery___default = __webpack_require__.n(__WEBPACK_IMPORTED_MODULE_0_jquery__);
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_1_materialize_css_dist_js_materialize__ = __webpack_require__(3);
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_1_materialize_css_dist_js_materialize___default = __webpack_require__.n(__WEBPACK_IMPORTED_MODULE_1_materialize_css_dist_js_materialize__);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_1_materialize_css__ = __webpack_require__(3);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_1_materialize_css___default = __webpack_require__.n(__WEBPACK_IMPORTED_MODULE_1_materialize_css__);
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_2__util_Router__ = __webpack_require__(6);
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_3__routes_common__ = __webpack_require__(8);
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_4__routes_home__ = __webpack_require__(9);
@@ -12877,10 +12877,20 @@ Router.prototype.loadEvents = function loadEvents () {
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
-/* WEBPACK VAR INJECTION */(function($) {// import Materialize from 'materialize-css/dist/js/materialize';
-
-/* harmony default export */ __webpack_exports__["a"] = ({
+/* WEBPACK VAR INJECTION */(function($) {/* harmony default export */ __webpack_exports__["a"] = ({
   init: function init() {
+    // Lazy load images a la David Walsh
+    // https://davidwalsh.name/lazyload-image-fade
+    [].forEach.call(document.querySelectorAll('noscript'), function(noscript) {
+      var img = new Image();
+      img.setAttribute('data-src', '');
+      noscript.parentNode.insertBefore(img, noscript);
+      img.onload = function() {
+        img.removeAttribute('data-src');
+      };
+      img.src = noscript.getAttribute('data-src');
+    });
+
     // Mobile side nav
     $('#mobile-menu-button').sideNav({
       menuWidth: 300, // Default is 300
@@ -12891,12 +12901,6 @@ Router.prototype.loadEvents = function loadEvents () {
   },
   finalize: function finalize() {
     // JavaScript to be fired on all pages, after page specific JS is fired
-    // Materialize.scrollFire([
-    //   {selector: 'img.lazyload', offset: 500, callback: function(el) {
-    //     Materialize.fadeInImage($(el));
-    //   }},
-    // ]);
-
     $('[class*="gallery-size"] img').materialbox();
   },
 });
