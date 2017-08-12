@@ -73,7 +73,7 @@
     }
 
     &::after {
-      background: rgba($white, .8);
+      background: $white;
       @extend .z-depth-5;
     }
   }

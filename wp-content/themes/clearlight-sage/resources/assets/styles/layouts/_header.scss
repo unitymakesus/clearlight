@@ -18,10 +18,10 @@
   &::before {
     content: '';
     @include cover;
-    background-position: center;
+    background-position: top;
     background-size: cover;
     z-index: -2;
-    filter: blur(20px);
+    filter: blur(10px);
   }
 
   &::after {

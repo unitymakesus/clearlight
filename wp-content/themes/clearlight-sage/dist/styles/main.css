@@ -15934,7 +15934,7 @@ a[href^="tel:"] {
 .background-frosted:hover::after,
 .background-frosted:active::after,
 .background-frosted:focus::after {
-  background: rgba(255, 255, 255, 0.8);
+  background: #ffffff;
 }
 
 .single-gallery .main section {
@@ -16084,11 +16084,11 @@ img {
   left: 0;
   width: 100%;
   height: 100%;
-  background-position: center;
+  background-position: top;
   background-size: cover;
   z-index: -2;
-  -webkit-filter: blur(20px);
-          filter: blur(20px);
+  -webkit-filter: blur(10px);
+          filter: blur(10px);
 }
 
 .banner::after {
@@ -16454,7 +16454,7 @@ footer .sidebar-primary .content:last-child a:focus,
   position: relative;
   overflow: hidden;
   width: 100%;
-  background-position: center;
+  background-position: top;
   background-size: cover;
 }
 
