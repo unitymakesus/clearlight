@@ -10,7 +10,7 @@ export default {
   },
   finalize() {
     // Blur the background of the head banner thing
-    var bg_img = $('body.page .page-header').attr('style');
+    var bg_img = $('body .page-header').attr('style');
     $('head').append(
       '<style type="text/css">.banner::before {' + bg_img + '} .banner::after {background-color:rgba(233, 247, 245, .5);}</style>'
     );
