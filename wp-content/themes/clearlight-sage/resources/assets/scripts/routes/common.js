@@ -29,5 +29,26 @@ export default {
       };
       img.src = noscript.getAttribute('data-src');
     });
+
+    /**
+     * Form label controls
+     */
+    $('.wpcf7-form-control-wrap').children('input[type="text"], input[type="email"], input[type="tel"], textarea').each(function() {
+      // Remove br
+      $(this).parent().prevAll('br').remove();
+
+      // Move label to after field element
+      $(this).parent().prevAll('label').insertAfter($(this).parent());
+
+      // Set field wrapper to active
+      $(this).on('focus', function() {
+        $(this).parent().addClass('active');
+      });
+
+      // Remove field wrapper active state
+      $(this).on('blur', function() {
+        $(this).parent().removeClass('active');
+      });
+    });
   },
 };

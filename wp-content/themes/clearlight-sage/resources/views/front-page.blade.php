@@ -23,7 +23,7 @@
           <div class="col s12 m9 l6">
             <h1>Looking for custom glass or mirror products?</h1>
             <p>Serving the community for nearly 25 years, we are North Carolina's premier custom glass and mirror fabricator and can make the perfect piece for your project.</p>
-            <a class="btn-large" href="#">What can we do for you?</a>
+            <a class="btn-large" href="{{ get_permalink(get_page_by_path('request-a-quote')) }}">What can we do for you?</a>
           </div>
         </div>
       </div>
@@ -88,21 +88,21 @@
               'img'   => App\asset_path('images/drill.svg'),
               'title' => 'Quality<br />Craftsmanship',
               'text'  => 'We enjoy an enduring reputation for superior quality craftsmanship and our highly experienced employees possess decades of industry experience.',
-              'link'  => '#',
+              'link'  => get_permalink(get_page_by_path('about/design-center')),
             ],
             [
               'class' => 'manufacturing',
               'img'   => App\asset_path('images/leaf.svg'),
               'title' => 'Eco Friendly<br />Manufacturing',
               'text'  => 'We take seriously our responsibility to protect the environment, our employees, customers, and others who may be impacted by our business.',
-              'link'  => '#',
+              'link'  => get_permalink(get_page_by_path('about/environment')),
             ],
             [
               'class' => 'pricing',
               'img'   => App\asset_path('images/tag.svg'),
               'title' => 'Transparent<br />Pricing',
               'text'  => 'Transparency is all around us at Clearlight, from the glass we work with to our simple practice of sharing information in an open and honest manner.',
-              'link'  => '#',
+              'link'  => get_permalink(get_page_by_path('about/our-promise')),
             ],
           ]
         ])

@@ -1,17 +1,19 @@
 {{-- Getting Started --}}
-<section class="background-dark-green">
-  <div class="container">
-    <div class="row flex-grid">
-      <div class="col s12 m6 l5">
-        <h2>Ready to get started?</h2>
-        <p class="size-medium">Contact us today to discover how we can make the perfect piece for your project.</p>
-      </div>
-      <div class="col s12 m5 l4 offset-l1 valign-wrapper offset-">
-        <a href="#" class="btn-large" href="#">Request a Quote</a>
+@if( !is_page('request-a-quote') )
+  <section class="background-dark-green">
+    <div class="container">
+      <div class="row flex-grid">
+        <div class="col s12 m6 l5">
+          <h2>Ready to get started?</h2>
+          <p class="size-medium">Contact us today to discover how we can make the perfect piece for your project.</p>
+        </div>
+        <div class="col s12 m5 l4 offset-l1 valign-wrapper offset-">
+          <a href="{{ get_permalink(get_page_by_path('request-a-quote')) }}" class="btn-large">Request a Quote</a>
+        </div>
       </div>
     </div>
-  </div>
-</section>
+  </section>
+@endif
 
 <footer>
   <div class="container">

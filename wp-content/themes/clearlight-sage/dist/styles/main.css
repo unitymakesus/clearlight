@@ -2639,7 +2639,7 @@ nav,
 .sub-menu,
 .collapsible,
 .side-nav,
-.wpcf7-form,
+.wpcf7-form fieldset,
 .hentry img,
 .hentry table {
   -webkit-box-shadow: 0 2px 2px 0 rgba(0, 0, 0, 0.14), 0 1px 5px 0 rgba(0, 0, 0, 0.12), 0 3px 1px -2px rgba(0, 0, 0, 0.2);
@@ -15427,10 +15427,6 @@ a[href^="tel:"] {
   color: #444444;
 }
 
-fieldset {
-  border: none;
-}
-
 .wpcf7-submit {
   background: #00A686;
   color: #ffffff;
@@ -15443,7 +15439,6 @@ fieldset {
 }
 
 .wpcf7-form {
-  background: #ffffff;
   /* Unchecked styles */
   /* Checked styles */
   /* Radio With gap */
@@ -15453,9 +15448,71 @@ fieldset {
   /* Indeterminate checkbox */
 }
 
+@media only screen and (min-width: 993px) {
+  .wpcf7-form {
+    width: 133%;
+  }
+}
+
+.wpcf7-form fieldset {
+  margin: 0 0 1em;
+  border: none;
+  background: #ffffff;
+  padding: 20px;
+}
+
+.wpcf7-form fieldset > legend {
+  float: left;
+  margin-bottom: 1em;
+}
+
+.wpcf7-form fieldset > legend + * {
+  clear: both;
+}
+
+.wpcf7-form fieldset > p {
+  position: relative;
+}
+
 .wpcf7-form p.desc {
   font-size: .8em;
   font-style: italic;
+}
+
+.wpcf7-form span.wpcf7-list-item {
+  display: block;
+}
+
+.wpcf7-form .wpcf7-form-control-wrap ~ label {
+  position: absolute;
+  top: 0;
+  left: 0;
+  height: 100%;
+  font-size: 1rem;
+  cursor: text;
+  -webkit-transition: -webkit-transform .2s ease-out;
+  transition: -webkit-transform .2s ease-out;
+  -o-transition: -o-transform .2s ease-out;
+  transition: transform .2s ease-out;
+  transition: transform .2s ease-out, -webkit-transform .2s ease-out, -o-transform .2s ease-out;
+  -webkit-transform-origin: 0% 100%;
+       -o-transform-origin: 0% 100%;
+          transform-origin: 0% 100%;
+  text-align: initial;
+  -webkit-transform: translateY(12px);
+       -o-transform: translateY(12px);
+          transform: translateY(12px);
+  pointer-events: none;
+}
+
+.wpcf7-form .wpcf7-form-control-wrap.active ~ label {
+  color: #26a69a;
+  -webkit-transform: translateY(-14px) scale(0.8);
+       -o-transform: translateY(-14px) scale(0.8);
+          transform: translateY(-14px) scale(0.8);
+  -webkit-transform-origin: 0 0;
+       -o-transform-origin: 0 0;
+          transform-origin: 0 0;
 }
 
 .wpcf7-form [type="radio"]:not(:checked) + .wpcf7-list-item-label,
