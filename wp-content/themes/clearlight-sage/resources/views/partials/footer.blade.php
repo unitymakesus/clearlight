@@ -56,36 +56,35 @@
     </div>
 
     <div class="row block-grid up-s12 up-m3 up-l5">
-      <div class="col">
-        @include('partials.lazy-image', [
-          'src'   => App\asset_path('images/homebuilders.png'),
-          'alt' => 'Home Builders Association of Winston Salem',
-        ])
-      </div>
-      <div class="col">
-        @include('partials.lazy-image', [
-          'src'   => App\asset_path('images/nc.png'),
-          'alt' => 'North Carolina Home Builders Association',
-        ])
-      </div>
-      <div class="col">
-        @include('partials.lazy-image', [
-          'src'   => App\asset_path('images/gborobuilders.png'),
-          'alt' => 'Greensboro Builders Association',
-        ])
-      </div>
-      <div class="col">
-        @include('partials.lazy-image', [
-          'src'   => App\asset_path('images/nahb.png'),
-          'alt' => 'National Association of Home Builders',
-        ])
-      </div>
-      <div class="col">
-        @include('partials.lazy-image', [
-          'src'   => App\asset_path('images/BBB.png'),
-          'alt' => 'Better Business Bureau Rating',
-        ])
-      </div>
+      @include('partials.footer-logos', [
+        'logos'     => [
+          [
+            'src'   => App\asset_path('images/homebuilders.png'),
+            'alt'   => 'Home Builders Association of Winston Salem',
+            'link'  => 'http://hbaws.net/',
+          ],
+          [
+            'src'   => App\asset_path('images/nc.png'),
+            'alt'   => 'North Carolina Home Builders Association',
+            'link'  => 'https://www.nchba.org/wp/',
+          ],
+          [
+            'src'   => App\asset_path('images/gborobuilders.png'),
+            'alt'   => 'Greensboro Builders Association',
+            'link'  => 'https://www.greensborobuilders.org/',
+          ],
+          [
+            'src'   => App\asset_path('images/nahb.png'),
+            'alt'   => 'National Association of Home Builders',
+            'link'  => 'https://www.nahb.org/',
+          ],
+          [
+            'src'   => App\asset_path('images/BBB.png'),
+            'alt'   => 'Better Business Bureau Rated A+',
+            'link'  => 'https://www.bbb.org/northwestern-north-carolina/business-reviews/glass-beveled-carved-ornamental/clearlight-glass-mirror-inc-in-kernersville-nc-152800337',
+          ],
+        ]
+      ])
     </div>
 
     <div class="row">
