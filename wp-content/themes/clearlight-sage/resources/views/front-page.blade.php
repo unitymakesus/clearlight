@@ -117,10 +117,10 @@
       <div class="row">
         <div class="col s12 m6 l5">
           <div class="z-depth-4 background-frosted">
-            <a href="{{ get_permalink(get_page_by_path('galleries')) }}" class="mega-link" aria-hidden="true"></a>
+            <a href="{{ get_post_type_archive_link('gallery') }}" class="mega-link" aria-hidden="true"></a>
             <h2>Need some inspiration?</h2>
             <p>Explore the endless possibilies of custom glass and mirror fabrication.</p>
-            <p><a href="{{ get_permalink(get_page_by_path('galleries')) }}" class="link">Check out our galleries &rsaquo;</a></p>
+            <p><a href="{{ get_post_type_archive_link('gallery') }}" class="link">Check out our galleries &rsaquo;</a></p>
           </div>
         </div>
       </div>

@@ -32,7 +32,7 @@ add_action( 'init', function() {
 			'hierarchical' => true,
 			'supports' => array( 'title', 'editor', 'revisions', 'page-attributes', 'thumbnail' ),
 			'public' => true,
-			'has_archive' => false,
+			'has_archive' => true,
 			'rewrite' => true,
 			'query_var' => true
 		)
