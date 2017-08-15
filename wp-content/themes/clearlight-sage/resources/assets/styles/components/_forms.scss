@@ -48,8 +48,15 @@
     display: block;
   }
 
+  div[data-class="wpcf7cf_group"] {
+    position: relative;
+  }
+
   // Input label positioning
   .wpcf7-form-control-wrap {
+    position: relative;
+    display: block;
+
     & ~ label {
       position: absolute;
       top: 0;
@@ -68,6 +75,16 @@
       color: $input-focus-color;
       transform: translateY(-14px) scale(.8);
       transform-origin: 0 0;
+    }
+  }
+
+  // "Other" free fill area
+  .has-free-text label {
+    & + input {
+      display: none;
+    }
+    &.active + input {
+      display: block;
     }
   }
 

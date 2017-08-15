@@ -47,8 +47,20 @@ export default {
 
       // Remove field wrapper active state
       $(this).on('blur', function() {
-        $(this).parent().removeClass('active');
+        var val = $.trim($(this).val());
+
+        if (!val) {
+          $(this).parent().removeClass('active');
+        }
       });
+    });
+
+    $('.wpcf7-form-control-wrap').find('.has-free-text').each(function() {
+      var $input = $(this).find('input[type="radio"], input[type="checkbox"]');
+
+      $input.on('focus', function() {
+        $input.parent().addClass('active');
+      })
     });
   },
 };

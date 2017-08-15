@@ -15483,6 +15483,15 @@ a[href^="tel:"] {
   display: block;
 }
 
+.wpcf7-form div[data-class="wpcf7cf_group"] {
+  position: relative;
+}
+
+.wpcf7-form .wpcf7-form-control-wrap {
+  position: relative;
+  display: block;
+}
+
 .wpcf7-form .wpcf7-form-control-wrap ~ label {
   position: absolute;
   top: 0;
@@ -15513,6 +15522,14 @@ a[href^="tel:"] {
   -webkit-transform-origin: 0 0;
        -o-transform-origin: 0 0;
           transform-origin: 0 0;
+}
+
+.wpcf7-form .has-free-text label + input {
+  display: none;
+}
+
+.wpcf7-form .has-free-text label.active + input {
+  display: block;
 }
 
 .wpcf7-form [type="radio"]:not(:checked) + .wpcf7-list-item-label,
