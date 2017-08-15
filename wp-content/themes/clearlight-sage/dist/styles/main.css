@@ -3034,8 +3034,7 @@ th {
 }
 
 @media only screen and (max-width: 992px) {
-  table.responsive-table,
-  .hentry table {
+  table.responsive-table {
     width: 100%;
     border-collapse: collapse;
     border-spacing: 0;
@@ -3044,43 +3043,35 @@ th {
     /* sort out borders */
   }
 
-  table.responsive-table td:empty:before,
-  .hentry table td:empty:before {
+  table.responsive-table td:empty:before {
     content: '\A0';
   }
 
   table.responsive-table th,
-  .hentry table th,
-  table.responsive-table td,
-  .hentry table td {
+  table.responsive-table td {
     margin: 0;
     vertical-align: top;
   }
 
-  table.responsive-table th,
-  .hentry table th {
+  table.responsive-table th {
     text-align: left;
   }
 
-  table.responsive-table thead,
-  .hentry table thead {
+  table.responsive-table thead {
     display: block;
     float: left;
   }
 
-  table.responsive-table thead tr,
-  .hentry table thead tr {
+  table.responsive-table thead tr {
     display: block;
     padding: 0 10px 0 0;
   }
 
-  table.responsive-table thead tr th::before,
-  .hentry table thead tr th::before {
+  table.responsive-table thead tr th::before {
     content: "\A0";
   }
 
-  table.responsive-table tbody,
-  .hentry table tbody {
+  table.responsive-table tbody {
     display: block;
     width: auto;
     position: relative;
@@ -3088,56 +3079,47 @@ th {
     white-space: nowrap;
   }
 
-  table.responsive-table tbody tr,
-  .hentry table tbody tr {
+  table.responsive-table tbody tr {
     display: inline-block;
     vertical-align: top;
   }
 
-  table.responsive-table th,
-  .hentry table th {
+  table.responsive-table th {
     display: block;
     text-align: right;
   }
 
-  table.responsive-table td,
-  .hentry table td {
+  table.responsive-table td {
     display: block;
     min-height: 1.25em;
     text-align: left;
   }
 
-  table.responsive-table tr,
-  .hentry table tr {
+  table.responsive-table tr {
     padding: 0 10px;
   }
 
-  table.responsive-table thead,
-  .hentry table thead {
+  table.responsive-table thead {
     border: 0;
     border-right: 1px solid #d0d0d0;
   }
 
-  table.responsive-table.bordered th,
-  .hentry table.bordered th {
+  table.responsive-table.bordered th {
     border-bottom: 0;
     border-left: 0;
   }
 
-  table.responsive-table.bordered td,
-  .hentry table.bordered td {
+  table.responsive-table.bordered td {
     border-left: 0;
     border-right: 0;
     border-bottom: 0;
   }
 
-  table.responsive-table.bordered tr,
-  .hentry table.bordered tr {
+  table.responsive-table.bordered tr {
     border: 0;
   }
 
-  table.responsive-table.bordered tbody tr,
-  .hentry table.bordered tbody tr {
+  table.responsive-table.bordered tbody tr {
     border-right: 1px solid #d0d0d0;
   }
 }
@@ -15993,6 +15975,7 @@ img {
   img.alignright {
     float: right;
     max-width: 50%;
+    margin: 0 0 20px 20px;
   }
 }
 
@@ -16005,28 +15988,6 @@ img {
 
 .material-placeholder img {
   max-width: none;
-}
-
-.hentry table {
-  background: #ffffff;
-}
-
-@media only screen and (min-width: 993px) {
-  .hentry table {
-    width: 133%;
-  }
-}
-
-.unity-link {
-  display: inline-block;
-  max-width: 120px;
-}
-
-.svg-unity-logo {
-  width: 100%;
-  height: auto;
-  display: inline-block;
-  vertical-align: middle;
 }
 
 [class*="gallery-size"] {
@@ -16073,6 +16034,79 @@ img {
   [class*="gallery-size"].gallery-columns-3 .gallery-item {
     width: calc(100% / 3);
   }
+}
+
+.hentry table {
+  background: #ffffff;
+}
+
+@media only screen and (max-width: 600px) {
+  .hentry table {
+    background: none;
+    -webkit-box-shadow: none;
+            box-shadow: none;
+  }
+
+  .hentry table thead {
+    border: none;
+    clip: rect(0 0 0 0);
+    height: 1px;
+    margin: -1px;
+    overflow: hidden;
+    padding: 0;
+    position: absolute;
+    width: 1px;
+  }
+
+  .hentry table tr {
+    display: block;
+    background: #ffffff;
+    -webkit-box-shadow: 0 2px 2px 0 rgba(0, 0, 0, 0.14), 0 1px 5px 0 rgba(0, 0, 0, 0.12), 0 3px 1px -2px rgba(0, 0, 0, 0.2);
+            box-shadow: 0 2px 2px 0 rgba(0, 0, 0, 0.14), 0 1px 5px 0 rgba(0, 0, 0, 0.12), 0 3px 1px -2px rgba(0, 0, 0, 0.2);
+    margin-bottom: .625em;
+    padding: .625em;
+  }
+
+  .hentry table td {
+    border-bottom: 1px solid #d0d0d0;
+    display: block;
+    text-align: right;
+  }
+
+  .hentry table td:before {
+    content: attr(data-label);
+    float: left;
+    font-weight: bold;
+  }
+
+  .hentry table td br {
+    display: none;
+  }
+}
+
+@media only screen and (min-width: 601px) and (max-width: 992px) {
+  .hentry table {
+    font-size: .85em;
+  }
+}
+
+@media only screen and (min-width: 993px) {
+  .hentry table {
+    width: 133%;
+    display: table;
+  }
+}
+
+.unity-link {
+  display: inline-block;
+  max-width: 120px;
+}
+
+.svg-unity-logo {
+  width: 100%;
+  height: auto;
+  display: inline-block;
+  vertical-align: middle;
 }
 
 .banner {

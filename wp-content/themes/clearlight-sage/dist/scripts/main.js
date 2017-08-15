@@ -12909,6 +12909,26 @@ Router.prototype.loadEvents = function loadEvents () {
       img.src = noscript.getAttribute('data-src');
     });
 
+    // Responsive table stuff
+    $('.hentry table').each(function() {
+      var headers = [];
+      var i;
+
+      // put table headers in array
+      $(this).find('thead th').each(function() {
+        headers.push($(this).html());
+      });
+
+      // set data-label for each td in the rows
+      $(this).find('tbody tr').each(function() {
+        i = 0;
+        $(this).find('td').each(function() {
+          $(this).attr('data-label', headers[i]);
+          i++;
+        });
+      });
+    });
+
     /**
      * Form label controls
      */
