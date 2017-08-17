@@ -31,7 +31,7 @@
   </section>
 
   {{-- Customization tiles --}}
-  <section class="background-white">
+  <section class="background-frosty-to-white">
     <div class="container">
       <div class="row block-grid up-s2 up-m3 up-l6">
         @include('partials.card-image', [
@@ -116,7 +116,7 @@
     <div class="container">
       <div class="row">
         <div class="col s12 m6 l5">
-          <div class="z-depth-4 background-frosted">
+          <div class="z-depth-5 background-frosted">
             <a href="{{ get_post_type_archive_link('gallery') }}" class="mega-link" aria-hidden="true"></a>
             <h2>Need some inspiration?</h2>
             <p>Explore the endless possibilies of custom glass and mirror fabrication.</p>

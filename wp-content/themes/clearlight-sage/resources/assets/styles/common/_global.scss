@@ -24,3 +24,8 @@ html {
     }
   }
 }
+
+.background-frosty-to-white {
+  padding: 5rem 0;
+  @include frosty-white-gradient-down;
+}
