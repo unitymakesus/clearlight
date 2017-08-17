@@ -27,7 +27,7 @@
     @include inspiration-bg;
     @include cover;
     position: fixed;
-    z-index: -1;
+    z-index: -200;
   }
 }
 
@@ -63,7 +63,7 @@
     @include inspiration-bg;
     background-attachment: fixed;
     filter: blur(20px);
-    z-index: -200;
+    z-index: -2;
   }
 
   &::after {
