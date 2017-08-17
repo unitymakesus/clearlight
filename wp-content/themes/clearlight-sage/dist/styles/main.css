@@ -15981,7 +15981,7 @@ a[href^="tel:"] {
   background-attachment: fixed;
   -webkit-filter: blur(20px);
           filter: blur(20px);
-  z-index: -2;
+  z-index: -200;
 }
 
 .background-frosted::after {

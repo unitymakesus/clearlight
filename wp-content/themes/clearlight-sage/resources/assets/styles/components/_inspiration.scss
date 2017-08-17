@@ -63,7 +63,7 @@
     @include inspiration-bg;
     background-attachment: fixed;
     filter: blur(20px);
-    z-index: -2;
+    z-index: -200;
   }
 
   &::after {
