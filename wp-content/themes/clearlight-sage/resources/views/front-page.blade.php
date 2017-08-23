@@ -102,7 +102,7 @@
               'img'   => App\asset_path('images/tag.svg'),
               'title' => 'Transparent<br />Pricing',
               'text'  => 'Transparency is all around us at Clearlight, from the glass we work with to our simple practice of sharing information in an open and honest manner.',
-              'link'  => get_permalink(get_page_by_path('about/our-promise')),
+              'link'  => get_permalink(get_page_by_path('about/pricing-pledge')),
             ],
           ]
         ])
