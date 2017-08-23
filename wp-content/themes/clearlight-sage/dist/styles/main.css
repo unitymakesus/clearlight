@@ -16001,6 +16001,13 @@ a[href^="tel:"] {
   z-index: -2;
 }
 
+@supports (-ms-ime-align: auto) {
+  .background-frosted::before {
+    background: rgba(160, 171, 168, 0.8);
+    position: absolute;
+  }
+}
+
 .background-frosted::after {
   content: '';
   position: absolute;

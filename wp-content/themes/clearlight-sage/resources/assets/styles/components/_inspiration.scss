@@ -69,6 +69,12 @@
     background-attachment: fixed;
     filter: blur(20px);
     z-index: -2;
+
+    // MS Edge downgrade
+    @supports (-ms-ime-align:auto) {
+      background: $frosty-gray-ms;
+      position: absolute;
+    }
   }
 
   &::after {
