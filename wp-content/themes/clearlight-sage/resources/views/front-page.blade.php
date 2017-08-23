@@ -93,7 +93,7 @@
             [
               'class' => 'manufacturing',
               'img'   => App\asset_path('images/leaf.svg'),
-              'title' => 'Eco Friendly<br />Manufacturing',
+              'title' => 'Eco-Friendly<br />Manufacturing',
               'text'  => 'We take seriously our responsibility to protect the environment, our employees, customers, and others who may be impacted by our business.',
               'link'  => get_permalink(get_page_by_path('about/environment')),
             ],

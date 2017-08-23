@@ -15242,6 +15242,17 @@ h1.entry-title,
   left: .5rem;
 }
 
+.hentry a {
+  color: #00A686;
+  text-decoration: underline;
+}
+
+.hentry a:hover,
+.hentry a:focus,
+.hentry a:active {
+  color: #444444;
+}
+
 a[href^="tel:"] {
   color: #444444;
   text-decoration: none;

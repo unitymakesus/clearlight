@@ -71,6 +71,15 @@ h3 {
       }
     }
   }
+
+  a {
+    color: $medium-green;
+    text-decoration: underline;
+
+    &:hover, &:focus, &:active {
+      color: $dark-gray;
+    }
+  }
 }
 
 a[href^="tel:"] {
