@@ -15941,6 +15941,12 @@ a[href^="tel:"] {
   z-index: -200;
 }
 
+@supports (-ms-ime-align: auto) {
+  .background-inspiration::before {
+    position: absolute;
+  }
+}
+
 .background-frosted {
   padding: 40px 35px 60px;
   color: #ffffff;

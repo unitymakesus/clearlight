@@ -28,6 +28,11 @@
     @include cover;
     position: fixed;
     z-index: -200;
+
+    // MS Edge downgrade
+    @supports (-ms-ime-align:auto) {
+      position: absolute;
+    }
   }
 }
 
