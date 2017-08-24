@@ -80,6 +80,9 @@ add_action('after_setup_theme', function () {
      // Set up featured image sizes for interior page headers
      add_image_size('featured-banner', 1000, 300, true);
 
+     // Double sized thumbnails
+     add_image_size('thumbnail2x', 300, 300, true);
+
 }, 20);
 
 /**

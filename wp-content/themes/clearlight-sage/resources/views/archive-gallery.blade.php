@@ -22,7 +22,7 @@
           @include('partials.card-image', [
             'cards'     => [
               [
-                'img'   => $img['sizes']['thumbnail'],
+                'img'   => $img['sizes']['thumbnail2x'],
                 'title' => get_the_title(),
                 'link'  => get_permalink()
               ],
