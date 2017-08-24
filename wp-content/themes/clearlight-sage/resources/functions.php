@@ -99,6 +99,17 @@ add_filter( 'wp_mail_from_name', function( $original_email_from ) {
 
 
 /**
+ * Change order of posts on Gallery archive page
+ */
+add_action( 'pre_get_posts', function($query){
+  if(is_archive('gallery')) {
+    $query->set( 'order', 'ASC' );
+    $query->set( 'orderby', 'title' );
+  }
+});
+
+
+/**
  * Remove span wrappers from around CF7 radio button elements
  */
 // add_filter('wpcf7_form_elements', function($content) {
