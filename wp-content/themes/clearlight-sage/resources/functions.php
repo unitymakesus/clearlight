@@ -91,6 +91,14 @@ if ($sage_views !== get_option('stylesheet')) {
 }
 
 /**
+ * Change WordPress email sender name
+ */
+add_filter( 'wp_mail_from_name', function( $original_email_from ) {
+  return 'Clearlight Glass & Mirror';
+});
+
+
+/**
  * Remove span wrappers from around CF7 radio button elements
  */
 // add_filter('wpcf7_form_elements', function($content) {
