@@ -31,6 +31,16 @@
         @endwhile
       </div>
     </div>
+  </section>
+
+  <section class="background-frosty-green">
+    <div class="container">
+      <div class="row hentry">
+        <div class="col l9">
+          <p>Disclaimer: Our installers are amazing &mdash; but they’re not photographers! And while these photos are not the best quality, we hope they will give you an idea of Clearlight's capabilities.</p>
+        </div>
+      </div>
+    </div>
   </div>
 
 @endsection
