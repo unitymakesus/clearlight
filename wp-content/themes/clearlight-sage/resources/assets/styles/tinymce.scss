@@ -1,0 +1,9 @@
+body#tinymce {
+  margin: 12px !important;
+}
+
+img {
+  &.alignright, &.alignleft {
+    max-width: 50%;
+  }
+}

@@ -6,6 +6,9 @@
     ],
     "customizer": [
       "./scripts/customizer.js"
+    ],
+    "tinymce": [
+      "./styles/tinymce.scss"
     ]
   },
   "publicPath": "/wp-content/themes/clearlight-sage",

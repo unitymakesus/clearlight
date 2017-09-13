@@ -1,0 +1,11 @@
+body#tinymce {
+  margin: 12px !important;
+}
+
+img.alignright,
+img.alignleft {
+  max-width: 50%;
+}
+
+
+/*# sourceMappingURL=tinymce.css.map*/

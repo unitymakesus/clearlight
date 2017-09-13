@@ -77,14 +77,14 @@
             'src'   => App\asset_path('images/nahb.png'),
             'alt'   => 'National Association of Home Builders',
             'link'  => 'https://www.nahb.org/',
-          ],
-          [
-            'src'   => App\asset_path('images/BBB.png'),
-            'alt'   => 'Better Business Bureau Rated A+',
-            'link'  => 'https://www.bbb.org/northwestern-north-carolina/business-reviews/glass-beveled-carved-ornamental/clearlight-glass-mirror-inc-in-kernersville-nc-152800337',
-          ],
+          ]
         ]
       ])
+      <div class="col">
+        <a href="http://www.bbb.org/northwestern-north-carolina/business-reviews/glass-beveled-carved-ornamental/clearlight-glass-mirror-inc-in-kernersville-nc-152800337/#bbbonlineclick" target="_blank" rel="noopener">
+          <img alt="Better Business Bureau Review" src="http://seal-nwnc.bbb.org/seals/blue-seal-200-42-clearlight-glass-mirror-inc-152800337.png" />
+        </a>
+      </div>
     </div>
 
     <div class="row">
