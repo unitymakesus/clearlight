@@ -2,6 +2,9 @@
 <html @php(language_attributes())>
   @include('partials.head')
   <body @php(body_class())>
+    @if (!is_user_logged_in())
+      @include('partials.tag-manager-head')
+    @endif
     @php(do_action('get_header'))
     @include('partials.header')
     <div class="wrap" role="document">
