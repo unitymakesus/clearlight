@@ -20,14 +20,16 @@ export default {
 
     // Lazy load images a la David Walsh
     // https://davidwalsh.name/lazyload-image-fade
-    [].forEach.call(document.querySelectorAll('noscript'), function(noscript) {
-      var img = new Image();
-      img.setAttribute('data-src', '');
-      noscript.parentNode.insertBefore(img, noscript);
-      img.onload = function() {
-        img.removeAttribute('data-src');
-      };
-      img.src = noscript.getAttribute('data-src');
+    $('noscript').each(function() {
+      if (!$(this).hasClass('gtm')) {
+        var img = new Image();
+        img.setAttribute('data-src', '');
+        $(this).before(img);
+        img.onload = function() {
+          img.removeAttribute('data-src');
+        };
+        img.src = $(this).attr('data-src');
+      }
     });
 
     // Responsive table stuff
