@@ -3,7 +3,7 @@
   @include('partials.head')
   <body @php(body_class())>
     @if (!is_user_logged_in())
-      @include('partials.tag-manager-head')
+      @include('partials.tag-manager-body')
     @endif
     @php(do_action('get_header'))
     @include('partials.header')
