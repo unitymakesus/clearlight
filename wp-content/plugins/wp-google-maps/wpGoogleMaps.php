@@ -3,7 +3,7 @@
 Plugin Name: WP Google Maps
 Plugin URI: https://www.wpgmaps.com
 Description: The easiest to use Google Maps plugin! Create custom Google Maps with high quality markers containing locations, descriptions, images and links. Add your customized map to your WordPress posts and/or pages quickly and easily with the supplied shortcode. No fuss.
-Version: 6.4.05
+Version: 6.4.10
 Author: WP Google Maps
 Author URI: https://www.wpgmaps.com
 Text Domain: wp-google-maps
@@ -12,6 +12,40 @@ Domain Path: /languages
 
 /* 
  *
+ *
+ * 6.4.10 - 2018-03-12 - High priority
+ * XSS vulnerability fixed. Ouch! (thank you Luigi Gubello)
+ * Backend UI enhancements such as "select all markers" and  "delete all markers"
+ * Frontend UX improvements (Esc to close infofindow, better jQuery checks, etc.)
+ * Neatened up and modified the front end JS
+ * New feature: Enable/disable InfoWindows
+ * New feature: Show/hide points of interest
+ * Paving the way for WP Google Maps version 7!
+ * Updated Polish translations (Thank you Wojciech Dorosz)
+ * Fixed Norwegian translations (Thank you Kristoffer Gressli)
+ * Added support for themes that use FastClick
+ * Fixed a bug with "Editor" access roles
+ * Updated the default marker to the new Google Maps retina-ready marker
+ *
+ * 
+ * 6.4.09 - 2018-01-15 - Medium priority 
+ * Removed the plugin deactivation survey as there are PHP compatibility issues. Will have to retest and add this back at a later stage. 
+ *
+ * 6.4.08 - 2018-01-14 - Medium priority
+ * Update Google Maps API versions to include 3.30 and 3.31
+ * On first installation, users are now taken to the welcome page
+ * Updated contributors
+ * Updated credits page
+ * Fixed broken support links
+ * Got things ready for the new Version 7 that is on its way
+ * 
+ * 6.4.07 - 2018-01-08 - Low priority
+ * Added a deactivation survey to gain insight before moving to Version 7
+ * Tested on WP 4.9.1
+ * 
+ * 6.4.06 - 2017-09-07 - Medium Priority
+ * Bug Fix: Zoom level is not respected when saving
+ * 
  * 6.4.05 - 2017-06-13 - Medium priority
  * Fixed the bug that caused JS errors to show up in the map editor
  * Fixed a bug that caused the XML File option (for markers) to cause issues when trying to add a marker in the backend
@@ -331,16 +365,30 @@ $wpgmza_tblname_poly = $wpdb->prefix . "wpgmza_polygon";
 $wpgmza_tblname_polylines = $wpdb->prefix . "wpgmza_polylines";
 $wpgmza_tblname_categories = $wpdb->prefix. "wpgmza_categories";
 $wpgmza_tblname_category_maps = $wpdb->prefix. "wpgmza_category_maps";
-$wpgmza_version = "6.4.05";
-$wpgmza_p_version = "6.13";
+$wpgmza_version = "6.4.10";
+$wpgmza_p_version = "6.19";
 $wpgmza_t = "basic";
 define("WPGMAPS", $wpgmza_version);
 define("WPGMAPS_DIR",plugin_dir_url(__FILE__));
 
-include ("base/includes/wp-google-maps-polygons.php");
-include ("base/includes/wp-google-maps-polylines.php");
-include ("base/classes/widget_module.class.php");
-include ("base/includes/deprecated.php");
+include ( "base/includes/wp-google-maps-polygons.php" );
+include ( "base/includes/wp-google-maps-polylines.php" );
+include ( "base/classes/widget_module.class.php" );
+include ( "base/includes/deprecated.php" );
+
+/* plugin deactivation checks */
+include ( "lib/codecabin/deactivate-feedback-form.php" );
+add_filter( 'codecabin_deactivate_feedback_form_plugins', 'wpgmaps_deactivation_survey_t' );
+function wpgmaps_deactivation_survey_t( $plugins ) {
+    global $wpgmza_version;
+    $plugins[] = (object)array(
+        'slug'      => 'wp-google-maps',
+        'version'   => WPGMAPS
+    );
+
+    return $plugins;
+}
+
 
 
 if (function_exists('wpgmaps_head_pro' )) {
@@ -489,6 +537,28 @@ function wpgmaps_activate() {
     
     add_option("wpgmaps_current_version",$wpgmza_version);
 
+   
+
+}
+
+add_action( "activated_plugin", "wpgmza_redirect_on_activate" );
+/**
+ * Redirect the user to the welcome page on plugin activate
+ * @param  string $plugin
+ * @return void
+ */
+function wpgmza_redirect_on_activate( $plugin ) {
+    if( $plugin == plugin_basename( __FILE__ ) ) {
+        if ( !get_option( "WPGM_V6_FIRST_TIME" ) ) {
+            update_option( "WPGM_V6_FIRST_TIME", true );
+            // clean the output header and redirect the user
+            @ob_flush();
+            @ob_end_flush();
+            @ob_end_clean();
+            
+            exit( wp_redirect( admin_url( 'admin.php?page=wp-google-maps-menu&action=welcome_page' ) ) );
+        }
+    }
 }
 
 /**
@@ -596,8 +666,8 @@ function wpgmaps_init() {
     if (!isset($current_version) || $current_version != $wpgmza_version) {
 
         $wpgmza_settings = get_option("WPGMZA_OTHER_SETTINGS");
-        if (isset($wpgmza_settings['wpgmza_api_version']) && ($wpgmza_settings['wpgmza_api_version'] == "3.14" || $wpgmza_settings['wpgmza_api_version'] == "3.15" || $wpgmza_settings['wpgmza_api_version'] == "3.23" || $wpgmza_settings['wpgmza_api_version'] == "3.24")) {
-            $wpgmza_settings['wpgmza_api_version'] = "3.26";
+        if (isset($wpgmza_settings['wpgmza_api_version']) && ($wpgmza_settings['wpgmza_api_version'] == "3.14" || $wpgmza_settings['wpgmza_api_version'] == "3.15" || $wpgmza_settings['wpgmza_api_version'] == "3.23" || $wpgmza_settings['wpgmza_api_version'] == "3.24" || $wpgmza_settings['wpgmza_api_version'] == "3.25" || $wpgmza_settings['wpgmza_api_version'] == "3.26")) {
+            $wpgmza_settings['wpgmza_api_version'] = "3.31";
         }
         update_option("WPGMZA_OTHER_SETTINGS",$wpgmza_settings);
 
@@ -1070,7 +1140,7 @@ function wpgmaps_admin_javascript_basic() {
 
 
 
-            $wpgmza_current_map_id = $_GET['map_id'];
+            $wpgmza_current_map_id = sanitize_text_field( $_GET['map_id'] );
 
 
             wp_enqueue_script('wpgmaps_admin_core', plugins_url('/js/wpgmaps-admin-core.js',__FILE__), $wpgaps_core_dependancy, $wpgmza_version.'b' , false);
@@ -1283,6 +1353,9 @@ function wpgmaps_admin_javascript_basic() {
                
             });
             
+            /**
+             * Deprecated in 6.4.05
+             * This was deprecated in wpgmaps-admin-core.js however caused a bug instead
 
             google.maps.event.addListener(MYMAP.map, 'zoom_changed', function() {
                 zoomLevel = MYMAP.map.getZoom();
@@ -1293,6 +1366,7 @@ function wpgmaps_admin_javascript_basic() {
                 }
             });
             
+            */            
             
 <?php
                 $total_poly_array = wpgmza_b_return_polygon_id_array(sanitize_text_field($_GET['map_id']));
@@ -3739,8 +3813,8 @@ function wpgmaps_settings_page_basic() {
     $wpgmza_api_version_selected[1] = "";
     $wpgmza_api_version_selected[2] = "";
     
-    if (isset($wpgmza_api_version) && $wpgmza_api_version == "3.25") { $wpgmza_api_version_selected[0] = "selected"; }
-    else if (isset($wpgmza_api_version) && $wpgmza_api_version == "3.26") { $wpgmza_api_version_selected[1] = "selected"; }
+    if (isset($wpgmza_api_version) && $wpgmza_api_version == "3.30") { $wpgmza_api_version_selected[0] = "selected"; }
+    else if (isset($wpgmza_api_version) && $wpgmza_api_version == "3.31") { $wpgmza_api_version_selected[1] = "selected"; }
     else if (isset($wpgmza_api_version) && $wpgmza_api_version == "3.exp") { $wpgmza_api_version_selected[2] = "selected"; }
     else { $wpgmza_api_version_selected[0] = "selected"; }
     
@@ -3775,7 +3849,7 @@ function wpgmaps_settings_page_basic() {
     if (isset($wpgmza_settings['wpgmza_settings_access_level'])) { $wpgmza_access_level = $wpgmza_settings['wpgmza_settings_access_level']; } else { $wpgmza_access_level = ""; }
     if ($wpgmza_access_level == "manage_options") { $wpgmza_access_level_checked[0] = "selected"; }
     else if ($wpgmza_access_level == "edit_pages") { $wpgmza_access_level_checked[1] = "selected"; }
-    else if ($wpgmza_access_level == "publish_posts") { $wpgmza_access_level_checked[2] = "selected"; }
+    else if ($wpgmza_access_level == "edit_published_posts") { $wpgmza_access_level_checked[2] = "selected"; }
     else if ($wpgmza_access_level == "edit_posts") { $wpgmza_access_level_checked[3] = "selected"; }
     else if ($wpgmza_access_level == "read") { $wpgmza_access_level_checked[4] = "selected"; }
     else { $wpgmza_access_level_checked[0] = "selected"; }
@@ -3895,8 +3969,8 @@ function wpgmaps_settings_page_basic() {
             $ret .= "                        <td width='200' valign='top'>".__("Use Google Maps API","wp-google-maps").":</td>";
             $ret .= "                     <td>";
             $ret .= "                        <select id='wpgmza_api_version' name='wpgmza_api_version'  >";
-            $ret .= "                                    <option value=\"3.25\" ".$wpgmza_api_version_selected[0].">3.25</option>";
-            $ret .= "                                    <option value=\"3.26\" ".$wpgmza_api_version_selected[1].">3.26</option>";
+            $ret .= "                                    <option value=\"3.30\" ".$wpgmza_api_version_selected[0].">3.30</option>";
+            $ret .= "                                    <option value=\"3.31\" ".$wpgmza_api_version_selected[1].">3.31</option>";
             $ret .= "                                    <option value=\"3.exp\" ".$wpgmza_api_version_selected[2].">3.exp</option>";
 
             $ret .= "                                </select>    ";
@@ -3908,7 +3982,7 @@ function wpgmaps_settings_page_basic() {
             $ret .= "                        <select id='wpgmza_access_level' name='wpgmza_access_level'  >";
             $ret .= "                                    <option value=\"manage_options\" ".$wpgmza_access_level_checked[0].">Admin</option>";
             $ret .= "                                    <option value=\"edit_pages\" ".$wpgmza_access_level_checked[1].">Editor</option>";
-            $ret .= "                                    <option value=\"publish_posts\" ".$wpgmza_access_level_checked[2].">Author</option>";
+            $ret .= "                                    <option value=\"edit_published_posts\" ".$wpgmza_access_level_checked[2].">Author</option>";
             $ret .= "                                    <option value=\"edit_posts\" ".$wpgmza_access_level_checked[3].">Contributor</option>";
             $ret .= "                                    <option value=\"read\" ".$wpgmza_access_level_checked[4].">Subscriber</option>";
             $ret .= "                        </select>    ";
@@ -3946,7 +4020,7 @@ function wpgmaps_settings_page_basic() {
 			$ret .= "				<tr>";
 			$ret .= "                   <td valign='top' width='200' style='vertical-align:top;'>".__("Disable InfoWindows","wp-google-maps")." </td>";
 			$ret .= "					<td>";
-			$ret .= "						<input name='wpgmza_settings_disable_infowindows' type='checkbox' value='1' {$wpgmza_settings_disable_infowindows}/>";
+			$ret .= "						<input id='wpgmza_settings_disable_infowindows' name='wpgmza_settings_disable_infowindows' value='1' type='checkbox' class='cmn-toggle cmn-toggle-yes-no' {$wpgmza_settings_disable_infowindows}/><label for='wpgmza_settings_disable_infowindows' data-on='".__("Yes", "wp-google-maps")."' data-off='".__("No", "wp-google-maps")."'></label>";
 			$ret .= "					</td>";
 			$ret .= "				</tr>";
   
@@ -4806,6 +4880,22 @@ function wpgmza_basic_menu() {
 
                             </td>
                         </tr>
+
+                        <tr>
+                            <td><label for=\"wpgmza_show_points_of_interest\">".__("Show Points of Interest?", "wp-google-maps")."</label></td>
+                            <td>
+                                <input type='checkbox' id='wpgmza_show_points_of_interest' name='wpgmza_show_points_of_interest' class='postform cmn-toggle cmn-toggle-yes-no' " .
+                                    (
+                                        !isset($other_settings_data['wpgmza_show_points_of_interest']) ||
+                                        $other_settings_data['wpgmza_show_points_of_interest'] == 1
+                                        ?
+                                        "checked='checked'"
+                                        :
+                                        ''
+                                    )
+                                . "/><label class='cmn-override-big' for='wpgmza_show_points_of_interest' data-on='".__("Yes","wp-google-maps")."' data-off='".__("No","wp-google-maps")."''></label>
+                            </td>
+                        </tr>
                         
                         <tr>
                             <td width='320'>".__("Maximum Zoom Level","wp-google-maps").":</td>
@@ -4863,21 +4953,7 @@ function wpgmza_basic_menu() {
 
                                     </td>
                                 </tr>
-								<tr>
-									<td><label for=\"wpgmza_show_points_of_interest\">".__("Show Points of Interest?", "wp-google-maps")."</label></td>
-									<td>
-										<input type='checkbox' id='wpgmza_show_points_of_interest' name='wpgmza_show_points_of_interest' " .
-											(
-												!isset($other_settings_data['wpgmza_show_points_of_interest']) ||
-												$other_settings_data['wpgmza_show_points_of_interest'] == 1
-												?
-												"checked='checked'"
-												:
-												''
-											)
-										. "/>
-									</td>
-								</tr>
+								
 								
                                 <tr>
                                 </tr>
@@ -5104,8 +5180,8 @@ function wpgmza_basic_menu() {
                                 <br /><a href=\"".wpgm_pro_link("https://www.wpgmaps.com/purchase-professional-version/?utm_source=plugin&utm_medium=link&utm_campaign=upgradenow")."\" target=\"_BLANK\" title=\"Upgrade now for only $39.99 once off\" class=\"button-primary\" style=\"font-size:20px; display:block; width:220px; text-align:center; height:42px; line-height:41px;\">Upgrade Now</a>
                                 <br /><br />
                                 <a href=\"".wpgm_pro_link("https://www.wpgmaps.com/demo/")."\" target=\"_BLANK\">View the demos</a>.<br /><br />
-                                Have a sales question? Contact either Nick or Jarryd on <a href=\"mailto:nick@wpgmaps.com\">nick@wpgmaps.com</a> or use our <a href=\"http://www.wpgmaps.com/contact-us/\" target=\"_BLANK\">contact form</a>. <br /><br />
-                                Need help? <a href=\"http://www.wpgmaps.com/forums/forum/support-forum/\" target=\"_BLANK\">Ask a question on our support forum</a>.       
+                                Have a sales question? Contact either Nick on <a href=\"mailto:nick@wpgmaps.com\">nick@wpgmaps.com</a> or use our <a href=\"http://www.wpgmaps.com/contact-us/\" target=\"_BLANK\">contact form</a>. <br /><br />
+                                Need help? <a href=\"https://www.wpgmaps.com/forums/\" target=\"_BLANK\">Ask a question on our support forum</a>.       
                                 
 
 
@@ -5557,7 +5633,7 @@ function wpgmza_return_marker_list($map_id,$admin = true,$width = "100%",$mashup
 
         $res = wpgmza_get_map_data($map_id);
         if (!$res->default_marker) {
-            $default_marker = "<img src='".wpgmaps_get_plugin_url()."images/marker.png' />";
+            $default_marker = "<img width='27' height='43' src='".wpgmaps_get_plugin_url()."images/spotlight-poi2_hdpi.png' />";
         } else {
             $default_marker = "<img src='".$res->default_marker."' />";
         }
@@ -5751,6 +5827,7 @@ if (function_exists('wpgmza_register_pro_version')) {
 
     global $wpgmza_pro_version;
     $wpgmza_float_version = floatval( $wpgmza_pro_version );
+
     
     if( $wpgmza_float_version <= 6.07 ){
         add_action('wp_footer', 'wpgmaps_user_javascript_pro');
@@ -6276,7 +6353,7 @@ function wpgmza_basic_support_menu() {
                 <hr />
                 <p><?php _e("Still need help? Use one of these links below.","wp-google-maps"); ?></p>
                 <ul>
-                    <li><a href='https://www.wpgmaps.com/forums/forum/support-forum/' target='_BLANK' title='<?php _e("Support forum","wp-google-maps"); ?>'><?php _e("Support forum","wp-google-maps"); ?></a></li>
+                    <li><a href='https://www.wpgmaps.com/forums/' target='_BLANK' title='<?php _e("Support forum","wp-google-maps"); ?>'><?php _e("Support forum","wp-google-maps"); ?></a></li>
                     <li><a href='https://www.wpgmaps.com/contact-us/' target='_BLANK' title='<?php _e("Contact us","wp-google-maps"); ?>'><?php _e("Contact us","wp-google-maps"); ?></a></li>
                 </ul>
             </div>

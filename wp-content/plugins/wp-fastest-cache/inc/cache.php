@@ -7,11 +7,19 @@
 		private $err = "";
 		public $cacheFilePath = "";
 		public $exclude_rules = false;
+		public $preload_user_agent = false;
 
 		public function __construct(){
 			//to fix: PHP Notice: Undefined index: HTTP_USER_AGENT
 			$_SERVER['HTTP_USER_AGENT'] = isset($_SERVER['HTTP_USER_AGENT']) && $_SERVER['HTTP_USER_AGENT'] ? strip_tags($_SERVER['HTTP_USER_AGENT']) : "Empty User Agent";
 			
+			if(preg_match("/(WP\sFastest\sCache\sPreload(\siPhone\sMobile)?\s*Bot)/", $_SERVER['HTTP_USER_AGENT'])){
+				$this->preload_user_agent = true;
+			}else{
+				$this->preload_user_agent = false;
+			}
+
+
 			$this->options = $this->getOptions();
 
 			$this->set_cdn();
@@ -21,6 +29,20 @@
 			$this->set_exclude_rules();
 
 			$this->set_content_url();
+
+			if(isset($this->options->wpFastestCacheDisableEmojis) && $this->options->wpFastestCacheDisableEmojis){
+				add_action('init', array($this, 'disable_emojis'));
+			}
+		}
+
+		public function disable_emojis(){
+			remove_action('wp_head', 'print_emoji_detection_script', 7);
+			remove_action('admin_print_scripts', 'print_emoji_detection_script');
+			remove_filter('the_content_feed', 'wp_staticize_emoji');
+			remove_filter('comment_text_rss', 'wp_staticize_emoji');
+			remove_action('wp_print_styles', 'print_emoji_styles');
+			remove_action('admin_print_styles', 'print_emoji_styles');
+			remove_filter('wp_mail', 'wp_staticize_emoji_for_email');
 		}
 
 		public function detect_current_page_type(){
@@ -42,6 +64,8 @@
 				echo "<!--WPFC_PAGE_TYPE_post-->";
 			}else if(is_page()){
 				echo "<!--WPFC_PAGE_TYPE_page-->";
+			}else if(is_attachment()){
+				echo "<!--WPFC_PAGE_TYPE_attachment-->";
 			}
 		}
 
@@ -90,6 +114,13 @@
 					$this->cacheFilePath = $this->getWpContentDir()."/cache/all/".$_SERVER["REQUEST_URI"];
 				}
 			}
+			
+			//WPML language switch
+			//https://wpml.org/forums/topic/wpml-language-switch-wp-fastest-cache-issue/
+			if($this->isPluginActive('sitepress-multilingual-cms/sitepress.php')){
+				$current_language = apply_filters('wpml_current_language', false);
+				$this->cacheFilePath = str_replace('/cache/all/', '/cache/all/'.$current_language.'/', $this->cacheFilePath);
+			}
 
 			$this->cacheFilePath = $this->cacheFilePath ? rtrim($this->cacheFilePath, "/")."/" : "";
 			$this->cacheFilePath = str_replace("/cache/all//", "/cache/all/", $this->cacheFilePath);
@@ -100,7 +131,9 @@
 					if($this->is_trailing_slash()){
 						if(!preg_match("/\/$/", $_SERVER["REQUEST_URI"])){
 							if(defined('WPFC_CACHE_QUERYSTRING') && WPFC_CACHE_QUERYSTRING){
-								//toDo
+							
+							}else if(preg_match("/utm_(source|medium|campaign|content|term)/i", $this->cacheFilePath)){
+
 							}else{
 								$this->cacheFilePath = false;
 							}
@@ -110,10 +143,25 @@
 					}
 				}
 			}
+			
+			$this->remove_google_analytics_paramters();
 
 			// to decode path if it is not utf-8
 			if($this->cacheFilePath){
 				$this->cacheFilePath = urldecode($this->cacheFilePath);
+			}
+		}
+
+		public function remove_google_analytics_paramters(){
+			//to remove query strings for cache if google analytics parameters are set
+			if(preg_match("/utm_(source|medium|campaign|content|term)/i", $this->cacheFilePath)){
+				if(strlen($_SERVER["REQUEST_URI"]) > 1){ // for the sub-pages
+
+					$this->cacheFilePath = preg_replace("/\/*\?.+/", "", $this->cacheFilePath);
+					$this->cacheFilePath = $this->cacheFilePath."/";
+
+					define('WPFC_CACHE_QUERYSTRING', true);
+				}
 			}
 		}
 
@@ -215,6 +263,8 @@
 					}else if(defined('WPFC_CACHE_QUERYSTRING') && WPFC_CACHE_QUERYSTRING){
 						//
 					}else{
+						ob_start(array($this, "cdn_rewrite"));
+						
 						return 0;
 					}
 				}
@@ -241,7 +291,9 @@
 					if(!$this->isPluginActive('really-simple-ssl/rlrsssl-really-simple-ssl.php')){
 						if(!$this->isPluginActive('really-simple-ssl-pro/really-simple-ssl-pro.php')){
 							if(!$this->isPluginActive('ssl-insecure-content-fixer/ssl-insecure-content-fixer.php')){
-								return 0;
+								if(!$this->isPluginActive('https-redirection/https-redirection.php')){
+									return 0;
+								}
 							}
 						}
 					}
@@ -253,6 +305,13 @@
 
 				if(!preg_match("/www\./", get_option("home")) && preg_match("/www\./", $_SERVER['HTTP_HOST'])){
 					return 0;
+				}
+
+				//different domain names may be used for different languages
+				if($this->isPluginActive('polylang/polylang.php')){
+					if(!preg_match("/".preg_quote(str_replace("www.", "", $_SERVER["HTTP_HOST"]), "/")."/i", get_option("home"))){
+						return 0;
+					}
 				}
 
 				if($this->exclude_page()){
@@ -269,11 +328,16 @@
 					return 0;
 				}
 
+
 				//to show cache version via php if htaccess rewrite rule does not work
-				if($this->cacheFilePath && @file_exists($this->cacheFilePath."index.html")){
+				if(!$this->preload_user_agent && $this->cacheFilePath && @file_exists($this->cacheFilePath."index.html")){
 					if($content = @file_get_contents($this->cacheFilePath."index.html")){
-						$content = $content."<!-- via php -->";
-						die($content);
+						if(defined('WPFC_REMOVE_VIA_FOOTER_COMMENT') && WPFC_REMOVE_VIA_FOOTER_COMMENT){
+							die($content);
+						}else{
+							$content = $content."<!-- via php -->";
+							die($content);
+						}
 					}
 				}else{
 					if($this->isMobile()){
@@ -310,7 +374,7 @@
 					if($create_cache){
 						$this->startTime = microtime(true);
 
-						add_action('wp', array($this, "detect_current_page_type"));
+						add_action('get_footer', array($this, "detect_current_page_type"));
 						add_action('get_footer', array($this, "wp_print_scripts_action"));
 
 						ob_start(array($this, "callback"));
@@ -348,7 +412,7 @@
 						//wc_get_page_id('product')
 						//wc_get_page_id('product-category')
 						
-						array_push($woocommerce_ids, wc_get_page_id('cart'), wc_get_page_id('checkout'), wc_get_page_id('receipt'), wc_get_page_id('confirmation'));
+						array_push($woocommerce_ids, wc_get_page_id('cart'), wc_get_page_id('checkout'), wc_get_page_id('receipt'), wc_get_page_id('confirmation'), wc_get_page_id('myaccount'));
 
 						if (in_array($page_id[1], $woocommerce_ids)) {
 							return true;
@@ -621,7 +685,7 @@
 								$lazy_load_js = WpFastestCacheLazyLoad::get_js_source();
 							}
 
-							$content = preg_replace("/\s*<\/head>/i", $lazy_load_js."</head>", $content, 1);
+							$content = preg_replace("/\s*<\/head\s*>/i", $lazy_load_js."</head>", $content, 1);
 						}
 					}
 
@@ -635,9 +699,26 @@
 						$this->createFolder($this->cacheFilePath, $content);
 					}
 					
+					$content = $this->fix_pre_tag($content, $buffer);
+
 					return $content."<!-- need to refresh to see cached version -->";
 				}
 			}
+		}
+
+		public function fix_pre_tag($content, $buffer){
+			if(preg_match("/<pre[^\>]*>/i", $buffer)){
+				preg_match_all("/<pre[^\>]*>((?!<\/pre>).)+<\/pre>/is", $buffer, $pre_buffer);
+				preg_match_all("/<pre[^\>]*>((?!<\/pre>).)+<\/pre>/is", $content, $pre_content);
+
+				if(isset($pre_content[0]) && isset($pre_content[0][0])){
+					foreach ($pre_content[0] as $key => $value){
+						$content = preg_replace("/".preg_quote($value, "/")."/", $pre_buffer[0][$key], $content);
+					}
+				}
+			}
+			
+			return $content;
 		}
 
 		public function cdn_rewrite($content){
@@ -716,11 +797,19 @@
 
 		public function createFolder($cachFilePath, $buffer, $extension = "html", $prefix = "", $gzip = false){
 			$create = false;
+			$update_db_statistic = true;
 			
 			if($buffer && strlen($buffer) > 100 && $extension == "html"){
 				if(!preg_match("/^\<\!\-\-\sMobile\:\sWP\sFastest\sCache/i", $buffer)){
 					if(!preg_match("/^\<\!\-\-\sWP\sFastest\sCache/i", $buffer)){
 						$create = true;
+					}
+				}
+
+				if($this->preload_user_agent){
+					if(file_exists($cachFilePath."/".$prefix."index.".$extension)){
+						$update_db_statistic = false;
+						@unlink($cachFilePath."/".$prefix."index.".$extension);
 					}
 				}
 			}
@@ -744,7 +833,7 @@
 								file_put_contents($cachFilePath."/".$prefix."index.".$extension, $buffer);
 								
 								if(class_exists("WpFastestCacheStatics")){
-									if(!preg_match("/After\sCache\sTimeout/i", $_SERVER['HTTP_USER_AGENT'])){
+									if($update_db_statistic && !preg_match("/After\sCache\sTimeout/i", $_SERVER['HTTP_USER_AGENT'])){
 										if(preg_match("/wpfc\-mobile\-cache/", $cachFilePath)){
 											$extension = "mobile";
 										}
@@ -777,7 +866,7 @@
 							file_put_contents($cachFilePath."/".$prefix."index.".$extension, $buffer);
 							
 							if(class_exists("WpFastestCacheStatics")){
-								if(!preg_match("/After\sCache\sTimeout/i", $_SERVER['HTTP_USER_AGENT'])){
+								if($update_db_statistic && !preg_match("/After\sCache\sTimeout/i", $_SERVER['HTTP_USER_AGENT'])){
 									if(preg_match("/wpfc\-mobile\-cache/", $cachFilePath)){
 										$extension = "mobile";
 									}

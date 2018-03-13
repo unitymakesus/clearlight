@@ -1,11 +1,12 @@
 <?php
 	class WPFC_NONCE_TIMEOUT{
-		private $file_path = WPFC_WP_CONTENT_DIR."/cache/all";
+		private $file_path = "";
 		private $file_name = "nonce_datas.txt";
 		private $prev_nonce = false;
 		private $current_nonce = false;
 		
-		public function __construct(){
+		public function __construct($cache_path){
+			$this->file_path = $cache_path;
 			$this->set_current_nonce();
 			$this->set_prev_nonce();
 		}

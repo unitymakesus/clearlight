@@ -3,8 +3,8 @@ Contributors: emrevona
 Donate link: http://profiles.wordpress.org/emrevona/
 Tags: cache, performance, wp-cache, total cache, super cache
 Requires at least: 3.3
-Tested up to: 4.8
-Stable tag: 0.8.7.2
+Tested up to: 4.9
+Stable tag: 0.8.7.7
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
 
@@ -52,6 +52,7 @@ Wpfc does not support Wordpress Multisite yet.
 5. Leverage browser caching - Reduce page load times for repeat visitors
 6. Combine CSS - Reduce number of HTTP round-trips by combining multiple CSS resources into one
 7. Combine JS
+8. Disable Emoji - You can remove the emoji inline css and wp-emoji-release.min.js
 
 <h4>Supported languages: </h4>
 
@@ -100,6 +101,38 @@ Wpfc does not support Wordpress Multisite yet.
 18. Database Cleanup
 
 == Changelog ==
+
+= 0.8.7.7 =
+* to remove "via php" text if WPFC_REMOVE_VIA_FOOTER_COMMENT is defined as true
+* <strong>[FEATURE]</strong> Restart Preload [<a target="_blank" href="http://www.wpfastestcache.com/features/restart-preload-after-completed/">Details</a>]
+* to fix the problem of selecting chinese language automatically
+* to fix php notice trying to get property of non-object in delete_cache_of_term()
+* to speed up getting db optimization statistics()
+* to show the cache of main content without query string if google analytics parameters are set [<a target="_blank" href="http://www.wpfastestcache.com/features/cache-url-with-google-analytics-parameters-querystring/">Details</a>]
+
+
+= 0.8.7.6 =
+* to fix the problem which show the same cache for every language on Polylang
+* <strong>[FEATURE]</strong> to remove wordpress emojis [<a target="_blank" href="http://www.wpfastestcache.com/optimization/disableremove-wordpress-emojis/">Details</a>]
+
+= 0.8.7.5 =
+* <strong>[FEATURE]</strong> Compatible with Easy HTTPS (SSL) Redirection
+* to clear of the post when WPML is active
+
+= 0.8.7.4 =
+* to exclude the renamed my-account page of woocommerce
+* to add AddType x-font/ttf for gzip
+* to fix the errors of Undefined property: stdClass::$post, stdClass::$page, stdClass::$category
+* <strong>[FEATURE]</strong> exclude attachments
+
+= 0.8.7.3 =
+* to espace empty spaces for webp rules
+* to clear cache after new Woocommerce orders
+* <strong>[FEATURE]</strong> Compatible with kk Star Ratings
+* to clear the pages cache of the categories and tags
+* <strong>[FEATURE]</strong> Compatible with All In One Schema.org Rich Snippets
+* <strong>[FEATURE]</strong> Compatible with WPML Multilingual Plugin
+* <strong>[FEATURE]</strong> Compatible with Cloudinary
 
 = 0.8.7.2 =
 * to exclude the admins cookies for the cache automatically
@@ -176,7 +209,6 @@ Wpfc does not support Wordpress Multisite yet.
 * to clear the cache of post cats and the cache of post tags after update post
 
 = 0.8.6.4 =
-* <strong>[FEATURE]</strong> Compatible with kk Star Ratings
 * to add aac, mp3, ogg extension for CDN
 * to serve wp-emoji-release.min.js via cdn if CDN integration has been added
 * not to show the cache for comment authors

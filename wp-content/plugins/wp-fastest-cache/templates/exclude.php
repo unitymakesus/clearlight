@@ -95,6 +95,7 @@
 															<option value="tag">Tags</option>
 															<option value="post">Posts</option>
 															<option value="page">Pages</option>
+															<option value="attachment">Attachments</option>
 										    				<option value="startwith">Starts With</option>
 										    				<option value="contain">Contains</option>
 										    				<option value="exact">Is Equal To</option>
@@ -178,7 +179,7 @@
 				var clone_modal_id = "wpfc-modal-exclude-" + new Date().getTime();
 
 				clone_modal.find("select").change(function(e){
-					if(jQuery(this).val().match(/^(homepage|category|tag|post|page)$/)){
+					if(jQuery(this).val().match(/^(homepage|category|tag|post|page|attachment)$/)){
 						clone_modal.find("input[name='wpfc-exclude-rule-content']").hide();
 						clone_modal.find("input[name='wpfc-exclude-rule-content']").val(jQuery(this).val());
 					}else{
@@ -187,7 +188,7 @@
 					}
 				});
 
-				if(e.prefix.match(/^(homepage|category|tag|post|page)$/)){
+				if(e.prefix.match(/^(homepage|category|tag|post|page|attachment)$/)){
 					clone_modal.find("input[name='wpfc-exclude-rule-content']").hide();
 				}
 
@@ -279,6 +280,8 @@
 				title = "Posts";
 			}else if(prefix == "page"){
 				title = "Pages";
+			}else if(prefix == "attachment"){
+				title = "Attachments";
 			}
 
 			return title;
@@ -299,14 +302,14 @@
 				}
 
 				if(type == "page" || type == "css" || type == "js"){
-					if(prefix.match(/^(homepage|category|tag|post|page)$/)){
+					if(prefix.match(/^(homepage|category|tag|post|page|attachment)$/)){
 						if(prefix == "homepage"){
 							return "The " + b_start + "homepage" + b_end + " has been excluded";
 						}else{
 							return "All" + " " + b_start + this.create_title(prefix).toLowerCase() + b_end + " " + "have been excluded";
 						}
 					}else{
-						return "<?php echo home_url();?>" + "/" + request_uri;
+						return "<?php echo preg_replace("/(https?\:\/\/[^\/]+).*/", "$1", site_url());?>" + "/" + request_uri;
 					}
 				}else if(type == "useragent"){
 					return "User-Agent: " + request_uri;
@@ -363,7 +366,7 @@
 
 
 				clone_modal.find("select").change(function(){
-					if(jQuery(this).val().match(/^(homepage|category|tag|post|page)$/)){
+					if(jQuery(this).val().match(/^(homepage|category|tag|post|page|attachment)$/)){
 						clone_modal.find("input[name='wpfc-exclude-rule-content']").hide();
 						clone_modal.find("input[name='wpfc-exclude-rule-content']").val(jQuery(this).val());
 					}else{
