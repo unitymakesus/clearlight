@@ -48,6 +48,15 @@
       }
     }
   }
+
+  &.align-center {
+    justify-content: center;
+    align-items: center;
+
+    .col {
+      padding-bottom: 10px;
+    }
+  }
 }
 
 // Change default container widths

@@ -1,5 +1,6 @@
 {
   "images/BBB.png": "images/BBB_6aa0a8b1.png",
+  "images/bni.png": "images/bni_0ba6301a.png",
   "images/custom-shapes.jpg": "images/custom-shapes_71884637.jpg",
   "images/design.jpg": "images/design_cc5fc934.jpg",
   "images/drill.svg": "images/drill_2c2120c4.svg",
@@ -15,6 +16,7 @@
   "images/hero-min.webm": "images/hero-min_19733253.webm",
   "images/hero-poster.jpg": "images/hero-poster_aa9d17a1.jpg",
   "images/homebuilders.png": "images/homebuilders_33954895.png",
+  "images/houzz.png": "images/houzz_11e3f18b.png",
   "images/inspiration.jpg": "images/inspiration_faf13ed7.jpg",
   "images/leaf.svg": "images/leaf_db706605.svg",
   "images/logo.png": "images/logo_bab93a6a.png",
@@ -24,6 +26,7 @@
   "images/nahb.png": "images/nahb_9389a5ea.png",
   "images/nc.png": "images/nc_7e3ad02b.png",
   "images/pliers.svg": "images/pliers_0a48dd70.svg",
+  "images/powered-by-unity.svg": "images/powered-by-unity_912b0179.svg",
   "images/tag.svg": "images/tag_814e5df2.svg",
   "vendor/Roboto-Bold.woff": "vendor/Roboto-Bold_eed9aab5.woff",
   "vendor/Roboto-Bold.woff2": "vendor/Roboto-Bold_c0f1e4a4.woff2",
@@ -41,9 +44,9 @@
   "vendor/fontawesome-webfont.ttf?v=4.7.0": "vendor/fontawesome-webfont_b06871f2.ttf",
   "vendor/fontawesome-webfont.woff2?v=4.7.0": "vendor/fontawesome-webfont_af7ae505.woff2",
   "vendor/fontawesome-webfont.woff?v=4.7.0": "vendor/fontawesome-webfont_fee66e71.woff",
-  "scripts/customizer.js": "scripts/customizer_396f3e92.js",
-  "styles/main.css": "styles/main_396f3e92.css",
-  "scripts/main.js": "scripts/main_396f3e92.js",
-  "styles/tinymce.css": "styles/tinymce_396f3e92.css",
-  "scripts/tinymce.js": "scripts/tinymce_396f3e92.js"
+  "scripts/customizer.js": "scripts/customizer_8ea97e80.js",
+  "styles/main.css": "styles/main_8ea97e80.css",
+  "scripts/main.js": "scripts/main_8ea97e80.js",
+  "styles/tinymce.css": "styles/tinymce_8ea97e80.css",
+  "scripts/tinymce.js": "scripts/tinymce_8ea97e80.js"
 }

@@ -55,7 +55,7 @@
       </div>
     </div>
 
-    <div class="row block-grid up-s12 up-m3 up-l5">
+    <div class="row block-grid up-s12 up-m3 up-l5 align-center">
       @include('partials.footer-logos', [
         'logos'     => [
           [
@@ -74,9 +74,19 @@
             'link'  => 'https://www.greensborobuilders.org/',
           ],
           [
+            'src'   => App\asset_path('images/bni.png'),
+            'alt'   => 'BNI',
+            'link'  => 'http://bnisoutheast.com/en_US/index',
+          ],
+          [
             'src'   => App\asset_path('images/nahb.png'),
             'alt'   => 'National Association of Home Builders',
             'link'  => 'https://www.nahb.org/',
+          ],
+          [
+            'src'   => App\asset_path('images/houzz.png'),
+            'alt'   => 'Houzz',
+            'link'  => 'https://www.houzz.com/pro/chammondcl/clearlight-glass-and-mirror',
           ]
         ]
       ])
