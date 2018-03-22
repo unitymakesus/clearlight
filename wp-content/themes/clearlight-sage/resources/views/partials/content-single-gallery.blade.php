@@ -20,7 +20,6 @@
           @endphp
 
           @if($images)
-            @php(shuffle($images))
             @foreach($images as $image)
               <div class="child">
                 <img src="<?php echo $image['sizes']['medium']; ?>" alt="<?php echo $image['alt']; ?>" />
@@ -29,7 +28,7 @@
           @endif
         </div>
       </div>
-      
+
       <div class="row hentry">
         <div class="col l9">
           <p>Disclaimer: Our installers are amazing &mdash; but they’re not photographers! And while these photos are not the best quality, we hope they will give you an idea of Clearlight's capabilities.</p>
