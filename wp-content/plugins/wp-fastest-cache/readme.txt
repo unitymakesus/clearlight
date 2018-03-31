@@ -4,7 +4,7 @@ Donate link: http://profiles.wordpress.org/emrevona/
 Tags: cache, performance, wp-cache, total cache, super cache
 Requires at least: 3.3
 Tested up to: 4.9
-Stable tag: 0.8.7.7
+Stable tag: 0.8.7.8
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
 
@@ -101,6 +101,20 @@ Wpfc does not support Wordpress Multisite yet.
 18. Database Cleanup
 
 == Changelog ==
+
+= 0.8.7.8 =
+* to check <title> for 404 if the header return 200
+* to clear all the cache if the visibility is converted to private
+* refactoring of ignored()
+* to stop loading the admin functions if DOING_AJAX is set
+* to fix excluding attachment pages problem
+* <strong>[FEATURE]</strong> Compatible with Yet Another Stars Rating
+* to disable including powerfulhtml class for ajax request
+* to convert the uninstall method to uninstall.php
+* <strong>[FEATURE]</strong> exclude Google Analytics Parameters [<a target="_blank" href="http://www.wpfastestcache.com/features/cache-url-with-google-analytics-parameters-querystring/#disable-cache-google-analytics-parameters">Details</a>]
+* to add WPFC_DISABLE_WEBP [<a target="_blank" href="http://www.wpfastestcache.com/premium/image-optimization/#disable-webp">Details</a>]
+* to fix 403 cdn template error
+* to fix height problem of lightbox
 
 = 0.8.7.7 =
 * to remove "via php" text if WPFC_REMOVE_VIA_FOOTER_COMMENT is defined as true
@@ -709,7 +723,7 @@ Wpfc does not create .htaccess automatically so you need to create empty one.
 When the cached files are deleted, they are moved to "tmpWpfc" instead of being deleted and a cron-job is set. Delete all files are so difficult for server so cron-job is set not to use a lot of CPU resources. Cron-job is set and it deletes 100 files every 5 minutes. When all files in "tmpWpfc" are deleted, cron-job is unset.
 
 = How can stop caching for some pages? =
-If you add &lt;!--[wpfcNOT]--&gt; into source coude, creating cache stops. You can find it on visual and text editor after opening Add New Post panel.
+If you add &lt;!-- [wpfcNOT] --&gt; into source coude, creating cache stops. You can find it on visual and text editor after opening Add New Post panel.
 
 = Does Wpfc work with WPMU (Wordpress Multisite) properly? =
 No. Wpfc does not support Wordpress Multisite yet.

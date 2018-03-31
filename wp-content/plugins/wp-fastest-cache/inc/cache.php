@@ -8,6 +8,7 @@
 		public $cacheFilePath = "";
 		public $exclude_rules = false;
 		public $preload_user_agent = false;
+		public $current_page_type = false;
 
 		public function __construct(){
 			//to fix: PHP Notice: Undefined index: HTTP_USER_AGENT
@@ -66,24 +67,6 @@
 				echo "<!--WPFC_PAGE_TYPE_page-->";
 			}else if(is_attachment()){
 				echo "<!--WPFC_PAGE_TYPE_attachment-->";
-			}
-		}
-
-		public function set_content_url(){
-			$content_url = content_url();
-
-			// Hide My WP
-			if($this->isPluginActive('hide_my_wp/hide-my-wp.php')){
-				$hide_my_wp = get_option("hide_my_wp");
-
-				if(isset($hide_my_wp["new_content_path"]) && $hide_my_wp["new_content_path"]){
-					$hide_my_wp["new_content_path"] = trim($hide_my_wp["new_content_path"], "/");
-					$content_url = str_replace(basename(WPFC_WP_CONTENT_DIR), $hide_my_wp["new_content_path"], $content_url);
-				}
-			}
-
-			if (!defined('WPFC_WP_CONTENT_URL')) {
-				define("WPFC_WP_CONTENT_URL", $content_url);
 			}
 		}
 
@@ -405,25 +388,29 @@
 						"\/clientarea\.php"
 					);
 			if($this->isPluginActive('woocommerce/woocommerce.php')){
-				if(preg_match("/page-id-(\d+)/", $buffer, $page_id)){
-					if(function_exists("wc_get_page_id")){
-						$woocommerce_ids = array();
+				if($this->current_page_type != "homepage"){
+					global $post;
 
-						//wc_get_page_id('product')
-						//wc_get_page_id('product-category')
-						
-						array_push($woocommerce_ids, wc_get_page_id('cart'), wc_get_page_id('checkout'), wc_get_page_id('receipt'), wc_get_page_id('confirmation'), wc_get_page_id('myaccount'));
+					if(isset($post->ID) && $post->ID){
+						if(function_exists("wc_get_page_id")){
+							$woocommerce_ids = array();
 
-						if (in_array($page_id[1], $woocommerce_ids)) {
-							return true;
+							//wc_get_page_id('product')
+							//wc_get_page_id('product-category')
+							
+							array_push($woocommerce_ids, wc_get_page_id('cart'), wc_get_page_id('checkout'), wc_get_page_id('receipt'), wc_get_page_id('confirmation'), wc_get_page_id('myaccount'));
+
+							if (in_array($post->ID, $woocommerce_ids)) {
+								return true;
+							}
 						}
 					}
+
+					//"\/product"
+					//"\/product-category"
+
+					array_push($list, "\/cart", "\/checkout", "\/receipt", "\/confirmation", "\/wc-api\/");
 				}
-
-				//"\/product"
-				//"\/product-category"
-
-				array_push($list, "\/cart", "\/checkout", "\/receipt", "\/confirmation", "\/wc-api\/");
 			}
 
 			if($this->isPluginActive('wp-easycart/wpeasycart.php')){
@@ -454,7 +441,7 @@
 						$value->content = trim($value->content);
 						$value->content = trim($value->content, "/");
 
-						if(preg_match("/^(homepage|category|tag|post|page)$/", $value->prefix)){
+						if(preg_match("/^(homepage|category|tag|post|page|attachment)$/", $value->prefix)){
 							if(preg_match('/<\!--WPFC_PAGE_TYPE_'.$value->prefix.'-->/i', $buffer)){
 								return true;
 							} 
@@ -472,6 +459,10 @@
 							if(preg_match("/".$preg_match_rule."/i", $request_url)){
 								return true;
 							}
+						}
+					}else if($value->prefix == "googleanalytics"){
+						if(preg_match("/utm_(source|medium|campaign|content|term)/i", $request_url)){
+							return true;
 						}
 					}else if($value->type == "useragent"){
 						if(preg_match("/".preg_quote($value->content, "/")."/i", $_SERVER['HTTP_USER_AGENT'])){
@@ -517,7 +508,15 @@
 			return false;
 		}
 
+		public function set_current_page_type($buffer){
+			preg_match('/<\!--WPFC_PAGE_TYPE_([a-z]+)-->/i', $buffer, $out);
+
+			$this->current_page_type = isset($out[1]) ? $out[1] : false;
+		}
+
 		public function callback($buffer){
+			$this->set_current_page_type($buffer);
+
 			$buffer = $this->checkShortCode($buffer);
 
 			// for Wordfence: not to cache 503 pages
@@ -550,7 +549,7 @@
 				return $buffer."<!-- wp-login.php -->";
 			}else if($this->hasContactForm7WithCaptcha($buffer)){
 				return $buffer."<!-- This page was not cached because ContactForm7's captcha -->";
-			}else if(is_404()){
+			}else if(is_404() || preg_match("/<title>404\sNot\sFound<\/title>/", $buffer)){
 				return $buffer;
 			}else if($this->ignored($buffer)){
 				return $buffer;

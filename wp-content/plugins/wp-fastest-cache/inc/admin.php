@@ -10,6 +10,8 @@
 		public function __construct(){
 			$this->options = $this->getOptions();
 
+			$this->set_content_url();
+			
 			//to call like that because on WP Multisite current_user_can() cannot get the user
 			add_action('admin_init', array($this, "optionsPageRequest"));
 
@@ -392,29 +394,34 @@
 
 		public function insertWebp($htaccess){
 			if(class_exists("WpFastestCachePowerfulHtml")){
-				$webp = true;
+				if(defined("WPFC_DISABLE_WEBP") && WPFC_DISABLE_WEBP){
+					$webp = false;
+				}else{
+					$webp = true;
+				}
 			}else{
 				$webp = false;
 			}
 
-			$basename = "$1.webp";
+							
+			if($webp){
+				$basename = "$1.webp";
 
-			// this part for sub-directory installation
-			// site_url() and home_url() must be the same
-			if(preg_match("/https?\:\/\/[^\/]+\/(.+)/", site_url(), $siteurl_base_name)){
-				if(preg_match("/https?\:\/\/[^\/]+\/(.+)/", home_url(), $homeurl_base_name)){
-					$homeurl_base_name[1] = trim($homeurl_base_name[1], "/");
-					$siteurl_base_name[1] = trim($siteurl_base_name[1], "/");
+				// this part for sub-directory installation
+				// site_url() and home_url() must be the same
+				if(preg_match("/https?\:\/\/[^\/]+\/(.+)/", site_url(), $siteurl_base_name)){
+					if(preg_match("/https?\:\/\/[^\/]+\/(.+)/", home_url(), $homeurl_base_name)){
+						$homeurl_base_name[1] = trim($homeurl_base_name[1], "/");
+						$siteurl_base_name[1] = trim($siteurl_base_name[1], "/");
 
-					if($homeurl_base_name[1] == $siteurl_base_name[1]){
-						if(preg_match("/".preg_quote($homeurl_base_name[1], "/")."$/", trim(ABSPATH, "/"))){
-							$basename = $homeurl_base_name[1]."/".$basename;
+						if($homeurl_base_name[1] == $siteurl_base_name[1]){
+							if(preg_match("/".preg_quote($homeurl_base_name[1], "/")."$/", trim(ABSPATH, "/"))){
+								$basename = $homeurl_base_name[1]."/".$basename;
+							}
 						}
 					}
 				}
-			}
-							
-			if($webp){
+
 				if(ABSPATH == "//"){
 					$RewriteCond = "RewriteCond %{DOCUMENT_ROOT}/".$basename." -f"."\n";
 				}else{
@@ -806,7 +813,7 @@
 
 			$wpFastestCacheLazyLoad = isset($this->options->wpFastestCacheLazyLoad) ? 'checked="checked"' : "";
 			$wpFastestCacheLazyLoad_keywords = isset($this->options->wpFastestCacheLazyLoad_keywords) ? $this->options->wpFastestCacheLazyLoad_keywords : "";
-
+			$wpFastestCacheLazyLoad_placeholder = isset($this->options->wpFastestCacheLazyLoad_placeholder) ? $this->options->wpFastestCacheLazyLoad_placeholder : "default";
 
 
 			$wpFastestCacheLBC = isset($this->options->wpFastestCacheLBC) ? 'checked="checked"' : "";
@@ -1206,10 +1213,11 @@
 											// "fr-FR",
 											// "it-IT",
 											// "ja",
-											// "nl-NL",
-											// "pt-PT",
-											// "pt-BR",
+											"nl-NL",
+											"pt-PT",
+											"pt-BR",
 											"tr-TR",
+											"nicheadvice.co.uk",
 											"addkenmerken.net",
 											"animefantastica.com",
 											"rynofitness.com.au",
@@ -1230,6 +1238,7 @@
 											"parkviewhomes.info",
 											"myparkviewhomes.com",
 											"kompressorcheck.de",
+											"cutflower.com",
 											"sackkarre-tests.de",
 											"schraubstock-test.de",
 											"knarrenkasten-tests.de",
@@ -1244,6 +1253,7 @@
 										<div class="questionCon">
 											<div class="question">Lazy Load</div>
 											<div class="inputCon">
+												<input type="hidden" value="<?php echo $wpFastestCacheLazyLoad_placeholder; ?>" id="wpFastestCacheLazyLoad_placeholder" name="wpFastestCacheLazyLoad_placeholder">
 												<input type="hidden" value="<?php echo $wpFastestCacheLazyLoad_keywords; ?>" id="wpFastestCacheLazyLoad_keywords" name="wpFastestCacheLazyLoad_keywords">
 												<input type="checkbox" <?php echo $wpFastestCacheLazyLoad; ?> id="wpFastestCacheLazyLoad" name="wpFastestCacheLazyLoad"><label for="wpFastestCacheLazyLoad">Load images and iframes when they enter the browsers viewport</label>
 											</div>
@@ -1730,6 +1740,7 @@
 										<option value="startwith">Start With</option>
 										<option value="contain">Contain</option>
 										<option value="exact">Exact</option>
+										<option value="googleanalytics">has Google Analytics Parameters</option>
 								</select>
 							</div>
 							<div class="wpfc-exclude-rule-line-middle">
@@ -1922,7 +1933,7 @@
 										type: 'GET', 
 										url: ajaxurl,
 										cache: false,
-										data : {"action": "wpfc_cdn_options_ajax_request"},
+										data : {"action": "wpfc_cdn_options"},
 										dataType : "json",
 										success: function(data){
 											if(data.id){
@@ -2073,9 +2084,7 @@
 				<?php if(class_exists("WpFastestCachePowerfulHtml")){ ?>
 				<?php }else{ ?>
 				<div class="omni_admin_sidebar_section" style="padding:0 !important;border:none !important;background:none !important;">
-					<a href="//inmotion-hosting.evyy.net/c/149801/353727/4222" target="_blank">
-						<img style="width: 273px; margin-left: -27px;" src="<?php echo plugins_url("wp-fastest-cache/images/inmotion-ads.png"); ?>">
-					</a>
+					<!-- ads area -->
 				</div>
 				<?php } ?>
 				<div class="omni_admin_sidebar_section" id="vote-us">

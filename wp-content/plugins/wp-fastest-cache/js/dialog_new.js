@@ -22,7 +22,11 @@ var Wpfc_New_Dialog = {
 		
 		self.clone.show();
 		
-		self.clone.draggable();
+		self.clone.draggable({
+			stop: function(){
+				jQuery(this).height("auto");
+			}
+		});
 		self.clone.position({my: "center", at: "center", of: window});
 		self.clone.find(".close-wiz").click(function(){
 			self.remove(this);
