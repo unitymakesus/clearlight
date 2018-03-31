@@ -26,6 +26,20 @@
       padding-bottom: 18px;
     }
   }
+
+  &.btn-dark {
+    background: $medium-green;
+    color: $white;
+
+    &:hover, &:active, &:focus {
+      color: $white;
+      background: $dark-green;
+    }
+  }
+
+  .hentry & {
+    text-decoration: none;
+  }
 }
 
 .nav-btn {

@@ -127,4 +127,21 @@
     </div>
   </section>
 
+  <section class="background-frosty-to-white">
+    <div class="container">
+      <div class="row flex-grid">
+        <div class="col s12 m6 l5">
+          <h2>Our customers love us, and you will too.</h2>
+          <p class="size-medium">"The crew at Clearlight Glass and Mirror is extremely service oriented. I use them for all my projects and their communication and follow-through are unsurpassed."</p>
+          <p><em>-5 Star Review on Houzz, March 2018</em></p>
+        </div>
+        <div class="col s12 m5 l4 offset-l1 valign-wrapper">
+          <div>
+            <p><a class="btn btn-dark btn-large" href="/about/testimonials/">Read more reviews</a></p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
 @endsection

@@ -7,7 +7,7 @@
           <h2>Ready to get started?</h2>
           <p class="size-medium">Contact us today to discover how we can make the perfect piece for your project.</p>
         </div>
-        <div class="col s12 m5 l4 offset-l1 valign-wrapper offset-">
+        <div class="col s12 m5 l4 offset-l1 valign-wrapper">
           <a href="{{ get_permalink(get_page_by_path('request-a-quote')) }}" class="btn-large">Request a Quote</a>
         </div>
       </div>
@@ -87,7 +87,7 @@
       ])
       <div class="col">
         <a href="https://www.houzz.com/pro/chammondcl/clearlight-glass-and-mirror" target="_blank" rel="noopener">
-          <img alt="Clearlight Glass and Mirror on Houzz" src="https://st.hzcdn.com/static/badge125_125@2x.png" width="125" height="125" />
+          <img alt="Clearlight Glass and Mirror is Recommended on Houzz" src="https://st.hzcdn.com/static/badge_20_9@2x.png" width="96" height="96" />
         </a>
       </div>
       <div class="col">
