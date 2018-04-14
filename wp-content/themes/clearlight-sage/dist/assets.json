@@ -17,7 +17,8 @@
   "images/hero-poster.jpg": "images/hero-poster_aa9d17a1.jpg",
   "images/homebuilders.png": "images/homebuilders_33954895.png",
   "images/houzz.png": "images/houzz_11e3f18b.png",
-  "images/inspiration.jpg": "images/inspiration_faf13ed7.jpg",
+  "images/inspiration-old.jpg": "images/inspiration-old_faf13ed7.jpg",
+  "images/inspiration.jpg": "images/inspiration_e2291226.jpg",
   "images/leaf.svg": "images/leaf_db706605.svg",
   "images/logo.png": "images/logo_bab93a6a.png",
   "images/logo@2x.png": "images/logo@2x_b652cd1d.png",
@@ -44,9 +45,9 @@
   "vendor/fontawesome-webfont.ttf?v=4.7.0": "vendor/fontawesome-webfont_b06871f2.ttf",
   "vendor/fontawesome-webfont.woff2?v=4.7.0": "vendor/fontawesome-webfont_af7ae505.woff2",
   "vendor/fontawesome-webfont.woff?v=4.7.0": "vendor/fontawesome-webfont_fee66e71.woff",
-  "scripts/customizer.js": "scripts/customizer_84ab333a.js",
-  "styles/main.css": "styles/main_84ab333a.css",
-  "scripts/main.js": "scripts/main_84ab333a.js",
-  "styles/tinymce.css": "styles/tinymce_84ab333a.css",
-  "scripts/tinymce.js": "scripts/tinymce_84ab333a.js"
+  "scripts/customizer.js": "scripts/customizer_b5f219aa.js",
+  "styles/main.css": "styles/main_b5f219aa.css",
+  "scripts/main.js": "scripts/main_b5f219aa.js",
+  "styles/tinymce.css": "styles/tinymce_b5f219aa.css",
+  "scripts/tinymce.js": "scripts/tinymce_b5f219aa.js"
 }
