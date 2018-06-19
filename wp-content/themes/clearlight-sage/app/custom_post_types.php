@@ -25,7 +25,7 @@ add_action( 'init', function() {
 			'exclude_from_search' => false,
 			'publicly_queryable' => true,
 			'show_ui' => true,
-			'show_in_nav_menus' => false,
+			'show_in_nav_menus' => true,
 			'menu_position' => 8,
 			'menu_icon' => 'dashicons-images-alt',
 			'capability_type' => 'page',
