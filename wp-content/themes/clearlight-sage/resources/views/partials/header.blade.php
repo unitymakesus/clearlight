@@ -24,4 +24,8 @@
       @endif
     </div>
   </nav>
+
+  <div class="banner-row">
+    <p>We sadly announce the passing of Bob Johnson, our former owner who did so much to build a foundation for growth at Clearlight.  We invite you to celebrate Bob’s life with us and his family on Thursday, August 9th at the First Christian Church of Winston-Salem beginning at 2:00 p.m.  Bob and his family are tucked in our thoughts and prayers.</p>
+  </div>
 </header>
