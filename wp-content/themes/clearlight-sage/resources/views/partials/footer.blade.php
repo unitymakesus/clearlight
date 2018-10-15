@@ -74,12 +74,12 @@
             'link'  => 'https://www.greensborobuilders.org/',
           ],
           [
-            'src'   => App\asset_path('images/dfilogo.png'),
+            'src'   => App\asset_path('images/dfi.png'),
             'alt'   => 'Diamon Fusion International',
             'link'  => 'https://dfisolutions.com/',
           ],
           [
-            'src'   => App\asset_path('images/nahb.png'),
+            'src'   => App\asset_path('images/NAHB.png'),
             'alt'   => 'National Association of Home Builders',
             'link'  => 'https://www.nahb.org/',
           ],
