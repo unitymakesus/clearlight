@@ -74,9 +74,9 @@
             'link'  => 'https://www.greensborobuilders.org/',
           ],
           [
-            'src'   => App\asset_path('images/bni.png'),
-            'alt'   => 'BNI',
-            'link'  => 'http://bnisoutheast.com/en_US/index',
+            'src'   => App\asset_path('images/big-dfilogo.png'),
+            'alt'   => 'Diamon Fusion International',
+            'link'  => 'https://dfisolutions.com/',
           ],
           [
             'src'   => App\asset_path('images/nahb.png'),
