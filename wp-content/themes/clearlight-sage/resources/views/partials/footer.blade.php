@@ -74,7 +74,7 @@
             'link'  => 'https://www.greensborobuilders.org/',
           ],
           [
-            'src'   => App\asset_path('images/big-dfilogo.png'),
+            'src'   => App\asset_path('images/dfilogo.png'),
             'alt'   => 'Diamon Fusion International',
             'link'  => 'https://dfisolutions.com/',
           ],
