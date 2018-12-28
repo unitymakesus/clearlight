@@ -31,13 +31,13 @@ export default {
       // let load_count = 0;
 
       // Make blurred video element
-      el_blur += `<video class="" id="video-blur" playsinline mute loop preload="auto" poster="${img_blur}">`;
+      el_blur += `<video class="" id="video-blur" playsinline muted loop preload="auto" poster="${img_blur}">`;
       el_blur += `<source src="${webm_blur}" type="video/webm">`;
       el_blur += `<source src="${mp4_blur}" type="video/mp4">`;
       el_blur += '</video>';
 
       // Make sharp video element
-      el_sharp += `<video class="" id="video-sharp" playsinline mute loop preload="auto" poster="${img_sharp}">`;
+      el_sharp += `<video class="" id="video-sharp" playsinline muted loop preload="auto" poster="${img_sharp}">`;
       el_sharp += `<source src="${webm_sharp}" type="video/webm">`;
       el_sharp += `<source src="${mp4_sharp}" type="video/mp4">`;
       el_sharp += '</video>';
@@ -67,8 +67,21 @@ export default {
           // When both videos are loaded, play them!
           obj.addEventListener('loadeddata', function() {
             if(obj.readyState >= 2 && ++loadCount==2) {
-              video.blur.play();
-              video.sharp.play();
+              var blurPromise = video.blur.play();
+              if (blurPromise !== undefined) {
+                blurPromise.then(function() {
+                }).catch(function(error) {
+                  console.log('blur error: ' + error);
+                });
+              }
+
+              var sharpPromise = video.sharp.play();
+              if (sharpPromise !== undefined) {
+                blurPromise.then(function() {
+                }).catch(function(error) {
+                  console.log('sharp error: ' + error);
+                });
+              }
             }
 
           });
