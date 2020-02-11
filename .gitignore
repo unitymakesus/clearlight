@@ -85,11 +85,9 @@ wp-content/ai1wm-backups/
 *.ra
 *.3gpp
 *.3gp
-*.mp4
 *.mpeg
 *.mpg
 *.mov
-*.webm
 *.flv
 *.m4v
 *.mng
