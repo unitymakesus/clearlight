@@ -86,11 +86,6 @@
         ]
       ])
       <div class="col">
-        <a href="https://www.houzz.com/pro/chammondcl/clearlight-glass-and-mirror" target="_blank" rel="noopener">
-          <img alt="Clearlight Glass and Mirror is Recommended on Houzz" src="https://st.hzcdn.com/static/badge_20_9@2x.png" width="96" height="96" />
-        </a>
-      </div>
-      <div class="col">
         <a href="http://www.bbb.org/northwestern-north-carolina/business-reviews/glass-beveled-carved-ornamental/clearlight-glass-mirror-inc-in-kernersville-nc-152800337/#bbbonlineclick" target="_blank" rel="noopener">
           <img alt="Better Business Bureau Review" src="http://seal-nwnc.bbb.org/seals/blue-seal-200-42-clearlight-glass-mirror-inc-152800337.png" />
         </a>
