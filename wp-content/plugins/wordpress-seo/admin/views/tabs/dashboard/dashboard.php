@@ -1,9 +1,17 @@
 <?php
 /**
+ * WPSEO plugin file.
+ *
  * @package WPSEO\Admin
  */
 
-/** @noinspection PhpUnusedLocalVariableInspection */
+/**
+ * Alerts template variables.
+ *
+ * @noinspection PhpUnusedLocalVariableInspection
+ *
+ * @var array
+ */
 $alerts_data = Yoast_Alerts::get_template_variables();
 
 $notifier = new WPSEO_Configuration_Notifier();
@@ -22,7 +30,7 @@ $wpseo_contributors_phrase = sprintf(
 
 		<?php echo $notifier->notify(); ?>
 
-		<div class="yoast-container yoast-container__alert">
+		<div class="yoast-container yoast-container__error">
 			<?php require WPSEO_PATH . 'admin/views/partial-alerts-errors.php'; ?>
 		</div>
 
@@ -37,7 +45,7 @@ $wpseo_contributors_phrase = sprintf(
 	<h3><?php esc_html_e( 'Credits', 'wordpress-seo' ); ?></h3>
 	<p>
 		<span class="dashicons dashicons-groups"></span>
-		<a href="<?php WPSEO_Shortlinker::show( 'http://yoa.st/yoast-seo-credits' ); ?>"><?php echo esc_html( $wpseo_contributors_phrase ); ?></a>
+		<a href="<?php WPSEO_Shortlinker::show( 'https://yoa.st/yoast-seo-credits' ); ?>"><?php echo esc_html( $wpseo_contributors_phrase ); ?></a>
 	</p>
 </div>
 
@@ -48,4 +56,4 @@ $wpseo_contributors_phrase = sprintf(
  *
  * @deprecated 7.0
  */
-do_action_deprecated( 'wpseo_internal_linking', array(), 'WPSEO 7.0' );
+do_action_deprecated( 'wpseo_internal_linking', [], 'WPSEO 7.0' );

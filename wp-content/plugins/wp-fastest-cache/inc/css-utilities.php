@@ -6,6 +6,7 @@
 		private $wpfc;
 
 		public function __construct($wpfc, $html){
+	
 			$this->wpfc = $wpfc;
 			$this->html = $html;
 			$this->set_except_tags();
@@ -15,6 +16,11 @@
 
 		public function check_exclude($css_url = false){
 			if($css_url){
+				// to exclude the css source of elementor which is /elementor/css/post-[number].css to avoid increasing the size of minified sources
+				if(preg_match("/\/elementor\/css\/post-\d+\.css/i", $css_url)){
+					return true;
+				}
+
 				foreach((array)$this->wpfc->exclude_rules as $key => $value){
 
 					if(isset($value->prefix) && $value->prefix && $value->type == "css"){
@@ -91,11 +97,11 @@
 					if(count($group_value) > 0){
 
 						$combined_css = "";
-						$combined_name = $this->create_name($group_value);
+						$combined_name = $this->wpfc->create_name($group_value);
 						$combined_link = "";
 
-						$cachFilePath = WPFC_WP_CONTENT_DIR."/cache/wpfc-minified/".$combined_name;
-						$cssLink = str_replace(array("http:", "https:"), "", WPFC_WP_CONTENT_URL)."/cache/wpfc-minified/".$combined_name;
+						$cachFilePath = $this->wpfc->getWpContentDir("/cache/wpfc-minified")."/".$combined_name;
+						$cssLink = $this->convert_path_to_link($cachFilePath);
 
 						if(is_dir($cachFilePath)){
 							if($cssFiles = @scandir($cachFilePath, 1)){
@@ -116,7 +122,7 @@
 								}
 
 
-								$this->wpfc->createFolder($cachFilePath, $combined_css, "css", time(), true);
+								$this->wpfc->createFolder($cachFilePath, $combined_css, "css");
 								
 								if(is_dir($cachFilePath)){
 									if($cssFiles = @scandir($cachFilePath, 1)){
@@ -160,14 +166,6 @@
 			}
 
 			return $combined_css;
-		}
-
-		public function create_name($arr){
-			$name = "";
-			foreach ($arr as $tag_key => $tag_value) {
-				$name = $name.$this->remove_query_string($tag_value["href"]);
-			}
-			return md5($name);
 		}
 
 		public function minifyCss(){
@@ -337,19 +335,12 @@
 			return $list;
 		}
 
-		public function remove_query_string($url){
-			$url = preg_replace("/^(\/\/|http\:\/\/|https\:\/\/)(www\.)?/", "", $url);
-			$url = preg_replace("/\?.*/", "", $url);
-			
-			return $url;
-		}
-
 		public function minify($url){
 			$this->url = $url;
-			$md5 = md5($this->remove_query_string($url));
+			$md5 = $this->wpfc->create_name($url);
 
-			$cachFilePath = WPFC_WP_CONTENT_DIR."/cache/wpfc-minified/".$md5;
-			$cssLink = WPFC_WP_CONTENT_URL."/cache/wpfc-minified/".$md5;
+			$cachFilePath = $this->wpfc->getWpContentDir("/cache/wpfc-minified")."/".$md5;
+			$cssLink = $this->convert_path_to_link($cachFilePath);
 
 			if(is_dir($cachFilePath)){
 				if($cssFiles = @scandir($cachFilePath, 1)){
@@ -386,13 +377,11 @@
 					}
 
 					if(!is_dir($cachFilePath)){
-						$prefix = time();
-
 						if($this->wpfc->cdn){
 							$cssContent = preg_replace_callback("/(url)\(([^\)]+)\)/i", array($this->wpfc, 'cdn_replace_urls'), $cssContent);
 						}
 
-						$this->wpfc->createFolder($cachFilePath, $cssContent, "css", $prefix);
+						$this->wpfc->createFolder($cachFilePath, $cssContent, "css");
 					}
 
 					if($cssFiles = @scandir($cachFilePath, 1)){
@@ -414,12 +403,85 @@
 			return $css; 
 		}
 
+		public function svg_to_file($source){
+			return $source;
+			
+			if(preg_match("/base64\,/", $source)){
+				$is_base64 = true;
+			}else{
+				$is_base64 = false;
+			}
+			
+			if(preg_match("/\,(%3Csvg|<svg)/", $source) || $is_base64){
+				$source = preg_replace("/\"|\'/", "", $source);
+				$source = preg_replace("/data[^\,]+\,/", "", $source);
+
+				if($is_base64){
+					$source = base64_decode($source);
+				}else{
+					$source = rawurldecode($source);
+				}
+
+
+				$md5 = $this->wpfc->create_name($source);
+				$cachFilePath = $this->wpfc->getWpContentDir("/cache/wpfc-minified")."/svg-".$md5;
+
+				$this->wpfc->createFolder($cachFilePath, $source, "svg");
+
+				if(is_dir($cachFilePath)){
+					if($cssFiles = @scandir($cachFilePath, 1)){
+						$source = $this->convert_path_to_link($cachFilePath."/".$cssFiles[0]);
+					}
+				}
+			}
+
+			return $source;
+		}
+
+		public function woff_to_file($source){
+			return $source;
+
+			// url("data:application/x-font-woff;charset=utf-8;base64,d09GRgABAAAA")
+			if(preg_match("/base64\,/", $source)){
+				$is_base64 = true;
+			}else{
+				$is_base64 = false;
+			}
+			
+			if($is_base64){
+				// not to use preg_match() for the speed
+				$source = strstr($source, 'base64,');
+				$source = str_replace("base64,", "", $source);
+				$source = trim($source);
+				$source = str_replace(array("'", '"'), "", $source);
+
+				$md5 = $this->wpfc->create_name($source);
+				$cachFilePath = $this->wpfc->getWpContentDir("/cache/wpfc-minified")."/woff-".$md5;
+
+				$this->wpfc->createFolder($cachFilePath, $source, "woff");
+
+				if(is_dir($cachFilePath)){
+					if($cssFiles = @scandir($cachFilePath, 1)){
+						$link = $this->convert_path_to_link($cachFilePath."/".$cssFiles[0]);
+
+						return $link;
+					}
+				}
+			}
+
+			return $source;
+		}
+
 
 		public function newImgPath($matches){
 			$matches[1] = trim($matches[1]);
 			
-			if(preg_match("/data\:image\/svg\+xml/", $matches[1])){
+			if(preg_match("/data\:font\/opentype/i", $matches[1])){
 				$matches[1] = $matches[1];
+			}else if(preg_match("/data\:application\/x-font-woff/i", $matches[1])){
+				$matches[1] = $this->woff_to_file($matches[1]);
+			}else if(preg_match("/data\:image\/svg\+xml/i", $matches[1])){
+				$matches[1] = $this->svg_to_file($matches[1]);
 			}else{
 				$matches[1] = str_replace(array("\"","'"), "", $matches[1]);
 				$matches[1] = trim($matches[1]);
@@ -600,6 +662,13 @@
 			}
 
 			return false;
+		}
+
+		public function convert_path_to_link($path){
+			preg_match("/\/cache\/.+/", $path, $out);
+			$prefixLink = str_replace(array("http:", "https:"), "", WPFC_WP_CONTENT_URL);
+
+			return $prefixLink.$out[0];
 		}
 
 	    public function file_get_contents_curl($url, $version = ""){

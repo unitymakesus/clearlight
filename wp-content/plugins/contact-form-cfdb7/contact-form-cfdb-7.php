@@ -1,12 +1,13 @@
 <?php
 /*
 Plugin name: Contact Form CFDB7
-Plugin URI: http://ciphercoin.com/
+Plugin URI: https://ciphercoin.com/
 Description: Save and manage Contact Form 7 messages. Never lose important data. Contact Form CFDB7 plugin is an add-on for the Contact Form 7 plugin.
 Author: Arshid
 Author URI: http://ciphercoin.com/
 Text Domain: contact-form-cfdb7
-Version: 1.2.1
+Domain Path: /languages/
+Version: 1.2.4.8
 */
 
 function cfdb7_create_table(){
@@ -54,9 +55,27 @@ function cfdb7_on_activate( $network_wide ){
     } else {
         cfdb7_create_table();
     }
+
+	// Add custom capability
+	$role = get_role( 'administrator' );
+	$role->add_cap( 'cfdb7_access' );
 }
 
 register_activation_hook( __FILE__, 'cfdb7_on_activate' );
+
+
+function cfdb7_on_deactivate() {
+
+	// Remove custom capability from all roles
+	global $wp_roles;
+
+	foreach( array_keys( $wp_roles->roles ) as $role ) {
+		$wp_roles->remove_cap( $role, 'cfdb7_access' );
+	}
+}
+
+register_deactivation_hook( __FILE__, 'cfdb7_on_deactivate' );
+
 
 function cfdb7_before_send_mail( $form_tag ) {
 
@@ -73,11 +92,13 @@ function cfdb7_before_send_mail( $form_tag ) {
 
         $black_list   = array('_wpcf7', '_wpcf7_version', '_wpcf7_locale', '_wpcf7_unit_tag',
         '_wpcf7_is_ajax_call','cfdb7_name', '_wpcf7_container_post','_wpcf7cf_hidden_group_fields',
-        '_wpcf7cf_hidden_groups', '_wpcf7cf_visible_groups', '_wpcf7cf_options');
+        '_wpcf7cf_hidden_groups', '_wpcf7cf_visible_groups', '_wpcf7cf_options','g-recaptcha-response');
 
         $data           = $form->get_posted_data();
         $files          = $form->uploaded_files();
         $uploaded_files = array();
+
+        $rm_underscore  = apply_filters('cfdb7_remove_underscore_data', true); 
 
         foreach ($files as $file_key => $file) {
             array_push($uploaded_files, $file_key);
@@ -88,14 +109,18 @@ function cfdb7_before_send_mail( $form_tag ) {
 
         $form_data['cfdb7_status'] = 'unread';
         foreach ($data as $key => $d) {
-            if ( !in_array($key, $black_list ) && !in_array($key, $uploaded_files ) ) {
+            
+            $matches = array();
+            if( $rm_underscore ) preg_match('/^_.*$/m', $key, $matches);
+
+            if ( !in_array($key, $black_list ) && !in_array($key, $uploaded_files ) && empty( $matches[0] ) ) {
 
                 $tmpD = $d;
 
                 if ( ! is_array($d) ){
 
-                    $bl   = array('\"',"\'",'/','\\');
-                    $wl   = array('&quot;','&#039;','&#047;', '&#092;');
+                    $bl   = array('\"',"\'",'/','\\','"',"'");
+                    $wl   = array('&quot;','&#039;','&#047;', '&#092;','&quot;','&#039;');
 
                     $tmpD = str_replace($bl, $wl, $tmpD );
                 }
@@ -110,7 +135,7 @@ function cfdb7_before_send_mail( $form_tag ) {
         /* cfdb7 before save data. */
         $form_data = apply_filters('cfdb7_before_save_data', $form_data);
 
-        do_action( 'cfdb7_before_save_data', $form_data );
+        do_action( 'cfdb7_before_save', $form_data );
 
         $form_post_id = $form_tag->id();
         $form_value   = serialize( $form_data );
@@ -180,26 +205,21 @@ function cfdb7_admin_notice() {
         return false;
     }
 
-    global $current_user ;
-    $user_id = $current_user->ID;
-
-    if ( ! get_user_meta($user_id, 'cfdb7_view_ignore_notice' ) ) {
+    if ( ! get_option( 'cfdb7_view_ignore_notice' ) ) {
 
         echo '<div class="updated"><p>';
 
-        printf(__('Awesome, you\'ve been using <a href="admin.php?page=cfdb7-list.php">Contact Form CFDB7</a> for more than 1 week. May we ask you to give it a 5-star rating on WordPress? | <a href="%2$s" target="_blank">Ok, you deserved it</a> | <a href="%1$s">I already did</a> | <a href="%1$s">No, not good enough</a>'), '?cfdb7-ignore-notice=0',
+        printf(__( 'Awesome, you\'ve been using <a href="admin.php?page=cfdb7-list.php">Contact Form CFDB7</a> for more than 1 week. May we ask you to give it a 5-star rating on WordPress? | <a href="%2$s" target="_blank">Ok, you deserved it</a> | <a href="%1$s">I already did</a> | <a href="%1$s">No, not good enough</a>', 'contact-form-cfdb7' ), '?cfdb7-ignore-notice=0',
         'https://wordpress.org/plugins/contact-form-cfdb7/');
         echo "</p></div>";
     }
 }
 
 function cfdb7_view_ignore_notice() {
-    global $current_user;
-    $user_id = $current_user->ID;
 
     if ( isset($_GET['cfdb7-ignore-notice']) && '0' == $_GET['cfdb7-ignore-notice'] ) {
 
-        add_user_meta($user_id, 'cfdb7_view_ignore_notice', 'true', true);
+        update_option( 'cfdb7_view_ignore_notice', 'true' );
     }
 }
 
@@ -209,10 +229,21 @@ function cfdb7_view_ignore_notice() {
  * @return array of links
  */
 function cfdb7_settings_link( $links ) {
-  $forms_link = '<a href="admin.php?page=cfdb7-list.php">Contact Forms</a>';
-  array_unshift($links, $forms_link);
-  return $links;
+    $forms_link = '<a href="admin.php?page=cfdb7-list.php">Contact Forms</a>';
+    array_unshift($links, $forms_link);
+    return $links;
 }
 
 $plugin = plugin_basename(__FILE__);
 add_filter("plugin_action_links_$plugin", 'cfdb7_settings_link' );
+
+
+/**
+ * Load language files to enable plugin translation
+ *
+ * @since 1.2.4.1
+ */
+function cfdb7_load_textdomain() {
+	load_plugin_textdomain( 'contact-form-cfdb7', false, basename( dirname( __FILE__ ) ) . '/languages' );
+}
+add_action( 'plugins_loaded', 'cfdb7_load_textdomain' );

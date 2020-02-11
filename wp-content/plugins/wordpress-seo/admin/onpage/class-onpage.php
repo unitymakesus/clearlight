@@ -1,5 +1,7 @@
 <?php
 /**
+ * WPSEO plugin file.
+ *
  * @package WPSEO\Admin
  */
 
@@ -10,11 +12,15 @@ class WPSEO_OnPage implements WPSEO_WordPress_Integration {
 
 	/**
 	 * The name of the user meta key for storing the dismissed status.
+	 *
+	 * @var string
 	 */
 	const USER_META_KEY = 'wpseo_dismiss_onpage';
 
 	/**
-	 * @var boolean Is the request started by pressing the fetch button.
+	 * Is the request started by pressing the fetch button.
+	 *
+	 * @var bool
 	 */
 	private $is_manual_request = false;
 
@@ -31,18 +37,18 @@ class WPSEO_OnPage implements WPSEO_WordPress_Integration {
 	 * @return void
 	 */
 	public function register_hooks() {
-		if ( ! $this->is_active() ) {
+		// Adds admin notice if necessary.
+		add_filter( 'admin_init', [ $this, 'show_notice' ] );
+
+		if ( ! self::is_active() ) {
 			return;
 		}
 
 		// Adds weekly schedule to the cron job schedules.
-		add_filter( 'cron_schedules', array( $this, 'add_weekly_schedule' ) );
-
-		// Adds admin notice if necessary.
-		add_filter( 'admin_init', array( $this, 'show_notice' ) );
+		add_filter( 'cron_schedules', [ $this, 'add_weekly_schedule' ] );
 
 		// Sets the action for the Ryte fetch.
-		add_action( 'wpseo_onpage_fetch', array( $this, 'fetch_from_onpage' ) );
+		add_action( 'wpseo_onpage_fetch', [ $this, 'fetch_from_onpage' ] );
 	}
 
 	/**
@@ -68,8 +74,12 @@ class WPSEO_OnPage implements WPSEO_WordPress_Integration {
 	 *
 	 * @return bool True if this functionality can be used.
 	 */
-	protected function is_active() {
-		if ( defined( 'DOING_AJAX' ) && DOING_AJAX === true ) {
+	public static function is_active() {
+		if ( wp_doing_ajax() ) {
+			return false;
+		}
+
+		if ( ! WPSEO_Options::get( 'onpage_indexability' ) ) {
 			return false;
 		}
 
@@ -80,7 +90,13 @@ class WPSEO_OnPage implements WPSEO_WordPress_Integration {
 	 * Hooks to run on plugin activation.
 	 */
 	public function activate_hooks() {
-		$this->set_cron();
+		if ( $this->get_option()->is_enabled() ) {
+			$this->schedule_cron();
+
+			return;
+		}
+
+		$this->unschedule_cron();
 	}
 
 	/**
@@ -90,11 +106,15 @@ class WPSEO_OnPage implements WPSEO_WordPress_Integration {
 	 *
 	 * @return array Enriched list of schedules.
 	 */
-	public function add_weekly_schedule( array $schedules ) {
-		$schedules['weekly'] = array(
+	public function add_weekly_schedule( $schedules ) {
+		if ( ! is_array( $schedules ) ) {
+			$schedules = [];
+		}
+
+		$schedules['weekly'] = [
 			'interval' => WEEK_IN_SECONDS,
 			'display'  => __( 'Once Weekly', 'wordpress-seo' ),
-		);
+		];
 
 		return $schedules;
 	}
@@ -111,7 +131,7 @@ class WPSEO_OnPage implements WPSEO_WordPress_Integration {
 		}
 
 		$new_status = $this->request_indexability();
-		if ( false === $new_status ) {
+		if ( $new_status === false ) {
 			return false;
 		}
 
@@ -142,9 +162,9 @@ class WPSEO_OnPage implements WPSEO_WordPress_Integration {
 	}
 
 	/**
-	 * Builds the indexability notification
+	 * Builds the indexability notification.
 	 *
-	 * @return Yoast_Notification
+	 * @return Yoast_Notification The notification.
 	 */
 	private function get_indexability_notification() {
 		$notice = sprintf(
@@ -156,21 +176,21 @@ class WPSEO_OnPage implements WPSEO_WordPress_Integration {
 
 		return new Yoast_Notification(
 			$notice,
-			array(
+			[
 				'type'         => Yoast_Notification::ERROR,
 				'id'           => 'wpseo-dismiss-onpageorg',
 				'capabilities' => 'wpseo_manage_options',
-			)
+			]
 		);
 	}
 
 	/**
 	 * Sends a request to Ryte to get the indexability.
 	 *
-	 * @return int(0)|int(1)|false
+	 * @return int|bool The indexability value.
 	 */
 	protected function request_indexability() {
-		$parameters = array();
+		$parameters = [];
 		if ( $this->wordfence_protection_enabled() ) {
 			$parameters['wf_strict'] = 1;
 		}
@@ -191,8 +211,12 @@ class WPSEO_OnPage implements WPSEO_WordPress_Integration {
 	 * @return bool True if a notice should be shown.
 	 */
 	protected function should_show_notice() {
+		if ( ! $this->get_option()->is_enabled() ) {
+			return false;
+		}
+
 		// If development mode is on or the blog is not public, just don't show this notice.
-		if ( WPSEO_Utils::is_development_mode() || ( '0' === get_option( 'blog_public' ) ) ) {
+		if ( WPSEO_Utils::is_development_mode() || ( get_option( 'blog_public' ) === '0' ) ) {
 			return false;
 		}
 
@@ -209,37 +233,56 @@ class WPSEO_OnPage implements WPSEO_WordPress_Integration {
 		 * Let's start showing the notices to all admins by removing the hide-notice meta data for each admin resulting
 		 * in popping up the notice again.
 		 */
-		delete_metadata( 'user', 0, WPSEO_OnPage::USER_META_KEY, '', true );
+		delete_metadata( 'user', 0, self::USER_META_KEY, '', true );
 	}
 
 	/**
-	 * Sets up the cronjob to get the new indexibility status.
+	 * Schedules the cronjob to get the new indexibility status.
+	 *
+	 * @return void
 	 */
-	private function set_cron() {
-		if ( ! wp_next_scheduled( 'wpseo_onpage_fetch' ) ) {
-			wp_schedule_event( time(), 'weekly', 'wpseo_onpage_fetch' );
+	private function schedule_cron() {
+		if ( wp_next_scheduled( 'wpseo_onpage_fetch' ) ) {
+			return;
 		}
+
+		wp_schedule_event( time(), 'weekly', 'wpseo_onpage_fetch' );
+	}
+
+	/**
+	 * Unschedules the cronjob to get the new indexibility status.
+	 *
+	 * @return void
+	 */
+	private function unschedule_cron() {
+		if ( ! wp_next_scheduled( 'wpseo_onpage_fetch' ) ) {
+			return;
+		}
+
+		wp_clear_scheduled_hook( 'wpseo_onpage_fetch' );
 	}
 
 	/**
 	 * Redo the fetch request for Ryte.
+	 *
+	 * @return void
 	 */
 	private function catch_redo_listener() {
-		if ( ! $this->is_active() ) {
+		if ( ! self::is_active() ) {
 			return;
 		}
 
 		if ( filter_input( INPUT_GET, 'wpseo-redo-onpage' ) === '1' ) {
 			$this->is_manual_request = true;
 
-			add_action( 'admin_init', array( $this, 'fetch_from_onpage' ) );
+			add_action( 'admin_init', [ $this, 'fetch_from_onpage' ] );
 		}
 	}
 
 	/**
 	 * Checks if WordFence protects the site against 'fake' Google crawlers.
 	 *
-	 * @return boolean
+	 * @return boolean True if WordFence protects the site.
 	 */
 	private function wordfence_protection_enabled() {
 		if ( ! class_exists( 'wfConfig' ) ) {

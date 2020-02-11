@@ -26,7 +26,10 @@ class Cfdb7_Wp_Main_Page
     {
         wp_enqueue_style( 'cfdb7-admin-style', plugin_dir_url(dirname(__FILE__)).'css/admin-style.css' );
 
-        add_menu_page( 'Contact Forms', 'Contact Forms', 'manage_options', 'cfdb7-list.php', array($this, 'list_table_page'), 'dashicons-list-view' );
+		// Fallback: Make sure admin always has access
+		$cfdb7_cap = ( current_user_can( 'cfdb7_access') ) ? 'cfdb7_access' : 'manage_options';
+
+        add_menu_page( __( 'Contact Forms', 'contact-form-cfdb7' ), __( 'Contact Forms', 'contact-form-cfdb7' ), $cfdb7_cap, 'cfdb7-list.php', array($this, 'list_table_page'), 'dashicons-list-view' );
 
          require_once 'add-ons.php';
 
@@ -63,7 +66,7 @@ class Cfdb7_Wp_Main_Page
         ?>
             <div class="wrap">
                 <div id="icon-users" class="icon32"></div>
-                <h2>Contact Forms List</h2>
+                <h2><?php _e( 'Contact Forms List', 'contact-form-cfdb7' ); ?></h2>
                 <?php $ListTable->display(); ?>
             </div>
         <?php
@@ -108,6 +111,7 @@ class CFDB7_Main_List_Table extends WP_List_Table
         $this->_column_headers = array($columns, $hidden );
         $this->items = $data;
     }
+    
     /**
      * Override the parent columns method. Defines the columns to use in your listing table
      *
@@ -118,8 +122,8 @@ class CFDB7_Main_List_Table extends WP_List_Table
 
 
         $columns = array(
-            'name' => 'Name',
-            'count'=> 'Count'
+            'name' => __( 'Name', 'contact-form-cfdb7' ),
+            'count'=> __( 'Count', 'contact-form-cfdb7' )
         );
 
         return $columns;

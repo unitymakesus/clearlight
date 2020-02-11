@@ -1,4 +1,4 @@
-(function($) {
+jQuery(function($) {
 	
 	if(!window.codecabin)
 		window.codecabin = {};
@@ -6,7 +6,7 @@
 	if(codecabin.DeactivateFeedbackForm)
 		return;
 	
-	function DeactivateFeedbackForm(plugin)
+	codecabin.DeactivateFeedbackForm = function(plugin)
 	{
 		var self = this;
 		var strings = codecabin_deactivate_feedback_form_strings;
@@ -64,7 +64,7 @@
 		});
 	}
 	
-	DeactivateFeedbackForm.prototype.onDeactivateClicked = function(event)
+	codecabin.DeactivateFeedbackForm.prototype.onDeactivateClicked = function(event)
 	{
 		this.deactivateURL = event.target.href;
 		
@@ -75,7 +75,7 @@
 		this.dialog.open();
 	}
 	
-	DeactivateFeedbackForm.prototype.onSubmit = function(event)
+	codecabin.DeactivateFeedbackForm.prototype.onSubmit = function(event)
 	{
 		var element = this.element;
 		var strings = codecabin_deactivate_feedback_form_strings;
@@ -106,15 +106,11 @@
 		event.preventDefault();
 		return false;
 	}
-	
-	$(document).ready(function() {
 		
-		for(var i = 0; i < codecabin_deactivate_feedback_form_plugins.length; i++)
-		{
-			var plugin = codecabin_deactivate_feedback_form_plugins[i];
-			new DeactivateFeedbackForm(plugin);
-		}
-		
-	});
+	for(var i = 0; i < codecabin_deactivate_feedback_form_plugins.length; i++)
+	{
+		var plugin = codecabin_deactivate_feedback_form_plugins[i];
+		new codecabin.DeactivateFeedbackForm(plugin);
+	}
 	
-})(jQuery);
+});

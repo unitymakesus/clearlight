@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
+ 
 /**
  * @fileoverview Extends OverlayView to provide a canvas "Layer".
  * @author Brendan Kenny
@@ -175,7 +175,8 @@ function CanvasLayer(opt_options) {
   }
 }
 
-CanvasLayer.prototype = new google.maps.OverlayView();
+if(window.google)
+	CanvasLayer.prototype = new google.maps.OverlayView();
 
 /**
  * The default MapPane to contain the canvas.
@@ -430,8 +431,8 @@ CanvasLayer.prototype.resize_ = function() {
   }
 
   var map = this.getMap();
-  var mapWidth = map.getDiv().offsetWidth;
-  var mapHeight = map.getDiv().offsetHeight;
+  var mapWidth = map.getDiv().getElementsByTagName('div')[0].offsetWidth;
+  var mapHeight = map.getDiv().getElementsByTagName('div')[0].offsetHeight;
 
   var newWidth = mapWidth * this.resolutionScale_;
   var newHeight = mapHeight * this.resolutionScale_;

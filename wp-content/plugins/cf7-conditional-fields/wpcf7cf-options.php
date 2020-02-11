@@ -16,16 +16,19 @@ $wpcf7cf_default_options = array(
     'notice_dismissed' => WPCF7CF_DEFAULT_NOTICE_DISMISSED
 );
 
+if ( ! defined( 'WPCF7_ADMIN_READ_WRITE_CAPABILITY' ) ) {
+	define( 'WPCF7_ADMIN_READ_WRITE_CAPABILITY', 'publish_pages' );
+}
+
 $wpcf7cf_default_options = apply_filters('wpcf7cf_default_options', $wpcf7cf_default_options);
 
 $wpcf7cf_options = get_option(WPCF7CF_OPTIONS);
 
-if (!is_array($wpcf7cf_options)) $wpcf7cf_options = array();
-
-if(isset($_POST['reset'])) {
-    update_option(WPCF7CF_OPTIONS, $wpcf7cf_default_options);
-    $wpcf7cf_options['wpcf7cf_settings_saved'] = 0;
+if (!is_array($wpcf7cf_options)) {
+	$wpcf7cf_options = $wpcf7cf_default_options;
+	update_option(WPCF7CF_OPTIONS, $wpcf7cf_options);
 }
+
 
 // this setting will only be 0 as long as the user has not saved any settings. Once the user has saved the WPCF7CF settings, this value will always remain 1.
 if (!key_exists('wpcf7cf_settings_saved',$wpcf7cf_options)) $wpcf7cf_options['wpcf7cf_settings_saved'] = 0;
@@ -34,17 +37,10 @@ if ($wpcf7cf_options['wpcf7cf_settings_saved'] == 0) {
     $wpcf7cf_options = $wpcf7cf_default_options;
 }
 
-
-add_action('ninja_forms_display_before_field_function','wpcf7cf_wrap_input_field_before');
-add_action('ninja_forms_display_after_field_function','wpcf7cf_wrap_input_field_after');
-
-function wpcf7cf_wrap_input_field_before() { echo '<div class="resizable_input_wrapper">'; }
-function wpcf7cf_wrap_input_field_after() { echo '</div>'; }
-
 add_action( 'admin_enqueue_scripts', 'wpcf7cf_load_page_options_wp_admin_style' );
 function wpcf7cf_load_page_options_wp_admin_style() {
-    wp_register_style( 'page_options_wp_admin_css', plugins_url('admin-style.css',__FILE__), false, WPCF7CF_VERSION );
-    wp_enqueue_style( 'page_options_wp_admin_css' );
+    wp_register_style( 'wpcf7cf_admin_css', plugins_url('admin-style.css',__FILE__), false, WPCF7CF_VERSION );
+    wp_enqueue_style( 'wpcf7cf_admin_css' );
 }
 
 
@@ -56,31 +52,30 @@ function wpcf7cf_admin_add_page() {
 function wpcf7cf_options_page() {
     global $wpcf7cf_options;
 
-    // Include in admin_enqueue_scripts action hook
-    wp_enqueue_media();
-    //wp_enqueue_script( 'custom-background' );
-    wp_enqueue_script( 'wpcf7cf-image-upload', plugins_url('framework/js/bdwm-image-upload.js',__FILE__), array('jquery'), '1.0.0', true );
+//    // Include in admin_enqueue_scripts action hook
+//    wp_enqueue_media();
+//    //wp_enqueue_script( 'custom-background' );
+//    wp_enqueue_script( 'wpcf7cf-image-upload', plugins_url('framework/js/bdwm-image-upload.js',__FILE__), array('jquery'), '1.0.0', true );
 
     if (isset($_POST['reset'])) {
         echo '<div id="message" class="updated fade"><p><strong>Settings restored to defaults</strong></p></div>';
-    } else if ($_REQUEST['settings-updated']) {
+    } else if (isset($_REQUEST['settings-updated'])) {
         echo '<div id="message" class="updated fade"><p><strong>Settings updated</strong></p></div>';
     }
 
     ?>
 
     <div class="wrap wpcf7cf-admin-wrap">
-        <?php screen_icon(); ?>
-        <h2>Conditional Fields for Contact Form 7 Settings</h2>
+        <h2>Contact Form 7 - Conditional Fields Settings</h2>
         <?php if (!$wpcf7cf_options['notice_dismissed']) { ?>
-        <div class="wpcf7cf-options-notice notice notice-warning is-dismissible"><div style="padding: 10px 0;"><strong>Notice</strong>: These are global settings for Conditional Fields for Contact Form 7. <br><br><strong>How to create/edit conditional fields?</strong>
+        <div class="wpcf7cf-options-notice notice notice-warning is-dismissible"><div style="padding: 10px 0;"><strong>Notice</strong>: These are global settings for Contact Form 7 - Conditional Fields. <br><br><strong>How to create/edit conditional fields?</strong>
             <ol>
                 <li>Create a new Contact Form or edit an existing one</li>
                 <li>Create at least one [group] inside the form</li>
                 <li>Save the Contact Form</li>
                 <li>go to the <strong><em>Conditional Fields</em></strong> Tab</li>
             </ol>
-                <a href="http://bdwm.be/wpcf7cf/how-to-set-up-conditional-fields-for-contact-form-7/" target="_blank">Show me an example</a> | <a class="notice-dismiss-2" href="#">Dismiss notice</a>
+                <a href="https://conditional-fields-cf7.bdwm.be/conditional-fields-for-contact-form-7-tutorial/" target="_blank">Show me an example</a> | <a class="notice-dismiss-2" href="#">Dismiss notice</a>
         </div></div>
         <?php } ?>
         <form action="options.php" method="post">
@@ -112,6 +107,20 @@ function wpcf7cf_options_page() {
 
             submit_button();
 
+            if (!WPCF7CF_IS_PRO) {
+            ?>
+            <h3>Conditional Fields PRO</h3>
+            Get conditional Fields PRO to unlock the full potential of CF7
+            <ul class="wpcf7cf-list">
+                <li>Repeaters</li>
+                <li>Regular expressions</li>
+                <li>Togglebuttons</li>
+                <li>Additional operators <code>&lt;</code> <code>&gt;</code> <code>&le;</code> <code>&ge;</code> <code>is empty</code></li>
+                <li>More comming soon (Multistep, Calculated Fields, ...)</li>
+            </ul>
+            <p><a target="_blank" class="button button-primary" href="https://conditional-fields-cf7.bdwm.be/contact-form-7-conditional-fields-pro/">Get PRO</a></p>
+            <?php
+            }
             do_action('wpcf7cf_after_animation_settings');
 
             ?>
@@ -215,7 +224,7 @@ function wpcf7cf_input_field($slug, $args) {
     ?>
     <div class="option-line">
         <?php if ($label_editable) { ?>
-            <span class="label"><input type="text" data-default-value="<?php echo $label ?>" value="<?php echo $wpcf7cf_options[$slug.'_label'] ?>" id="<?php echo WPCF7CF_OPTIONS.'_'.$slug.'_label' ?>" name="<?php echo WPCF7CF_OPTIONS.'['.$slug.'_label]' ?>"></span>
+            <span class="label editable"><input type="text" data-default-value="<?php echo $label ?>" value="<?php echo $wpcf7cf_options[$slug.'_label'] ?>" id="<?php echo WPCF7CF_OPTIONS.'_'.$slug.'_label' ?>" name="<?php echo WPCF7CF_OPTIONS.'['.$slug.'_label]' ?>"></span>
         <?php } else { ?>
             <span class="label"><?php echo $label ?></span>
         <?php } ?>
@@ -286,7 +295,6 @@ function wpcf7cf_checkbox($slug, $args) {
     <div class="option-line">
         <span class="label"><?php echo $label ?></span>
         <span class="field">
-			
 			<input type="checkbox" data-default-value="<?php echo $default ?>" name="<?php echo WPCF7CF_OPTIONS.'['.$slug.']' ?>" value="1" <?php checked('1', $wpcf7cf_options[$slug]) ?>>
 		</span>
         <span class="description"><?php echo $description ?><?php if (!empty($default)) echo ' (Default: '.$default.')' ?></span>
@@ -301,6 +309,13 @@ function wpcf7cf_regex_collection() {
 
 add_action('admin_init', 'wpcf7cf_admin_init');
 function wpcf7cf_admin_init(){
+    global $wpcf7cf_default_options, $wpcf7cf_options;
+
+    if(isset($_POST['reset']) && current_user_can( 'wpcf7_edit_contact_form' ) ) {
+        update_option(WPCF7CF_OPTIONS, $wpcf7cf_default_options);
+        $wpcf7cf_options['wpcf7cf_settings_saved'] = 0;
+    }
+
     register_setting( WPCF7CF_OPTIONS, WPCF7CF_OPTIONS, 'wpcf7cf_options_sanitize' );
 }
 

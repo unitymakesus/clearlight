@@ -9,12 +9,7 @@
 
 		public function __construct(){
 			$this->options = $this->getOptions();
-
-			$this->set_content_url();
 			
-			//to call like that because on WP Multisite current_user_can() cannot get the user
-			add_action('admin_init', array($this, "optionsPageRequest"));
-
 			$this->setCronJobSettings();
 			$this->addButtonOnEditor();
 			add_action('admin_enqueue_scripts', array($this, 'addJavaScript'));
@@ -117,13 +112,19 @@
 					include_once ABSPATH."wp-includes/capabilities.php";
 					include_once ABSPATH."wp-includes/pluggable.php";
 
-					if(is_multisite()){
-						$this->systemMessage = array("The plugin does not work with Multisite", "error");
-						return 0;
-					}
+					// if(defined("WPFC_MULTI_SITE_BETA") && WPFC_MULTI_SITE_BETA){
+					// 	//nothing
+					// }else{
+					// 	if(is_multisite()){
+					// 		$this->notify(array("The plugin does not work with Multisite.\n Please <a target='_blank' href='https://www.wpfastestcache.com/blog/multi-site/'>click here</a> to learn how to enable it.", "error"));
+					// 		return 0;
+					// 	}
+					// }
 
 					if(current_user_can('manage_options')){
 						if($_POST["wpFastestCachePage"] == "options"){
+							$this->exclude_urls();
+
 							$this->saveOption();
 						}else if($_POST["wpFastestCachePage"] == "deleteCache"){
 							$this->deleteCache();
@@ -134,6 +135,46 @@
 						}
 					}else{
 						die("Forbidden");
+					}
+				}
+			}
+		}
+
+		public function exclude_urls(){
+			// to exclude wishlist url of YITH WooCommerce Wishlist
+			if($this->isPluginActive('yith-woocommerce-wishlist/init.php')){
+				$wishlist_page_id = get_option("yith_wcwl_wishlist_page_id");
+				$permalink = urldecode(get_permalink($wishlist_page_id));
+
+				if(preg_match("/https?:\/\/[^\/]+\/(.+)/", $permalink, $out)){
+					$url = trim($out[1], "/");
+				}
+			}
+
+
+			if(isset($url) && $url){
+				$rules_std = array();
+				$rules_json = get_option("WpFastestCacheExclude");
+
+				$new_rule = new stdClass;
+				$new_rule->prefix = "exact";
+				$new_rule->content = $url;
+				$new_rule->type = "page";
+
+
+				if($rules_json === false){
+					array_push($rules_std, $new_rule);
+					add_option("WpFastestCacheExclude", json_encode($rules_std), null, "yes");
+				}else{
+					$rules_std = json_decode($rules_json);
+
+					if(!is_array($rules_std)){
+						$rules_std = array();
+					}
+
+					if(!in_array($new_rule, $rules_std)){
+						array_push($rules_std, $new_rule);
+						update_option("WpFastestCacheExclude", json_encode($rules_std));
 					}
 				}
 			}
@@ -216,6 +257,11 @@
 
 		public function saveOption(){
 			unset($_POST["wpFastestCachePage"]);
+			unset($_POST["option_page"]);
+			unset($_POST["action"]);
+			unset($_POST["_wpnonce"]);
+			unset($_POST["_wp_http_referer"]);
+			
 			$data = json_encode($_POST);
 			//for optionsPage() $_POST is array and json_decode() converts to stdObj
 			$this->options = json_decode($data);
@@ -245,34 +291,36 @@
 					}
 				}
 			}
+
+			$this->notify($this->systemMessage);
 		}
 
 		public function checkCachePathWriteable(){
 			$message = array();
 
-			if(!is_dir($this->getWpContentDir()."/cache/")){
-				if (@mkdir($this->getWpContentDir()."/cache/", 0755, true)){
+			if(!is_dir($this->getWpContentDir("/cache/"))){
+				if (@mkdir($this->getWpContentDir("/cache/"), 0755, true)){
 					//
 				}else{
 					array_push($message, "- /wp-content/cache/ is needed to be created");
 				}
 			}else{
-				if (@mkdir($this->getWpContentDir()."/cache/testWpFc/", 0755, true)){
-					rmdir($this->getWpContentDir()."/cache/testWpFc/");
+				if (@mkdir($this->getWpContentDir("/cache/testWpFc/"), 0755, true)){
+					rmdir($this->getWpContentDir("/cache/testWpFc/"));
 				}else{
 					array_push($message, "- /wp-content/cache/ permission has to be 755");
 				}
 			}
 
-			if(!is_dir($this->getWpContentDir()."/cache/all/")){
-				if (@mkdir($this->getWpContentDir()."/cache/all/", 0755, true)){
+			if(!is_dir($this->getWpContentDir("/cache/all/"))){
+				if (@mkdir($this->getWpContentDir("/cache/all/"), 0755, true)){
 					//
 				}else{
 					array_push($message, "- /wp-content/cache/all/ is needed to be created");
 				}
 			}else{
-				if (@mkdir($this->getWpContentDir()."/cache/all/testWpFc/", 0755, true)){
-					rmdir($this->getWpContentDir()."/cache/all/testWpFc/");
+				if (@mkdir($this->getWpContentDir("/cache/all/testWpFc/"), 0755, true)){
+					rmdir($this->getWpContentDir("/cache/all/testWpFc/"));
 				}else{
 					array_push($message, "- /wp-content/cache/all/ permission has to be 755");
 				}	
@@ -291,16 +339,16 @@
 				$path = $this->getABSPATH();
 			}
 
-			if(isset($_SERVER["SERVER_SOFTWARE"]) && $_SERVER["SERVER_SOFTWARE"] && preg_match("/iis/i", $_SERVER["SERVER_SOFTWARE"])){
-				return array("The plugin does not work with Microsoft IIS. Only with Apache", "error");
-			}
+			// if(isset($_SERVER["SERVER_SOFTWARE"]) && $_SERVER["SERVER_SOFTWARE"] && preg_match("/iis/i", $_SERVER["SERVER_SOFTWARE"])){
+			// 	return array("The plugin does not work with Microsoft IIS. Only with Apache", "error");
+			// }
 
 			// if(isset($_SERVER["SERVER_SOFTWARE"]) && $_SERVER["SERVER_SOFTWARE"] && preg_match("/nginx/i", $_SERVER["SERVER_SOFTWARE"])){
 			// 	return array("The plugin does not work with Nginx. Only with Apache", "error");
 			// }
 
 			if(!file_exists($path.".htaccess")){
-				if(isset($_SERVER["SERVER_SOFTWARE"]) && $_SERVER["SERVER_SOFTWARE"] && preg_match("/nginx/i", $_SERVER["SERVER_SOFTWARE"])){
+				if(isset($_SERVER["SERVER_SOFTWARE"]) && $_SERVER["SERVER_SOFTWARE"] && (preg_match("/iis/i", $_SERVER["SERVER_SOFTWARE"]) || preg_match("/nginx/i", $_SERVER["SERVER_SOFTWARE"]))){
 					//
 				}else{
 					return array("<label>.htaccess was not found</label> <a target='_blank' href='http://www.wpfastestcache.com/warnings/htaccess-was-not-found/'>Read More</a>", "error");
@@ -336,10 +384,10 @@
 				return array("You have to set <strong><u><a href='".admin_url()."options-permalink.php"."'>permalinks</a></u></strong>", "error");
 			}else if($res = $this->checkSuperCache($path, $htaccess)){
 				return $res;
+			}else if($this->isPluginActive('fast-velocity-minify/fvm.php')){
+				return array("Fast Velocity Minify", "error");
 			}else if($this->isPluginActive('far-future-expiration/far-future-expiration.php')){
 				return array("Far Future Expiration Plugin", "error");
-			}else if($this->isPluginActive('fast-velocity-minify/fvm.php')){
-				return array("Fast Velocity Minify needs to be deactived", "error");
 			}else if($this->isPluginActive('sg-cachepress/sg-cachepress.php')){
 				return array("SG Optimizer needs to be deactived", "error");
 			}else if($this->isPluginActive('adrotate/adrotate.php') || $this->isPluginActive('adrotate-pro/adrotate.php')){
@@ -373,15 +421,27 @@
 				$htaccess = $this->insertLBCRule($htaccess, $post);
 				$htaccess = $this->insertGzipRule($htaccess, $post);
 				$htaccess = $this->insertRewriteRule($htaccess, $post);
-				//$htaccess = preg_replace("/\n+/","\n", $htaccess);
+
+				$htaccess = $this->to_move_gtranslate_rules($htaccess);
 
 				file_put_contents($path.".htaccess", $htaccess);
 			}else{
-				return array("Options have been saved", "success");
+				return array(__("Options have been saved", 'wp-fastest-cache'), "updated");
 				//return array(".htaccess is not writable", "error");
 			}
-			return array("Options have been saved", "success");
+			return array(__("Options have been saved", 'wp-fastest-cache'), "updated");
 
+		}
+
+		public function to_move_gtranslate_rules($htaccess){
+			preg_match("/\#\#\#\s+BEGIN\sGTranslate\sconfig\s\#\#\#[^\#]+\#\#\#\s+END\sGTranslate\sconfig\s\#\#\#/i", $htaccess, $gtranslate);
+
+			if(isset($gtranslate[0])){
+				$htaccess = preg_replace("/\#\#\#\s+BEGIN\sGTranslate\sconfig\s\#\#\#[^\#]+\#\#\#\s+END\sGTranslate\sconfig\s\#\#\#/i", "", $htaccess);
+				$htaccess = $gtranslate[0]."\n".$htaccess;
+			}
+
+			return $htaccess;
 		}
 
 		public function warningIncompatible($incompatible, $alternative = false){
@@ -398,6 +458,26 @@
 					$webp = false;
 				}else{
 					$webp = true;
+
+					$cdn_values = get_option("WpFastestCacheCDN");
+
+					if($cdn_values){
+						$std_obj = json_decode($cdn_values);
+
+						foreach($std_obj as $key => $value){
+							if($value->id == "cloudflare"){
+								include_once('cdn.php');
+								
+								CdnWPFC::cloudflare_clear_cache();
+								$res = CdnWPFC::cloudflare_get_zone_id($value->cdnurl, $value->originurl);
+
+								if($res["success"] && ($res["plan"] == "free")){
+									$webp = false;
+								}
+								break;
+							}
+						}
+					}
 				}
 			}else{
 				$webp = false;
@@ -407,10 +487,18 @@
 			if($webp){
 				$basename = "$1.webp";
 
-				// this part for sub-directory installation
-				// site_url() and home_url() must be the same
+				/* 
+					This part for sub-directory installation
+					WordPress Address (URL): site_url() 
+					Site Address (URL): home_url()
+				*/
 				if(preg_match("/https?\:\/\/[^\/]+\/(.+)/", site_url(), $siteurl_base_name)){
 					if(preg_match("/https?\:\/\/[^\/]+\/(.+)/", home_url(), $homeurl_base_name)){
+						/*
+							site_url() return http://example.com/sub-directory
+							home_url() returns http://example.com/sub-directory
+						*/
+
 						$homeurl_base_name[1] = trim($homeurl_base_name[1], "/");
 						$siteurl_base_name[1] = trim($siteurl_base_name[1], "/");
 
@@ -419,6 +507,13 @@
 								$basename = $homeurl_base_name[1]."/".$basename;
 							}
 						}
+					}else{
+						/*
+							site_url() return http://example.com/sub-directory
+							home_url() returns http://example.com/
+						*/
+						$siteurl_base_name[1] = trim($siteurl_base_name[1], "/");
+						$basename = $siteurl_base_name[1]."/".$basename;
 					}
 				}
 
@@ -463,26 +558,32 @@
 
 
 			$data = "# BEGIN LBCWpFastestCache"."\n".
-					'<FilesMatch "\.(ico|pdf|flv|jpg|jpeg|png|gif|webp|js|css|swf|x-html|css|xml|js|woff|woff2|ttf|svg|eot)(\.gz)?$">'."\n".
+					'<FilesMatch "\.(webm|ogg|mp4|ico|pdf|flv|jpg|jpeg|png|gif|webp|js|css|swf|x-html|css|xml|js|woff|woff2|otf|ttf|svg|eot)(\.gz)?$">'."\n".
 					'<IfModule mod_expires.c>'."\n".
 					'AddType application/font-woff2 .woff2'."\n".
+					'AddType application/x-font-opentype .otf'."\n".
 					'ExpiresActive On'."\n".
 					'ExpiresDefault A0'."\n".
-					'ExpiresByType image/webp A2592000'."\n".
-					'ExpiresByType image/gif A2592000'."\n".
-					'ExpiresByType image/png A2592000'."\n".
-					'ExpiresByType image/jpg A2592000'."\n".
-					'ExpiresByType image/jpeg A2592000'."\n".
-					'ExpiresByType image/ico A2592000'."\n".
-					'ExpiresByType image/svg+xml A2592000'."\n".
-					'ExpiresByType text/css A2592000'."\n".
-					'ExpiresByType text/javascript A2592000'."\n".
-					'ExpiresByType application/javascript A2592000'."\n".
-					'ExpiresByType application/x-javascript A2592000'."\n".
-					'ExpiresByType application/font-woff2 A2592000'."\n".
+					'ExpiresByType video/webm A10368000'."\n".
+					'ExpiresByType video/ogg A10368000'."\n".
+					'ExpiresByType video/mp4 A10368000'."\n".
+					'ExpiresByType image/webp A10368000'."\n".
+					'ExpiresByType image/gif A10368000'."\n".
+					'ExpiresByType image/png A10368000'."\n".
+					'ExpiresByType image/jpg A10368000'."\n".
+					'ExpiresByType image/jpeg A10368000'."\n".
+					'ExpiresByType image/ico A10368000'."\n".
+					'ExpiresByType image/svg+xml A10368000'."\n".
+					'ExpiresByType text/css A10368000'."\n".
+					'ExpiresByType text/javascript A10368000'."\n".
+					'ExpiresByType application/javascript A10368000'."\n".
+					'ExpiresByType application/x-javascript A10368000'."\n".
+					'ExpiresByType application/font-woff2 A10368000'."\n".
+					'ExpiresByType application/x-font-opentype A10368000'."\n".
+					'ExpiresByType application/x-font-truetype A10368000'."\n".
 					'</IfModule>'."\n".
 					'<IfModule mod_headers.c>'."\n".
-					'Header set Expires "max-age=2592000, public"'."\n".
+					'Header set Expires "max-age=A10368000, public"'."\n".
 					'Header unset ETag'."\n".
 					'Header set Connection keep-alive'."\n".
 					'FileETag None'."\n".
@@ -520,6 +621,7 @@
 		  				"AddOutputFilterByType DEFLATE application/javascript"."\n".
 		  				"AddOutputFilterByType DEFLATE application/x-javascript"."\n".
 		  				"AddOutputFilterByType DEFLATE application/x-font-ttf"."\n".
+		  				"AddOutputFilterByType DEFLATE x-font/ttf"."\n".
 						"AddOutputFilterByType DEFLATE application/vnd.ms-fontobject"."\n".
 						"AddOutputFilterByType DEFLATE font/opentype font/ttf font/eot font/otf"."\n".
 		  				"</IfModule>"."\n";
@@ -594,9 +696,24 @@
 			$loggedInUser = "";
 			$ifIsNotSecure = "";
 			$trailing_slash_rule = "";
+			$consent_cookie = "";
+
+			$language_negotiation_type = apply_filters('wpml_setting', false, 'language_negotiation_type');
+			if(($language_negotiation_type == 2) && $this->isPluginActive('sitepress-multilingual-cms/sitepress.php')){
+				$cache_path = '/cache/all/%{HTTP_HOST}/';
+				$disable_condition = true;
+			}else{
+				$cache_path = '/cache/all/';
+				$disable_condition = false;
+			}
 
 			if(isset($_POST["wpFastestCacheMobile"]) && $_POST["wpFastestCacheMobile"] == "on"){
 				$mobile = "RewriteCond %{HTTP_USER_AGENT} !^.*(".$this->getMobileUserAgents().").*$ [NC]"."\n";
+
+				if(isset($_SERVER['HTTP_CLOUDFRONT_IS_MOBILE_VIEWER'])){
+					$mobile = $mobile."RewriteCond %{HTTP_CLOUDFRONT_IS_MOBILE_VIEWER} false [NC]"."\n";
+					$mobile = $mobile."RewriteCond %{HTTP_CLOUDFRONT_IS_TABLET_VIEWER} false [NC]"."\n";
+				}
 			}
 
 			if(isset($_POST["wpFastestCacheLoggedInUser"]) && $_POST["wpFastestCacheLoggedInUser"] == "on"){
@@ -629,24 +746,25 @@
 					"RewriteCond %{REQUEST_URI} !(\/){2}$"."\n".
 					$trailing_slash_rule.
 					"RewriteCond %{QUERY_STRING} !.+"."\n".$loggedInUser.
+					$consent_cookie.
 					"RewriteCond %{HTTP:Cookie} !comment_author_"."\n".
-					"RewriteCond %{HTTP:Cookie} !wp_woocommerce_session"."\n".
+					//"RewriteCond %{HTTP:Cookie} !woocommerce_items_in_cart"."\n".
 					"RewriteCond %{HTTP:Cookie} !safirmobilswitcher=mobil"."\n".
 					'RewriteCond %{HTTP:Profile} !^[a-z0-9\"]+ [NC]'."\n".$mobile;
 			
 
 			if(ABSPATH == "//"){
-				$data = $data."RewriteCond %{DOCUMENT_ROOT}/".WPFC_WP_CONTENT_BASENAME."/cache/all/$1/index.html -f"."\n";
+				$data = $data."RewriteCond %{DOCUMENT_ROOT}/".WPFC_WP_CONTENT_BASENAME.$cache_path."$1/index.html -f"."\n";
 			}else{
 				//WARNING: If you change the following lines, you need to update webp as well
-				$data = $data."RewriteCond %{DOCUMENT_ROOT}/".WPFC_WP_CONTENT_BASENAME."/cache/all/$1/index.html -f [or]"."\n";
+				$data = $data."RewriteCond %{DOCUMENT_ROOT}/".WPFC_WP_CONTENT_BASENAME.$cache_path."$1/index.html -f [or]"."\n";
 				// to escape spaces
 				$tmp_WPFC_WP_CONTENT_DIR = str_replace(" ", "\ ", WPFC_WP_CONTENT_DIR);
 
-				$data = $data."RewriteCond ".$tmp_WPFC_WP_CONTENT_DIR."/cache/all/".$this->getRewriteBase(true)."$1/index.html -f"."\n";
+				$data = $data."RewriteCond ".$tmp_WPFC_WP_CONTENT_DIR.$cache_path.$this->getRewriteBase(true)."$1/index.html -f"."\n";
 			}
 
-			$data = $data.'RewriteRule ^(.*) "/'.$this->getRewriteBase().WPFC_WP_CONTENT_BASENAME.'/cache/all/'.$this->getRewriteBase(true).'$1/index.html" [L]'."\n";
+			$data = $data.'RewriteRule ^(.*) "/'.$this->getRewriteBase().WPFC_WP_CONTENT_BASENAME.$cache_path.$this->getRewriteBase(true).'$1/index.html" [L]'."\n";
 			
 			//RewriteRule !/  "/wp-content/cache/all/index.html" [L]
 
@@ -675,7 +793,12 @@
 					"</ifModule>"."\n".
 					"</FilesMatch>"."\n".
 					"# END WpFastestCache"."\n";
-			return preg_replace("/\n+/","\n", $data);
+
+			if(is_multisite()){
+				return "";
+			}else{
+				return preg_replace("/\n+/","\n", $data);
+			}
 		}
 
 		public function http_condition_rule(){
@@ -791,12 +914,72 @@
 				</script>
 				<?php
 			}
+		}
 
+		public function get_translation_json(){
+			if(file_exists(WPFC_MAIN_PATH. "languages/wp-fastest-cache-".get_locale().".po")){
+				$files = glob(WPFC_MAIN_PATH. "languages/wp-fastest-cache-".get_locale().".po");
+				if(isset($files) && isset($files[0])){
+					$current_translation = $this->po_to_js($files[0]);
+				}
+			}
+
+			if(isset($this->options->wpFastestCacheLanguage) && $this->options->wpFastestCacheLanguage == "eng"){
+				foreach ($current_translation as $c_key => $c_value){
+					if((strlen($c_value) > 2) && (strlen($c_key) > 2)){
+						echo $c_value.":".$c_key.",\n";
+					}
+				}
+			}else{
+				$translation_file_name = $this->options->wpFastestCacheLanguage;
+
+				if($translation_file_name == "es"){
+					$translation_file_name = "es_ES";
+				}
+
+				if(file_exists(WPFC_MAIN_PATH. "languages/wp-fastest-cache-".$translation_file_name.".po")){
+					$files = glob(WPFC_MAIN_PATH. "languages/wp-fastest-cache-".$translation_file_name.".po");
+
+					if(isset($files) && isset($files[0])){
+						$to = $this->po_to_js($files[0]);
+
+						foreach ($to as $to_key => $to_value){
+							if((strlen($current_translation[$to_key]) > 2) && (strlen($to_value) > 2)){
+								echo $current_translation[$to_key].":".$to_value.",\n";
+							}
+						}
+
+					}
+				}
+			}
+		}
+
+		public function po_to_js($file_path){
+			$translation = array();
+			
+			$tmp_data = $this->read_file($file_path);
+
+			preg_match_all("/^msgid(\s+\"[^\"]*\")+\s+msgstr(\s+\"[^\"]*\")+/m", $tmp_data, $out,  PREG_SET_ORDER);
+
+			foreach ($out as $key => $value) {
+				$value[0] = preg_replace("/\"\s+\"/", "", $value[0]);
+
+				$tmp = explode("\n", $value[0]);
+
+				if($key > 0){
+					$tmp[0] = preg_replace("/msgid\s(.+)/", "$1", $tmp[0]);
+					$tmp[1] = preg_replace("/msgstr\s(.+)/", "$1", $tmp[1]);
+					$tmp[0] = trim($tmp[0]);
+					$tmp[1] = trim($tmp[1]);
+					
+					$translation[$tmp[0]] = $tmp[1];
+				}
+			}
+
+			return $translation;
 		}
 
 		public function optionsPage(){
-			$this->systemMessage = count($this->systemMessage) > 0 ? $this->systemMessage : $this->getSystemMessage();
-
 			$wpFastestCacheCombineCss = isset($this->options->wpFastestCacheCombineCss) ? 'checked="checked"' : "";
 			$wpFastestCacheGoogleFonts = isset($this->options->wpFastestCacheGoogleFonts) ? 'checked="checked"' : "";
 			$wpFastestCacheGzip = isset($this->options->wpFastestCacheGzip) ? 'checked="checked"' : "";
@@ -814,6 +997,7 @@
 			$wpFastestCacheLazyLoad = isset($this->options->wpFastestCacheLazyLoad) ? 'checked="checked"' : "";
 			$wpFastestCacheLazyLoad_keywords = isset($this->options->wpFastestCacheLazyLoad_keywords) ? $this->options->wpFastestCacheLazyLoad_keywords : "";
 			$wpFastestCacheLazyLoad_placeholder = isset($this->options->wpFastestCacheLazyLoad_placeholder) ? $this->options->wpFastestCacheLazyLoad_placeholder : "default";
+			$wpFastestCacheLazyLoad_exclude_full_size_img = isset($this->options->wpFastestCacheLazyLoad_exclude_full_size_img) ? 'checked="checked"' : "";
 
 
 			$wpFastestCacheLBC = isset($this->options->wpFastestCacheLBC) ? 'checked="checked"' : "";
@@ -841,10 +1025,12 @@
 			$wpFastestCachePreload_homepage = isset($this->options->wpFastestCachePreload_homepage) ? 'checked="checked"' : "";
 			$wpFastestCachePreload_post = isset($this->options->wpFastestCachePreload_post) ? 'checked="checked"' : "";
 			$wpFastestCachePreload_category = isset($this->options->wpFastestCachePreload_category) ? 'checked="checked"' : "";
+			$wpFastestCachePreload_customposttypes = isset($this->options->wpFastestCachePreload_customposttypes) ? 'checked="checked"' : "";
+			$wpFastestCachePreload_customTaxonomies = isset($this->options->wpFastestCachePreload_customTaxonomies) ? 'checked="checked"' : "";
 			$wpFastestCachePreload_page = isset($this->options->wpFastestCachePreload_page) ? 'checked="checked"' : "";
 			$wpFastestCachePreload_tag = isset($this->options->wpFastestCachePreload_tag) ? 'checked="checked"' : "";
 			$wpFastestCachePreload_attachment = isset($this->options->wpFastestCachePreload_attachment) ? 'checked="checked"' : "";
-			$wpFastestCachePreload_number = isset($this->options->wpFastestCachePreload_number) ? $this->options->wpFastestCachePreload_number : 4;
+			$wpFastestCachePreload_number = isset($this->options->wpFastestCachePreload_number) ? esc_attr($this->options->wpFastestCachePreload_number) : 4;
 			$wpFastestCachePreload_restart = isset($this->options->wpFastestCachePreload_restart) ? 'checked="checked"' : "";
 
 
@@ -860,18 +1046,17 @@
 			<div class="wrap">
 
 				<h2>WP Fastest Cache Options</h2>
-				<?php if($this->systemMessage){ ?>
-					<div style="display:block !important;" class="updated <?php echo $this->systemMessage[1]."-wpfc"; ?>" id="message"><p><?php echo $this->systemMessage[0]; ?></p></div>
-				<?php } ?>
+				
+				<?php settings_errors("wpfc-notice"); ?>
+
 				<div class="tabGroup">
 					<?php
-						$tabs = array(array("id"=>"wpfc-options","title"=>"Settings"),
-									  array("id"=>"wpfc-deleteCache","title"=>"Delete Cache"),
-									  array("id"=>"wpfc-cacheTimeout","title"=>"Cache Timeout"));
+						$tabs = array(array("id"=>"wpfc-options","title" => __("Settings", "wp-fastest-cache" )),
+									  array("id"=>"wpfc-deleteCache","title" => __("Delete Cache", "wp-fastest-cache" )));
 						
-						array_push($tabs, array("id"=>"wpfc-imageOptimisation","title"=>"Image Optimization"));
+						array_push($tabs, array("id"=>"wpfc-imageOptimisation","title" => __("Image Optimization", "wp-fastest-cache" )));
 						array_push($tabs, array("id"=>"wpfc-premium","title"=>"Premium"));
-						array_push($tabs, array("id"=>"wpfc-exclude","title"=>"Exclude"));
+						array_push($tabs, array("id"=>"wpfc-exclude","title"=>__("Exclude", "wp-fastest-cache" )));
 						array_push($tabs, array("id"=>"wpfc-cdn","title"=>"CDN"));
 						array_push($tabs, array("id"=>"wpfc-db","title"=>"DB"));
 
@@ -894,57 +1079,43 @@
 					?>
 				    <br>
 				    <div class="tab1" style="padding-left:10px;">
-						<form method="post" name="wp_manager">
+						<form method="post" name="wp_manager" action="options.php">
+							<?php settings_fields( 'wpfc-group' ); ?>
+
 							<input type="hidden" value="options" name="wpFastestCachePage">
 							<div class="questionCon">
-								<div class="question">Cache System</div>
-								<div class="inputCon"><input type="checkbox" <?php echo $wpFastestCacheStatus; ?> id="wpFastestCacheStatus" name="wpFastestCacheStatus"><label for="wpFastestCacheStatus">Enable</label></div>
+								<div class="question"><?php _e('Cache System', 'wp-fastest-cache'); ?></div>
+								<div class="inputCon"><input type="checkbox" <?php echo $wpFastestCacheStatus; ?> id="wpFastestCacheStatus" name="wpFastestCacheStatus"><label for="wpFastestCacheStatus"><?php _e("Enable", "wp-fastest-cache"); ?></label></div>
 							</div>
 
-
-
-
-							<?php
-
-							$tester_arr = array(
-											"tr-TR",
-											"berkatan.com",
-											"hciwla.org"
-											);
-														
-							if(in_array(get_bloginfo('language'), $tester_arr) || in_array(str_replace("www.", "", $_SERVER["HTTP_HOST"]), $tester_arr)){ ?>
-							<?php } ?>
-								
-
-
 							<?php if(class_exists("WpFastestCachePowerfulHtml")){ ?>
-								<?php if(file_exists(WPFC_WP_CONTENT_DIR."/plugins/wp-fastest-cache-premium/pro/library/widget-cache.php")){ ?>
-									<?php include_once WPFC_WP_CONTENT_DIR."/plugins/wp-fastest-cache-premium/pro/library/widget-cache.php"; ?>
+								<?php if(file_exists(WPFC_WP_PLUGIN_DIR."/wp-fastest-cache-premium/pro/library/widget-cache.php")){ ?>
+									<?php include_once WPFC_WP_PLUGIN_DIR."/wp-fastest-cache-premium/pro/library/widget-cache.php"; ?>
 
 									<?php if(class_exists("WpfcWidgetCache") && method_exists("WpfcWidgetCache", "add_filter_admin")){ ?>
 										<div class="questionCon">
-											<div class="question">Widget Cache</div>
-											<div class="inputCon"><input type="checkbox" <?php echo $wpFastestCacheWidgetCache; ?> id="wpFastestCacheWidgetCache" name="wpFastestCacheWidgetCache"><label for="wpFastestCacheWidgetCache">Reduce the number of SQL queries</label></div>
+											<div class="question"><?php _e('Widget Cache', 'wp-fastest-cache'); ?></div>
+											<div class="inputCon"><input type="checkbox" <?php echo $wpFastestCacheWidgetCache; ?> id="wpFastestCacheWidgetCache" name="wpFastestCacheWidgetCache"><label for="wpFastestCacheWidgetCache"><?php _e("Reduce the number of SQL queries", "wp-fastest-cache"); ?></label></div>
 											<div class="get-info"><a target="_blank" href="http://www.wpfastestcache.com/premium/widget-cache-reduce-the-number-of-sql-queries/"><img src="<?php echo plugins_url("wp-fastest-cache/images/info.png"); ?>" /></a></div>
 										</div>
 									<?php }else{ ?>
 										<div class="questionCon update-needed">
-											<div class="question">Widget Cache</div>
-											<div class="inputCon"><input type="checkbox" <?php echo $wpFastestCacheWidgetCache; ?> id="wpFastestCacheWidgetCache"><label for="wpFastestCacheWidgetCache">Reduce the number of SQL queries</label></div>
+											<div class="question"><?php _e('Widget Cache', 'wp-fastest-cache'); ?></div>
+											<div class="inputCon"><input type="checkbox" <?php echo $wpFastestCacheWidgetCache; ?> id="wpFastestCacheWidgetCache"><label for="wpFastestCacheWidgetCache"><?php _e("Reduce the number of SQL queries", "wp-fastest-cache"); ?></label></div>
 											<div class="get-info"><a target="_blank" href="http://www.wpfastestcache.com/premium/widget-cache-reduce-the-number-of-sql-queries/"><img src="<?php echo plugins_url("wp-fastest-cache/images/info.png"); ?>" /></a></div>
 										</div>
 									<?php } ?>
 								<?php }else{ ?>
 									<div class="questionCon update-needed">
-										<div class="question">Widget Cache</div>
-										<div class="inputCon"><input type="checkbox" <?php echo $wpFastestCacheWidgetCache; ?> id="wpFastestCacheWidgetCache"><label for="wpFastestCacheWidgetCache">Reduce the number of SQL queries</label></div>
+										<div class="question"><?php _e('Widget Cache', 'wp-fastest-cache'); ?></div>
+										<div class="inputCon"><input type="checkbox" <?php echo $wpFastestCacheWidgetCache; ?> id="wpFastestCacheWidgetCache"><label for="wpFastestCacheWidgetCache"><?php _e("Reduce the number of SQL queries", "wp-fastest-cache"); ?></label></div>
 										<div class="get-info"><a target="_blank" href="http://www.wpfastestcache.com/premium/widget-cache-reduce-the-number-of-sql-queries/"><img src="<?php echo plugins_url("wp-fastest-cache/images/info.png"); ?>" /></a></div>
 									</div>
 								<?php } ?>
 							<?php }else{ ?>
 								<div class="questionCon disabled">
-									<div class="question">Widget Cache</div>
-									<div class="inputCon"><input type="checkbox" <?php echo $wpFastestCacheWidgetCache; ?> id="wpFastestCacheWidgetCache"><label for="wpFastestCacheWidgetCache">Reduce the number of SQL queries</label></div>
+									<div class="question"><?php _e('Widget Cache', 'wp-fastest-cache'); ?></div>
+									<div class="inputCon"><input type="checkbox" <?php echo $wpFastestCacheWidgetCache; ?> id="wpFastestCacheWidgetCache"><label for="wpFastestCacheWidgetCache"><?php _e("Reduce the number of SQL queries", "wp-fastest-cache"); ?></label></div>
 									<div class="get-info"><a target="_blank" href="http://www.wpfastestcache.com/premium/widget-cache-reduce-the-number-of-sql-queries/"><img src="<?php echo plugins_url("wp-fastest-cache/images/info.png"); ?>" /></a></div>
 								</div>
 							<?php } ?>
@@ -952,8 +1123,8 @@
 
 
 							<div class="questionCon">
-								<div class="question">Preload</div>
-								<div class="inputCon"><input type="checkbox" <?php echo $wpFastestCachePreload; ?> id="wpFastestCachePreload" name="wpFastestCachePreload"><label for="wpFastestCachePreload">Create the cache of all the site automatically</label></div>
+								<div class="question"><?php _e('Preload', 'wp-fastest-cache'); ?></div>
+								<div class="inputCon"><input type="checkbox" <?php echo $wpFastestCachePreload; ?> id="wpFastestCachePreload" name="wpFastestCachePreload"><label for="wpFastestCachePreload"><?php _e("Create the cache of all the site automatically", "wp-fastest-cache"); ?></label></div>
 								<div class="get-info"><a target="_blank" href="http://www.wpfastestcache.com/features/preload-settings/"><img src="<?php echo plugins_url("wp-fastest-cache/images/info.png"); ?>" /></a></div>
 							</div>
 
@@ -962,25 +1133,26 @@
 							<?php include(WPFC_MAIN_PATH."templates/preload.php"); ?>
 
 							<div class="questionCon">
-								<div class="question">Logged-in Users</div>
-								<div class="inputCon"><input type="checkbox" <?php echo $wpFastestCacheLoggedInUser; ?> id="wpFastestCacheLoggedInUser" name="wpFastestCacheLoggedInUser"><label for="wpFastestCacheLoggedInUser">Don't show the cached version for logged-in users</label></div>
+								<div class="question"><?php _e('Logged-in Users', 'wp-fastest-cache'); ?></div>
+								<div class="inputCon"><input type="checkbox" <?php echo $wpFastestCacheLoggedInUser; ?> id="wpFastestCacheLoggedInUser" name="wpFastestCacheLoggedInUser"><label for="wpFastestCacheLoggedInUser"><?php _e("Don't show the cached version for logged-in users", "wp-fastest-cache"); ?></label></div>
 							</div>
 
 							<div class="questionCon">
-								<div class="question">Mobile</div>
-								<div class="inputCon"><input type="checkbox" <?php echo $wpFastestCacheMobile; ?> id="wpFastestCacheMobile" name="wpFastestCacheMobile"><label for="wpFastestCacheMobile">Don't show the cached version for desktop to mobile devices</label></div>
+								<div class="question"><?php _e('Mobile', 'wp-fastest-cache'); ?></div>
+								<div class="inputCon"><input type="checkbox" <?php echo $wpFastestCacheMobile; ?> id="wpFastestCacheMobile" name="wpFastestCacheMobile"><label for="wpFastestCacheMobile"><?php _e("Don't show the cached version for desktop to mobile devices", "wp-fastest-cache"); ?></label></div>
 							</div>
 
 							<?php if(class_exists("WpFastestCachePowerfulHtml")){ ?>
 							<div class="questionCon">
-								<div class="question">Mobile Theme</div>
-								<div class="inputCon"><input type="checkbox" <?php echo $wpFastestCacheMobileTheme; ?> id="wpFastestCacheMobileTheme" name="wpFastestCacheMobileTheme"><label for="wpFastestCacheMobileTheme">Create cache for mobile theme</label></div>
+								<div class="question"><?php _e('Mobile Theme', 'wp-fastest-cache'); ?></div>
+								<div class="inputCon"><input type="checkbox" <?php echo $wpFastestCacheMobileTheme; ?> id="wpFastestCacheMobileTheme" name="wpFastestCacheMobileTheme"><label for="wpFastestCacheMobileTheme"><?php _e("Create cache for mobile theme", "wp-fastest-cache"); ?></label></div>
 								<div class="get-info"><a target="_blank" href="http://www.wpfastestcache.com/premium/mobile-cache/"><img src="<?php echo plugins_url("wp-fastest-cache/images/info.png"); ?>" /></a></div>
 							</div>
 
 							<?php 
 								$tester_arr_mobile = array(
 									"tr-TR",
+									"tr",
 									"berkatan.com",
 									"yenihobiler.com",
 									"hobiblogu.com",
@@ -998,22 +1170,22 @@
 							
 							<?php }else{ ?>
 							<div class="questionCon disabled">
-								<div class="question">Mobile Theme</div>
-								<div class="inputCon"><input type="checkbox" id="wpFastestCacheMobileTheme"><label for="wpFastestCacheMobileTheme">Create cache for mobile theme</label></div>
+								<div class="question"><?php _e('Mobile Theme', 'wp-fastest-cache'); ?></div>
+								<div class="inputCon"><input type="checkbox" id="wpFastestCacheMobileTheme"><label for="wpFastestCacheMobileTheme"><?php _e("Create cache for mobile theme", "wp-fastest-cache"); ?></label></div>
 								<div class="get-info"><a target="_blank" href="http://www.wpfastestcache.com/premium/mobile-cache/"><img src="<?php echo plugins_url("wp-fastest-cache/images/info.png"); ?>" /></a></div>
 							</div>
 							<?php } ?>
 
 							<div class="questionCon">
-								<div class="question">New Post</div>
-								<div class="inputCon"><input type="checkbox" <?php echo $wpFastestCacheNewPost; ?> id="wpFastestCacheNewPost" name="wpFastestCacheNewPost"><label for="wpFastestCacheNewPost">Clear cache files when a post or page is published</label></div>
+								<div class="question"><?php _e('New Post', 'wp-fastest-cache'); ?></div>
+								<div class="inputCon"><input type="checkbox" <?php echo $wpFastestCacheNewPost; ?> id="wpFastestCacheNewPost" name="wpFastestCacheNewPost"><label for="wpFastestCacheNewPost"><?php _e("Clear cache files when a post or page is published", "wp-fastest-cache"); ?></label></div>
 							</div>
 
 							<?php include(WPFC_MAIN_PATH."templates/newpost.php"); ?>
 
 							<div class="questionCon">
-								<div class="question">Update Post</div>
-								<div class="inputCon"><input type="checkbox" <?php echo $wpFastestCacheUpdatePost; ?> id="wpFastestCacheUpdatePost" name="wpFastestCacheUpdatePost"><label for="wpFastestCacheUpdatePost">Clear cache files when a post or page is updated</label></div>
+								<div class="question"><?php _e('Update Post', 'wp-fastest-cache'); ?></div>
+								<div class="inputCon"><input type="checkbox" <?php echo $wpFastestCacheUpdatePost; ?> id="wpFastestCacheUpdatePost" name="wpFastestCacheUpdatePost"><label for="wpFastestCacheUpdatePost"><?php _e("Clear cache files when a post or page is updated", "wp-fastest-cache"); ?></label></div>
 								<div class="get-info"><a target="_blank" href="http://www.wpfastestcache.com/tutorial/to-clear-cache-after-update"><img src="<?php echo plugins_url("wp-fastest-cache/images/info.png"); ?>" /></a></div>
 							</div>
 
@@ -1021,28 +1193,28 @@
 
 
 							<div class="questionCon">
-								<div class="question">Minify HTML</div>
-								<div class="inputCon"><input type="checkbox" <?php echo $wpFastestCacheMinifyHtml; ?> id="wpFastestCacheMinifyHtml" name="wpFastestCacheMinifyHtml"><label for="wpFastestCacheMinifyHtml">You can decrease the size of page</label></div>
+								<div class="question"><?php _e('Minify HTML', 'wp-fastest-cache'); ?></div>
+								<div class="inputCon"><input type="checkbox" <?php echo $wpFastestCacheMinifyHtml; ?> id="wpFastestCacheMinifyHtml" name="wpFastestCacheMinifyHtml"><label for="wpFastestCacheMinifyHtml"><?php _e("You can decrease the size of page", "wp-fastest-cache"); ?></label></div>
 								<div class="get-info"><a target="_blank" href="http://www.wpfastestcache.com/optimization/minify-html/"><img src="<?php echo plugins_url("wp-fastest-cache/images/info.png"); ?>" /></a></div>
 							</div>
 
 							<?php if(class_exists("WpFastestCachePowerfulHtml")){ ?>
 							<div class="questionCon">
-								<div class="question">Minify HTML Plus</div>
-								<div class="inputCon"><input type="checkbox" <?php echo $wpFastestCacheMinifyHtmlPowerFul; ?> id="wpFastestCacheMinifyHtmlPowerFul" name="wpFastestCacheMinifyHtmlPowerFul"><label for="wpFastestCacheMinifyHtmlPowerFul">More powerful minify html</label></div>
+								<div class="question"><?php _e('Minify HTML Plus', 'wp-fastest-cache'); ?></div>
+								<div class="inputCon"><input type="checkbox" <?php echo $wpFastestCacheMinifyHtmlPowerFul; ?> id="wpFastestCacheMinifyHtmlPowerFul" name="wpFastestCacheMinifyHtmlPowerFul"><label for="wpFastestCacheMinifyHtmlPowerFul"><?php _e("More powerful minify html", "wp-fastest-cache"); ?></label></div>
 							</div>
 							<?php }else{ ?>
 							<div class="questionCon disabled">
-								<div class="question">Minify HTML Plus</div>
-								<div class="inputCon"><input type="checkbox" id="wpFastestCacheMinifyHtmlPowerFul"><label for="wpFastestCacheMinifyHtmlPowerFul">More powerful minify html</label></div>
+								<div class="question"><?php _e('Minify HTML Plus', 'wp-fastest-cache'); ?></div>
+								<div class="inputCon"><input type="checkbox" id="wpFastestCacheMinifyHtmlPowerFul"><label for="wpFastestCacheMinifyHtmlPowerFul"><?php _e("More powerful minify html", "wp-fastest-cache"); ?></label></div>
 							</div>
 							<?php } ?>
 
 
 
 							<div class="questionCon">
-								<div class="question">Minify Css</div>
-								<div class="inputCon"><input type="checkbox" <?php echo $wpFastestCacheMinifyCss; ?> id="wpFastestCacheMinifyCss" name="wpFastestCacheMinifyCss"><label for="wpFastestCacheMinifyCss">You can decrease the size of css files</label></div>
+								<div class="question"><?php _e('Minify Css', 'wp-fastest-cache'); ?></div>
+								<div class="inputCon"><input type="checkbox" <?php echo $wpFastestCacheMinifyCss; ?> id="wpFastestCacheMinifyCss" name="wpFastestCacheMinifyCss"><label for="wpFastestCacheMinifyCss"><?php _e("You can decrease the size of css files", "wp-fastest-cache"); ?></label></div>
 								<div class="get-info"><a target="_blank" href="http://www.wpfastestcache.com/optimization/minify-css/"><img src="<?php echo plugins_url("wp-fastest-cache/images/info.png"); ?>" /></a></div>
 							</div>
 
@@ -1050,71 +1222,71 @@
 
 							<?php if(class_exists("WpFastestCachePowerfulHtml") && method_exists("WpFastestCachePowerfulHtml", "minify_css")){ ?>
 							<div class="questionCon">
-								<div class="question">Minify Css Plus</div>
-								<div class="inputCon"><input type="checkbox" <?php echo $wpFastestCacheMinifyCssPowerFul; ?> id="wpFastestCacheMinifyCssPowerFul" name="wpFastestCacheMinifyCssPowerFul"><label for="wpFastestCacheMinifyCssPowerFul">More powerful minify css</label></div>
+								<div class="question"><?php _e('Minify Css Plus', 'wp-fastest-cache'); ?></div>
+								<div class="inputCon"><input type="checkbox" <?php echo $wpFastestCacheMinifyCssPowerFul; ?> id="wpFastestCacheMinifyCssPowerFul" name="wpFastestCacheMinifyCssPowerFul"><label for="wpFastestCacheMinifyCssPowerFul"><?php _e("More powerful minify css", "wp-fastest-cache"); ?></label></div>
 							</div>
 							<?php }else{ ?>
 							<div class="questionCon disabled">
-								<div class="question">Minify Css Plus</div>
-								<div class="inputCon"><input type="checkbox" id="wpFastestCacheMinifyCssPowerFul"><label for="wpFastestCacheMinifyCssPowerFul">More powerful minify css</label></div>
+								<div class="question"><?php _e('Minify Css Plus', 'wp-fastest-cache'); ?></div>
+								<div class="inputCon"><input type="checkbox" id="wpFastestCacheMinifyCssPowerFul"><label for="wpFastestCacheMinifyCssPowerFul"><?php _e("More powerful minify css", "wp-fastest-cache"); ?></label></div>
 							</div>
 							<?php } ?>
 
 
 							<div class="questionCon">
-								<div class="question">Combine Css</div>
-								<div class="inputCon"><input type="checkbox" <?php echo $wpFastestCacheCombineCss; ?> id="wpFastestCacheCombineCss" name="wpFastestCacheCombineCss"><label for="wpFastestCacheCombineCss">Reduce HTTP requests through combined css files</label></div>
+								<div class="question"><?php _e('Combine Css', 'wp-fastest-cache'); ?></div>
+								<div class="inputCon"><input type="checkbox" <?php echo $wpFastestCacheCombineCss; ?> id="wpFastestCacheCombineCss" name="wpFastestCacheCombineCss"><label for="wpFastestCacheCombineCss"><?php _e("Reduce HTTP requests through combined css files", "wp-fastest-cache"); ?></label></div>
 								<div class="get-info"><a target="_blank" href="http://www.wpfastestcache.com/optimization/combine-js-css-files/"><img src="<?php echo plugins_url("wp-fastest-cache/images/info.png"); ?>" /></a></div>
 							</div>
 
 							<?php if(class_exists("WpFastestCachePowerfulHtml")){ ?>
 								<?php if(method_exists("WpFastestCachePowerfulHtml", "minify_js_in_body")){ ?>
 									<div class="questionCon">
-										<div class="question">Minify Js</div>
-										<div class="inputCon"><input type="checkbox" <?php echo $wpFastestCacheMinifyJs; ?> id="wpFastestCacheMinifyJs" name="wpFastestCacheMinifyJs"><label for="wpFastestCacheMinifyJs">You can decrease the size of js files</label></div>
+										<div class="question"><?php _e('Minify Js', 'wp-fastest-cache'); ?></div>
+										<div class="inputCon"><input type="checkbox" <?php echo $wpFastestCacheMinifyJs; ?> id="wpFastestCacheMinifyJs" name="wpFastestCacheMinifyJs"><label for="wpFastestCacheMinifyJs"><?php _e("You can decrease the size of js files", "wp-fastest-cache"); ?></label></div>
 									</div>
 								<?php }else{ ?>
 									<div class="questionCon update-needed">
-										<div class="question">Minify Js</div>
-										<div class="inputCon"><input type="checkbox" id="wpFastestCacheMinifyJs"><label for="wpFastestCacheMinifyJs">You can decrease the size of js files</label></div>
+										<div class="question"><?php _e('Minify Js', 'wp-fastest-cache'); ?></div>
+										<div class="inputCon"><input type="checkbox" id="wpFastestCacheMinifyJs"><label for="wpFastestCacheMinifyJs"><?php _e("You can decrease the size of js files", "wp-fastest-cache"); ?></label></div>
 									</div>
 								<?php } ?>
 							<?php }else{ ?>
 							<div class="questionCon disabled">
-								<div class="question">Minify Js</div>
-								<div class="inputCon"><input type="checkbox" id="wpFastestCacheMinifyJs"><label for="wpFastestCacheMinifyJs">You can decrease the size of js files</label></div>
+								<div class="question"><?php _e('Minify Js', 'wp-fastest-cache'); ?></div>
+								<div class="inputCon"><input type="checkbox" id="wpFastestCacheMinifyJs"><label for="wpFastestCacheMinifyJs"><?php _e("You can decrease the size of js files", "wp-fastest-cache"); ?></label></div>
 							</div>
 							<?php } ?>
 
 							<div class="questionCon">
-								<div class="question">Combine Js</div>
-								<div class="inputCon"><input type="checkbox" <?php echo $wpFastestCacheCombineJs; ?> id="wpFastestCacheCombineJs" name="wpFastestCacheCombineJs"><label for="wpFastestCacheCombineJs">Reduce HTTP requests through combined js files</label> <b style="color:red;">(header)</b></div>
+								<div class="question"><?php _e('Combine Js', 'wp-fastest-cache'); ?></div>
+								<div class="inputCon"><input type="checkbox" <?php echo $wpFastestCacheCombineJs; ?> id="wpFastestCacheCombineJs" name="wpFastestCacheCombineJs"><label for="wpFastestCacheCombineJs"><?php _e("Reduce HTTP requests through combined js files", "wp-fastest-cache"); ?></label> <b style="color:red;">(header)</b></div>
 								<div class="get-info"><a target="_blank" href="http://www.wpfastestcache.com/optimization/combine-js-css-files/"><img src="<?php echo plugins_url("wp-fastest-cache/images/info.png"); ?>" /></a></div>
 							</div>
 
 							<?php if(class_exists("WpFastestCachePowerfulHtml")){ ?> 
 								<?php if(method_exists("WpFastestCachePowerfulHtml", "combine_js_in_footer")){ ?>
-									<div class="questionCon"> <div class="question">Combine Js Plus</div>
+									<div class="questionCon"> <div class="question"><?php _e('Combine Js Plus', 'wp-fastest-cache'); ?></div>
 										<div class="inputCon"><input type="checkbox" <?php echo $wpFastestCacheCombineJsPowerFul; ?> id="wpFastestCacheCombineJsPowerFul" name="wpFastestCacheCombineJsPowerFul">
-											<label for="wpFastestCacheCombineJsPowerFul">Reduce HTTP requests through combined js files</label> <b style="color:red;">(footer)</b>
+											<label for="wpFastestCacheCombineJsPowerFul"><?php _e("Reduce HTTP requests through combined js files", "wp-fastest-cache"); ?></label> <b style="color:red;">(footer)</b>
 										</div> 
 									</div>
 								<?php }else{ ?>
 									<div class="questionCon update-needed">
-										<div class="question">Combine Js Plus</div>
-										<div class="inputCon"><input type="checkbox" id="wpFastestCacheCombineJsPowerFul"><label for="wpFastestCacheCombineJsPowerFul">Reduce HTTP requests through combined js files</label> <b style="color:red;">(footer)</b></div> 
+										<div class="question"><?php _e('Combine Js Plus', 'wp-fastest-cache'); ?></div>
+										<div class="inputCon"><input type="checkbox" id="wpFastestCacheCombineJsPowerFul"><label for="wpFastestCacheCombineJsPowerFul"><?php _e("Reduce HTTP requests through combined js files", "wp-fastest-cache"); ?></label> <b style="color:red;">(footer)</b></div> 
 									</div> 
 								<?php } ?>
 							<?php }else{ ?>
 								<div class="questionCon disabled">
-									<div class="question">Combine Js Plus</div>
-									<div class="inputCon"><input type="checkbox" id="wpFastestCacheCombineJsPowerFul"><label for="wpFastestCacheCombineJsPowerFul">Reduce HTTP requests through combined js files</label> <b style="color:red;">(footer)</b></div>
+									<div class="question"><?php _e('Combine Js Plus', 'wp-fastest-cache'); ?></div>
+									<div class="inputCon"><input type="checkbox" id="wpFastestCacheCombineJsPowerFul"><label for="wpFastestCacheCombineJsPowerFul"><?php _e("Reduce HTTP requests through combined js files", "wp-fastest-cache"); ?></label> <b style="color:red;">(footer)</b></div>
 								</div>
 							<?php } ?>
 
 							<div class="questionCon">
-								<div class="question">Gzip</div>
-								<div class="inputCon"><input type="checkbox" <?php echo $wpFastestCacheGzip; ?> id="wpFastestCacheGzip" name="wpFastestCacheGzip"><label for="wpFastestCacheGzip">Reduce the size of files sent from your server</label></div>
+								<div class="question"><?php _e('Gzip', 'wp-fastest-cache'); ?></div>
+								<div class="inputCon"><input type="checkbox" <?php echo $wpFastestCacheGzip; ?> id="wpFastestCacheGzip" name="wpFastestCacheGzip"><label for="wpFastestCacheGzip"><?php _e("Reduce the size of files sent from your server", "wp-fastest-cache"); ?></label></div>
 								<div class="get-info"><a target="_blank" href="http://www.wpfastestcache.com/optimization/enable-gzip-compression/"><img src="<?php echo plugins_url("wp-fastest-cache/images/info.png"); ?>" /></a></div>
 							</div>
 
@@ -1125,14 +1297,14 @@
 							?>
 
 							<div class="questionCon">
-								<div class="question">Browser Caching</div>
-								<div class="inputCon"><input type="checkbox" <?php echo $wpFastestCacheLBC; ?> id="wpFastestCacheLBC" name="wpFastestCacheLBC"><label for="wpFastestCacheLBC">Reduce page load times for repeat visitors</label></div>
+								<div class="question"><?php _e('Browser Caching', 'wp-fastest-cache'); ?></div>
+								<div class="inputCon"><input type="checkbox" <?php echo $wpFastestCacheLBC; ?> id="wpFastestCacheLBC" name="wpFastestCacheLBC"><label for="wpFastestCacheLBC"><?php _e("Reduce page load times for repeat visitors", "wp-fastest-cache"); ?></label></div>
 								<div class="get-info"><a target="_blank" href="http://www.wpfastestcache.com/optimization/leverage-browser-caching/"><img src="<?php echo plugins_url("wp-fastest-cache/images/info.png"); ?>" /></a></div>
 							</div>
 
 							<div class="questionCon">
-								<div class="question">Disable Emojis</div>
-								<div class="inputCon"><input type="checkbox" <?php echo $wpFastestCacheDisableEmojis; ?> id="wpFastestCacheDisableEmojis" name="wpFastestCacheDisableEmojis"><label for="wpFastestCacheDisableEmojis">You can remove the emoji inline css and wp-emoji-release.min.js</label></div>
+								<div class="question"><?php _e('Disable Emojis', 'wp-fastest-cache'); ?></div>
+								<div class="inputCon"><input type="checkbox" <?php echo $wpFastestCacheDisableEmojis; ?> id="wpFastestCacheDisableEmojis" name="wpFastestCacheDisableEmojis"><label for="wpFastestCacheDisableEmojis"><?php _e("You can remove the emoji inline css and wp-emoji-release.min.js", "wp-fastest-cache"); ?></label></div>
 								<div class="get-info"><a target="_blank" href="http://www.wpfastestcache.com/optimization/disableremove-wordpress-emojis/"><img src="<?php echo plugins_url("wp-fastest-cache/images/info.png"); ?>" /></a></div>
 							</div>
 
@@ -1140,21 +1312,21 @@
 							<?php if(class_exists("WpFastestCachePowerfulHtml")){ ?> 
 								<?php if(method_exists("WpFastestCachePowerfulHtml", "render_blocking")){ ?>
 									<div class="questionCon">
-										<div class="question">Render Blocking Js</div>
-										<div class="inputCon"><input type="checkbox" <?php echo $wpFastestCacheRenderBlocking; ?> id="wpFastestCacheRenderBlocking" name="wpFastestCacheRenderBlocking"><label for="wpFastestCacheRenderBlocking">Remove render-blocking JavaScript</label></div>
+										<div class="question"><?php _e('Render Blocking Js', 'wp-fastest-cache'); ?></div>
+										<div class="inputCon"><input type="checkbox" <?php echo $wpFastestCacheRenderBlocking; ?> id="wpFastestCacheRenderBlocking" name="wpFastestCacheRenderBlocking"><label for="wpFastestCacheRenderBlocking"><?php _e("Eliminate render-blocking JavaScript resources", "wp-fastest-cache"); ?></label></div>
 										<div class="get-info"><a target="_blank" href="http://www.wpfastestcache.com/premium/render-blocking-js/"><img src="<?php echo plugins_url("wp-fastest-cache/images/info.png"); ?>" /></a></div>
 									</div>
 								<?php }else{ ?>
 									<div class="questionCon update-needed">
-										<div class="question">Render Blocking Js</div>
-										<div class="inputCon"><input type="checkbox" id="wpFastestCacheRenderBlocking" name="wpFastestCacheRenderBlocking"><label for="wpFastestCacheRenderBlocking">Remove render-blocking JavaScript</label></div>
+										<div class="question"><?php _e('Render Blocking Js', 'wp-fastest-cache'); ?></div>
+										<div class="inputCon"><input type="checkbox" id="wpFastestCacheRenderBlocking" name="wpFastestCacheRenderBlocking"><label for="wpFastestCacheRenderBlocking"><?php _e("Eliminate render-blocking JavaScript resources", "wp-fastest-cache"); ?></label></div>
 										<div class="get-info"><a target="_blank" href="http://www.wpfastestcache.com/premium/render-blocking-js/"><img src="<?php echo plugins_url("wp-fastest-cache/images/info.png"); ?>" /></a></div>
 									</div>
 								<?php } ?>
 							<?php }else{ ?>
 								<div class="questionCon disabled">
-									<div class="question">Render Blocking Js</div>
-									<div class="inputCon"><input type="checkbox" id="wpFastestCacheRenderBlocking" name="wpFastestCacheRenderBlocking"><label for="wpFastestCacheRenderBlocking">Remove render-blocking JavaScript</label></div>
+									<div class="question"><?php _e('Render Blocking Js', 'wp-fastest-cache'); ?></div>
+									<div class="inputCon"><input type="checkbox" id="wpFastestCacheRenderBlocking" name="wpFastestCacheRenderBlocking"><label for="wpFastestCacheRenderBlocking"><?php _e("Eliminate render-blocking JavaScript resources", "wp-fastest-cache"); ?></label></div>
 									<div class="get-info"><a target="_blank" href="http://www.wpfastestcache.com/premium/render-blocking-js/"><img src="<?php echo plugins_url("wp-fastest-cache/images/info.png"); ?>" /></a></div>
 								</div>
 							<?php } ?>
@@ -1166,139 +1338,105 @@
 							<?php if(class_exists("WpFastestCachePowerfulHtml")){ ?> 
 								<?php if(method_exists("WpFastestCachePowerfulHtml", "google_fonts")){ ?>
 									<div class="questionCon">
-										<div class="question">Google Fonts</div>
-										<div class="inputCon"><input type="checkbox" <?php echo $wpFastestCacheGoogleFonts; ?> id="wpFastestCacheGoogleFonts" name="wpFastestCacheGoogleFonts"><label for="wpFastestCacheGoogleFonts">Load Google Fonts asynchronously </label></div>
+										<div class="question"><?php _e('Google Fonts', 'wp-fastest-cache'); ?></div>
+										<div class="inputCon"><input type="checkbox" <?php echo $wpFastestCacheGoogleFonts; ?> id="wpFastestCacheGoogleFonts" name="wpFastestCacheGoogleFonts"><label for="wpFastestCacheGoogleFonts"><?php _e("Load Google Fonts asynchronously", "wp-fastest-cache"); ?></label></div>
 										<div class="get-info"><a target="_blank" href="http://www.wpfastestcache.com/premium/google-fonts-optimize-css-delivery/"><img src="<?php echo plugins_url("wp-fastest-cache/images/info.png"); ?>" /></a></div>
 									</div>
 								<?php }else{ ?>
 									<div class="questionCon update-needed">
-										<div class="question">Google Fonts</div>
-										<div class="inputCon"><input type="checkbox" id="wpFastestCacheGoogleFonts" name="wpFastestCacheGoogleFonts"><label for="wpFastestCacheGoogleFonts">Load Google Fonts asynchronously</label></div>
+										<div class="question"><?php _e('Google Fonts', 'wp-fastest-cache'); ?></div>
+										<div class="inputCon"><input type="checkbox" id="wpFastestCacheGoogleFonts" name="wpFastestCacheGoogleFonts"><label for="wpFastestCacheGoogleFonts"><?php _e("Load Google Fonts asynchronously", "wp-fastest-cache"); ?></label></div>
 										<div class="get-info"><a target="_blank" href="http://www.wpfastestcache.com/premium/google-fonts-optimize-css-delivery/"><img src="<?php echo plugins_url("wp-fastest-cache/images/info.png"); ?>" /></a></div>
 									</div>
 								<?php } ?>
 							<?php }else{ ?>
 								<div class="questionCon disabled">
-									<div class="question">Google Fonts</div>
-									<div class="inputCon"><input type="checkbox" id="wpFastestCacheGoogleFonts" name="wpFastestCacheGoogleFonts"><label for="wpFastestCacheGoogleFonts">Load Google Fonts asynchronously</label></div>
+									<div class="question"><?php _e('Google Fonts', 'wp-fastest-cache'); ?></div>
+									<div class="inputCon"><input type="checkbox" id="wpFastestCacheGoogleFonts" name="wpFastestCacheGoogleFonts"><label for="wpFastestCacheGoogleFonts"><?php _e("Load Google Fonts asynchronously", "wp-fastest-cache"); ?></label></div>
 									<div class="get-info"><a target="_blank" href="http://www.wpfastestcache.com/premium/google-fonts-optimize-css-delivery/"><img src="<?php echo plugins_url("wp-fastest-cache/images/info.png"); ?>" /></a></div>
 								</div>
 							<?php } ?>
 
 
 
-
-
-
-
-
-
-
-							<?php
-
-							$tester_arr = array(
-											// "de-DE",
-											// "es_CL",
-											// "es_AR",
-											// "es_GT",
-											// "es_PE",
-											// "es_VE",
-											// "es_CO",
-											// "es_MX",
-											// "es_ES",
-											// "es-ES",
-											// "fr-FR",
-											// "fr-BE",
-											// "fr-CA",
-											// "fr-FR",
-											// "it-IT",
-											// "ja",
-											"nl-NL",
-											"pt-PT",
-											"pt-BR",
-											"tr-TR",
-											"nicheadvice.co.uk",
-											"addkenmerken.net",
-											"animefantastica.com",
-											"rynofitness.com.au",
-											"margotickets.com",
-											"berkatan.com",
-											"yenihobiler.com",
-											"hobiblogu.com",
-											"pembeportakal.com",
-											"artclinic.org",
-											"rogers-immobilien.de",
-											"polyamory.dating",
-											"mygamer.com",
-											"gingerdomain.com",
-											"topclassprinting.com",
-											"camilazivit.com.br",
-											"spycoupon.in",
-											"groovypost.com",
-											"parkviewhomes.info",
-											"myparkviewhomes.com",
-											"kompressorcheck.de",
-											"cutflower.com",
-											"sackkarre-tests.de",
-											"schraubstock-test.de",
-											"knarrenkasten-tests.de",
-											"zahlungserinnerung-vorlage.de",
-											"eigenbeleg-vorlage.de"
-											);
-														
-							if(in_array(get_bloginfo('language'), $tester_arr) || in_array(str_replace("www.", "", $_SERVER["HTTP_HOST"]), $tester_arr)){ ?>
-
-								<?php if(class_exists("WpFastestCachePowerfulHtml")){ ?>
-									<?php if(method_exists("WpFastestCachePowerfulHtml", "lazy_load")){ ?>
-										<div class="questionCon">
-											<div class="question">Lazy Load</div>
-											<div class="inputCon">
-												<input type="hidden" value="<?php echo $wpFastestCacheLazyLoad_placeholder; ?>" id="wpFastestCacheLazyLoad_placeholder" name="wpFastestCacheLazyLoad_placeholder">
-												<input type="hidden" value="<?php echo $wpFastestCacheLazyLoad_keywords; ?>" id="wpFastestCacheLazyLoad_keywords" name="wpFastestCacheLazyLoad_keywords">
-												<input type="checkbox" <?php echo $wpFastestCacheLazyLoad; ?> id="wpFastestCacheLazyLoad" name="wpFastestCacheLazyLoad"><label for="wpFastestCacheLazyLoad">Load images and iframes when they enter the browsers viewport</label>
-											</div>
-											<div class="get-info"><a target="_blank" href="http://www.wpfastestcache.com/premium/lazy-load-reduce-http-request-and-page-load-time/"><img src="<?php echo plugins_url("wp-fastest-cache/images/info.png"); ?>" /></a></div>
+							<?php if(class_exists("WpFastestCachePowerfulHtml")){ ?>
+								<?php if(method_exists("WpFastestCachePowerfulHtml", "lazy_load")){ ?>
+									<div class="questionCon">
+										<div class="question"><?php _e('Lazy Load', 'wp-fastest-cache'); ?></div>
+										<div class="inputCon">
+											<input type="hidden" value="<?php echo $wpFastestCacheLazyLoad_placeholder; ?>" id="wpFastestCacheLazyLoad_placeholder" name="wpFastestCacheLazyLoad_placeholder">
+											<input type="hidden" value="<?php echo $wpFastestCacheLazyLoad_keywords; ?>" id="wpFastestCacheLazyLoad_keywords" name="wpFastestCacheLazyLoad_keywords">
+											<input type="hidden" value="<?php echo $wpFastestCacheLazyLoad_exclude_full_size_img; ?>" id="wpFastestCacheLazyLoad_exclude_full_size_img" name="wpFastestCacheLazyLoad_exclude_full_size_img">
+											
+											<input type="checkbox" <?php echo $wpFastestCacheLazyLoad; ?> id="wpFastestCacheLazyLoad" name="wpFastestCacheLazyLoad"><label for="wpFastestCacheLazyLoad"><?php _e("Load images and iframes when they enter the browsers viewport", "wp-fastest-cache"); ?></label>
 										</div>
+										<div class="get-info"><a target="_blank" href="http://www.wpfastestcache.com/premium/lazy-load-reduce-http-request-and-page-load-time/"><img src="<?php echo plugins_url("wp-fastest-cache/images/info.png"); ?>" /></a></div>
+									</div>
 
-										<?php 
-											if(file_exists(WPFC_WP_PLUGIN_DIR."/wp-fastest-cache-premium/pro/templates/lazy-load.php")){
-												include_once WPFC_WP_PLUGIN_DIR."/wp-fastest-cache-premium/pro/templates/lazy-load.php"; 
-											}
-										?>
+									<?php 
+										if(file_exists(WPFC_WP_PLUGIN_DIR."/wp-fastest-cache-premium/pro/templates/lazy-load.php")){
+											include_once WPFC_WP_PLUGIN_DIR."/wp-fastest-cache-premium/pro/templates/lazy-load.php"; 
+										}
+									?>
 
-									<?php }else{ ?>
-										<div class="questionCon update-needed">
-											<div class="question">Lazy Load</div>
-											<div class="inputCon"><input type="checkbox" id="wpFastestCacheLazyLoad" name="wpFastestCacheLazyLoad"><label for="wpFastestCacheLazyLoad">Lazy Load</label></div>
-											<div class="get-info"><a target="_blank" href="http://www.wpfastestcache.com/premium/lazy-load-reduce-http-request-and-page-load-time/"><img src="<?php echo plugins_url("wp-fastest-cache/images/info.png"); ?>" /></a></div>
-										</div>
-									<?php } ?>
+								<?php }else{ ?>
+									<div class="questionCon update-needed">
+										<div class="question"><?php _e('Lazy Load', 'wp-fastest-cache'); ?></div>
+										<div class="inputCon"><input type="checkbox" id="wpFastestCacheLazyLoad" name="wpFastestCacheLazyLoad"><label for="wpFastestCacheLazyLoad"><?php _e("Load images and iframes when they enter the browsers viewport", "wp-fastest-cache"); ?></label></div>
+										<div class="get-info"><a target="_blank" href="http://www.wpfastestcache.com/premium/lazy-load-reduce-http-request-and-page-load-time/"><img src="<?php echo plugins_url("wp-fastest-cache/images/info.png"); ?>" /></a></div>
+									</div>
 								<?php } ?>
-							
+							<?php }else{ ?>
+								<div class="questionCon disabled">
+									<div class="question"><?php _e('Lazy Load', 'wp-fastest-cache'); ?></div>
+									<div class="inputCon"><input type="checkbox" id="wpFastestCacheLazyLoad" name="wpFastestCacheLazyLoad"><label for="wpFastestCacheLazyLoad"><?php _e("Load images and iframes when they enter the browsers viewport", "wp-fastest-cache"); ?></label></div>
+									<div class="get-info"><a target="_blank" href="http://www.wpfastestcache.com/premium/lazy-load-reduce-http-request-and-page-load-time/"><img src="<?php echo plugins_url("wp-fastest-cache/images/info.png"); ?>" /></a></div>
+								</div>
 							<?php } ?>
+							
+
 
 
 
 							<div class="questionCon">
 								<div class="question">Language</div>
 								<div class="inputCon">
-									<select id="wpFastestCacheLanguage" name="wpFastestCacheLanguage">
-										<option value="cn">中文</option>
-										<option value="de">Deutsch</option>
-										<option value="eng">English</option>
-										<option value="es">Español</option>
-										<option value="fr">Français</option>
-										<option value="it">Italiana</option>
-										<option value="nl">Nederlands</option>
-										<option value="ja">日本語</option>
-										<option value="pl">Polski</option>
-										<option value="pt">Português</option>
-										<option value="ro">Română</option>
-										<option value="ru">Русский</option>
-										<option value="fi">Suomi</option>
-										<option value="sv">Svenska</option>
-										<option value="tr">Türkçe</option>
-										<!-- <option value="ukr">Українська</option> -->
+									<select id="wpFastestCacheLanguage" name="wpFastestCacheLanguage" style="width: 100px !important;">
+										<?php
+											$lang_array = array(
+																"cn" => "中文",
+																"zh_TW" => "正體中文",
+																"de" => "Deutsch",
+																"eng" => "English",
+																"es" => "Español",
+																"fr" => "Français",
+																"it" => "Italiana",
+																"nl" => "Nederlands",
+																"ja" => "日本語",
+																"pl" => "Polski",
+																"pt" => "Português",
+																"ro" => "Română",
+																"ru" => "Русский",
+																"fi" => "Suomi",
+																"sv" => "Svenska",
+																"tr" => "Türkçe"
+															);
+											foreach($lang_array as $lang_array_key => $lang_array_value){
+												$option_selected = "";
+
+												if(isset($this->options->wpFastestCacheLanguage) && $this->options->wpFastestCacheLanguage && $this->options->wpFastestCacheLanguage != "eng"){
+													if(isset($this->options->wpFastestCacheLanguage) && $this->options->wpFastestCacheLanguage == $lang_array_key){
+														$option_selected = 'selected="selected"';
+													}
+												}else{
+													if($lang_array_key == "eng"){
+														$option_selected = 'selected="selected"';
+													}
+												}
+
+												echo '<option '.$option_selected.' value="'.$lang_array_key.'">'.$lang_array_value.'</option>';
+											}
+										?>
 									</select> 
 								</div>
 							</div>
@@ -1321,14 +1459,14 @@
 			   					?>
 					   			<div style="z-index:9999;width: 160px; height: 60px; position: absolute; margin-left: 254px; margin-top: 25px; color: white;">
 						    		<div style="font-family:sans-serif;font-size:13px;text-align: center; border-radius: 5px; float: left; background-color: rgb(51, 51, 51); color: white; width: 147px; padding: 20px 50px;">
-						    			<label>Only available in Premium version</label>
+						    			<label><?php _e("Only available in Premium version", "wp-fastest-cache"); ?></label>
 						    		</div>
 						    	</div>
 					   			<div style="opacity:0.3;float: right; padding-right: 20px; cursor: pointer;">
 						    		<span id="show-delete-log">Show Logs</span>
 						    		<span id="hide-delete-log" style="display:none;">Hide Logs</span>
 						    	</div>
-						    	<h2 style="opacity:0.3;padding-left:20px;padding-bottom:10px;">Cache Statistics</h2>
+						    	<h2 style="opacity:0.3;padding-left:20px;padding-bottom:10px;"><?php _e("Cache Statistics", "wp-fastest-cache"); ?></h2>
 						    	<div id="wpfc-cache-statics" style="opacity:0.3;width:100%;float:right;margin:15px 0;">
 									<style type="text/css">
 										#wpfc-cache-statics > div{
@@ -1365,31 +1503,35 @@
 			   					<?php
 			   				}
 				   		?>
-				   		<h2 id="delete-cache-h2" style="padding-left:20px;padding-bottom:10px;">Delete Cache</h2>
-				    	<form method="post" name="wp_manager" class="delete-line">
+
+				   		<div class="exclude_section_clear" style=" margin-left: 3%; width: 95%; margin-bottom: 20px; margin-top: 0;"><div></div></div>
+
+				   		<h2 id="delete-cache-h2" style="padding-left:20px;padding-bottom:10px;"><?php _e("Delete Cache", "wp-fastest-cache"); ?></h2>
+				    	<form method="post" name="wp_manager" class="delete-line" action="options.php">
+							<?php settings_fields( 'wpfc-group' ); ?>
 				    		<input type="hidden" value="deleteCache" name="wpFastestCachePage">
 				    		<div class="questionCon qsubmit left">
-				    			<div class="submit"><input type="submit" value="Delete Cache" class="button-primary"></div>
+				    			<div class="submit"><input type="submit" value="<?php _e("Delete Cache", "wp-fastest-cache"); ?>" class="button-primary"></div>
 				    		</div>
 				    		<div class="questionCon right">
 				    			<div style="padding-left:11px;">
-				    			<label>You can delete all cache files</label><br>
-				    			<label>Target folder</label> <b><?php echo $this->getWpContentDir(); ?>/cache/all</b>
+				    			<label><?php _e("You can delete all cache files", "wp-fastest-cache"); ?></label><br>
+				    			<label><?php _e("Target folder", "wp-fastest-cache"); ?></label> <b><?php echo $this->getWpContentDir("/cache/all"); ?></b>
 				    			</div>
 				    		</div>
 				   		</form>
-				   		<form method="post" name="wp_manager" class="delete-line" style="height: 120px;">
+				   		<form method="post" name="wp_manager" class="delete-line" style="height: 120px;" action="options.php">
+				   			<?php settings_fields( 'wpfc-group' ); ?>
 				    		<input type="hidden" value="deleteCssAndJsCache" name="wpFastestCachePage">
 				    		<div class="questionCon qsubmit left">
-				    			<div class="submit"><input type="submit" value="Delete Cache and Minified CSS/JS" class="button-primary"></div>
+				    			<div class="submit"><input type="submit" value="<?php _e("Delete Cache and Minified CSS/JS", "wp-fastest-cache"); ?>" class="button-primary"></div>
 				    		</div>
 				    		<div class="questionCon right">
 				    			<div style="padding-left:11px;">
-				    			<label>If you modify any css file, you have to delete minified css files</label><br>
-				    			<label>All cache files will be removed as well</label><br>
-				    			<label>Target folder</label> <b><?php echo $this->getWpContentDir(); ?>/cache/all</b><br>
-				    			<!-- <label>Target folder</label> <b><?php echo $this->getWpContentDir(); ?>/cache/wpfc-mobile-cache</b><br> -->
-				    			<label>Target folder</label> <b><?php echo $this->getWpContentDir(); ?>/cache/wpfc-minified</b>
+				    			<label><?php _e("If you modify any css file, you have to delete minified css files", "wp-fastest-cache"); ?></label><br>
+				    			<label><?php _e("All cache files will be removed as well", "wp-fastest-cache"); ?></label><br>
+				    			<label><?php _e("Target folder", "wp-fastest-cache"); ?></label> <b><?php echo $this->getWpContentDir("/cache/all"); ?></b><br>
+				    			<label><?php _e("Target folder", "wp-fastest-cache"); ?></label> <b><?php echo $this->getWpContentDir("/cache/wpfc-minified"); ?></b>
 				    			</div>
 				    		</div>
 				   		</form>
@@ -1399,20 +1541,22 @@
 					   				$logs->printLogs();
 				   				}
 				   		?>
-				    </div>
-				    <div class="tab3">
-				    	<h2 style="padding-bottom:10px;padding-left:20px;float:left;">Timeout Rules</h2>
+
+				   		<div class="exclude_section_clear" style=" margin-left: 3%; width: 95%; margin-bottom: 12px; margin-top: 0;"><div></div></div>
+
+
+				   		<h2 style="padding-bottom:10px;padding-left:20px;float:left;"><?php _e("Timeout Rules", "wp-fastest-cache"); ?></h2>
 
 				    	<!-- samples start: clones -->
 				    	<div class="wpfc-timeout-rule-line" style="display:none;">
 							<div class="wpfc-timeout-rule-line-left">
 								<select name="wpfc-timeout-rule-prefix">
 										<option selected="" value=""></option>
-										<option value="all">All</option>
-										<option value="homepage">Home Page</option>
-										<option value="startwith">Start With</option>
-										<option value="contain">Contain</option>
-										<option value="exact">Exact</option>
+										<option value="all"><?php _e("All", "wp-fastest-cache"); ?></option>
+										<option value="homepage"><?php _e("Home Page", "wp-fastest-cache"); ?></option>
+										<option value="startwith"><?php _e("Starts With", "wp-fastest-cache"); ?></option>
+										<option value="contain"><?php _e("Contains", "wp-fastest-cache"); ?></option>
+										<option value="exact"><?php _e("Is Equal To", "wp-fastest-cache"); ?></option>
 								</select>
 							</div>
 							<div class="wpfc-timeout-rule-line-middle">
@@ -1432,9 +1576,20 @@
 		    			<!-- samples end -->
 
 				    	<div style="float:left;margin-top:-37px;padding-left:628px;">
-					    	<button type="button" class="wpfc-add-new-timeout-button wpfc-dialog-buttons" style="display: inline-block;padding: 4px 10px;">
-					    		<span>Add New Rule</span>
-					    	</button>
+				    		<?php
+				    			$disable_wp_cron = '';
+				    			if(defined("DISABLE_WP_CRON")){
+						    		if((is_bool(DISABLE_WP_CRON) && DISABLE_WP_CRON == true) || 
+						    			(is_string(DISABLE_WP_CRON) && preg_match("/^true$/i", DISABLE_WP_CRON))){
+						    			$disable_wp_cron = 'disable-wp-cron="true" ';
+
+						    			include(WPFC_MAIN_PATH."templates/disable_wp_cron.php");
+						    		}
+						    	}
+				    		?>
+				    		<button type="button" <?php echo $disable_wp_cron;?> class="wpfc-add-new-timeout-button wpfc-dialog-buttons" style="display: inline-block;padding: 4px 10px;">
+				    			<span><?php _e("Add New Rule", "wp-fastest-cache"); ?></span>
+							</button>
 				    	</div>
 
 				    	<div class="wpfc-timeout-list" style="display: block;width:98%;float:left;">
@@ -1468,7 +1623,7 @@
 
 								    					$tmp_array = array("schedule" => $event["schedule"],
 								    									   "prefix" => $tmp_std->prefix,
-								    									   "content" => $tmp_std->content);
+								    									   "content" => esc_attr($tmp_std->content));
 
 								    					if(isset($tmp_std->hour) && isset($tmp_std->minute)){
 								    						$tmp_array["hour"] = $tmp_std->hour;
@@ -1497,9 +1652,17 @@
 					    		} ?>
 				    	</script>
 				    </div>
+
+
+				    
+				    <div class="tab3" style="display:none;"> </div>
+
+
+
+
 				    <?php if(class_exists("WpFastestCacheImageOptimisation")){ ?>
 					    <div class="tab4">
-					    	<h2 style="padding-left:20px;padding-bottom:10px;">Optimize Image Tool</h2>
+					    	<h2 style="padding-left:20px;padding-bottom:10px;"><?php _e("Optimize Image Tool", "wp-fastest-cache"); ?></h2>
 
 					    		<?php $xxx = new WpFastestCacheImageOptimisation(); ?>
 					    		<?php $xxx->statics(); ?>
@@ -1507,88 +1670,7 @@
 					    </div>
 				    <?php }else{ ?>
 						<div class="tab4" style="">
-							<div style="z-index:9999;width: 160px; height: 60px; position: absolute; margin-left: 254px; margin-top: 74px; color: white;">
-								<div style="font-family:sans-serif;font-size:13px;text-align: center; border-radius: 5px; float: left; background-color: rgb(51, 51, 51); color: white; width: 147px; padding: 20px 50px;">
-									<label>Only available in Premium version</label>
-								</div>
-							</div>
-							<h2 style="opacity: 0.3;padding-left:20px;padding-bottom:10px;">Optimize Image Tool</h2>
-							<div id="container-show-hide-image-list" style="opacity: 0.3;float: right; padding-right: 20px; cursor: pointer;">
-								<span id="show-image-list">Show Images</span>
-								<span id="hide-image-list" style="display:none;">Hide Images</span>
-							</div>
-							<div style="opacity: 0.3;width:100%;float:left;" id="wpfc-image-static-panel">
-								<div style="float: left; width: 100%;">
-									<div style="float:left;padding-left: 22px;padding-right:15px;">
-										<div style="display: inline-block;">
-											<div style="width: 150px; height: 150px; position: relative; border-top-left-radius: 150px; border-top-right-radius: 150px; border-bottom-right-radius: 150px; border-bottom-left-radius: 150px; background-color: #ffcc00;">
-												
-
-												<div style="position: absolute; top: 0px; left: 0px; width: 150px; height: 150px; border-top-left-radius: 150px; border-top-right-radius: 150px; border-bottom-right-radius: 150px; border-bottom-left-radius: 150px; clip: rect(0px 150px 150px 75px);">
-													<div style="position: absolute; top: 0px; left: 0px; width: 150px; height: 150px; border-radius: 150px; clip: rect(0px, 75px, 150px, 0px); transform: rotate(109.62deg); background-color: rgb(255, 165, 0); border-spacing: 109.62px;" id="wpfc-pie-chart-little"></div>
-												</div>
-
-
-												<div style="display:none;position: absolute; top: 0px; left: 0px; width: 150px; height: 150px; border-top-left-radius: 150px; border-top-right-radius: 150px; border-bottom-right-radius: 150px; border-bottom-left-radius: 150px; clip: rect(0px 150px 150px 25px); -webkit-transform: rotate(0deg); transform: rotate(0deg);" id="wpfc-pie-chart-big-container-first">
-													<div style="position: absolute; top: 0px; left: 0px; width: 150px; height: 150px; border-top-left-radius: 150px; border-top-right-radius: 150px; border-bottom-right-radius: 150px; border-bottom-left-radius: 150px; clip: rect(0px 75px 150px 0px); -webkit-transform: rotate(180deg); transform: rotate(180deg); background-color: #FFA500;"></div>
-												</div>
-												<div style="display:none;position: absolute; top: 0px; left: 0px; width: 150px; height: 150px; border-top-left-radius: 150px; border-top-right-radius: 150px; border-bottom-right-radius: 150px; border-bottom-left-radius: 150px; clip: rect(0px 150px 150px 75px); -webkit-transform: rotate(180deg); transform: rotate(180deg);" id="wpfc-pie-chart-big-container-second-right">
-													<div style="position: absolute; top: 0px; left: 0px; width: 150px; height: 150px; border-top-left-radius: 150px; border-top-right-radius: 150px; border-bottom-right-radius: 150px; border-bottom-left-radius: 150px; clip: rect(0px 75px 150px 0px); -webkit-transform: rotate(90deg); transform: rotate(90deg); background-color: #FFA500;" id="wpfc-pie-chart-big-container-second-left"></div>
-												</div>
-
-											</div>
-											<div style="width: 114px;height: 114px;margin-top: -133px;background-color: white;margin-left: 18px;position: absolute;border-radius: 150px;">
-												<p style="text-align:center;margin:27px 0 0 0;color: black;">Succeed</p>
-												<p style="text-align: center; font-size: 18px; font-weight: bold; font-family: verdana; margin: -2px 0px 0px; color: black;" id="wpfc-optimized-statics-percent" class="">30.45</p>
-												<p style="text-align:center;margin:0;color: black;">%</p>
-											</div>
-										</div>
-									</div>
-									<div style="float: left;padding-left:12px;" id="wpfc-statics-right">
-										<ul style="list-style: none outside none;float: left;">
-											<li>
-												<div style="background-color: rgb(29, 107, 157);width:15px;height:15px;float:left;margin-top:4px;border-radius:5px;"></div>
-												<div style="float:left;padding-left:6px;">All</div>
-												<div style="font-size: 14px; font-weight: bold; color: black; float: left; width: 65%; margin-left: 5px;" id="wpfc-optimized-statics-total_image_number" class="">7196</div>
-											</li>
-											<li>
-												<div style="background-color: rgb(29, 107, 157);width:15px;height:15px;float:left;margin-top:4px;border-radius:5px;"></div>
-												<div style="float:left;padding-left:6px;">Pending</div>
-												<div style="font-size: 14px; font-weight: bold; color: black; float: left; width: 65%; margin-left: 5px;" id="wpfc-optimized-statics-pending" class="">5002</div>
-											</li>
-											<li>
-												<div style="background-color: #FF0000;width:15px;height:15px;float:left;margin-top:4px;border-radius:5px;"></div>
-												<div style="float:left;padding-left:6px;">Errors</div>
-												<div style="font-size: 14px; font-weight: bold; color: black; float: left; width: 65%; margin-left: 5px;" id="wpfc-optimized-statics-error" class="">3</div>
-											</li>
-										</ul>
-										<ul style="list-style: none outside none;float: left;">
-											<li>
-												<div style="background-color: rgb(61, 207, 60);width:15px;height:15px;float:left;margin-top:4px;border-radius:5px;"></div>
-												<div style="float:left;padding-left:6px;"><span>Optimized Images</span></div>
-												<div style="font-size: 14px; font-weight: bold; color: black; float: left; width: 65%; margin-left: 5px;" id="wpfc-optimized-statics-optimized" class="">2191</div>
-											</li>
-
-											<li>
-												<div style="background-color: rgb(61, 207, 60);width:15px;height:15px;float:left;margin-top:4px;border-radius:5px;"></div>
-												<div style="float:left;padding-left:6px;"><span>Total Reduction</span></div>
-												<div style="font-size: 14px; font-weight: bold; color: black; float: left; width: 80%; margin-left: 5px;" id="wpfc-optimized-statics-reduction" class="">78400.897</div>
-											</li>
-											<li></li>
-										</ul>
-
-										<ul style="list-style: none outside none;float: left;">
-											<li>
-												<h1 style="margin-top:0;float:left;">Credit: <span style="display: inline-block; height: 16px; width: auto;min-width:25px;" id="wpfc-optimized-statics-credit" class="">9910</span></h1>
-												<span id="buy-image-credit">More</span>
-											</li>
-											<li>
-												<input type="submit" class="button-primary" value="Optimize All" id="wpfc-optimize-images-button" style="width:100%;height:110px;">
-											</li>
-										</ul>
-									</div>
-								</div>
-							</div>
+							<?php include(WPFC_MAIN_PATH."templates/sample_img_list.html"); ?> 
 						</div>
 				    <?php } ?>
 				    <div class="tab5">
@@ -1604,16 +1686,16 @@
 				    	<div id="wpfc-premium-container">
 				    		<div class="wpfc-premium-step">
 				    			<div class="wpfc-premium-step-header">
-				    				<label>Discover Features</label>
+				    				<label><?php _e("Discover Features", "wp-fastest-cache"); ?></label>
 				    			</div>
 				    			<div class="wpfc-premium-step-content">
-				    				In the premium version there are some new features which speed up the sites more.
+				    				<?php _e("In the premium version there are some new features which speed up the sites more.", "wp-fastest-cache"); ?>
 				    			</div>
 				    			<div class="wpfc-premium-step-image">
 				    				<img src="<?php echo plugins_url("wp-fastest-cache/images/rocket.png"); ?>">
 				    			</div>
 				    			<div class="wpfc-premium-step-footer">
-				    				<h1 id="new-features-h1">New Features</h1>
+				    				<h1 id="new-features-h1"><?php _e("New Features", "wp-fastest-cache"); ?></h1>
 				    				<ul>
 				    					<li><a target="_blank" style="text-decoration: none;color: #444;" href="http://www.wpfastestcache.com/premium/image-optimization/">Image Optimization</a></li>
 				    					<li><a target="_blank" style="text-decoration: none;color: #444;" href="http://www.wpfastestcache.com/premium/mobile-cache/">Mobile Cache</a></li>
@@ -1627,41 +1709,51 @@
 				    		</div>
 				    		<div class="wpfc-premium-step">
 				    			<div class="wpfc-premium-step-header">
-				    				<label>Checkout</label>
+				    				<label><?php _e("Checkout", "wp-fastest-cache"); ?></label>
 				    			</div>
 				    			<div class="wpfc-premium-step-content">
-				    				You need to pay before downloading the premium version.
+				    				<?php _e("You need to pay before downloading the premium version.", "wp-fastest-cache"); ?>
 				    			</div>
 				    			<div class="wpfc-premium-step-image">
 				    				<img width="140px" height="140px" src="<?php echo plugins_url("wp-fastest-cache/images/dollar.png"); ?>" />
 				    			</div>
 				    			<div class="wpfc-premium-step-footer">
 				    				<?php
-				    					if(get_bloginfo('language') == "tr-TR"){
-				    						$premium_price = "100TL";
+				    					if(in_array(get_bloginfo('language'), array("tr-TR", "tr"))){
+				    						$premium_price = "150TL";
+				    						$premium_buy_link = "https://www.wpfastestcache.com/#buy";
 				    					}else{
-					    					$premium_price = "$39.99";
+					    					$premium_price = "$49.99";
+					    					$premium_buy_link = "https://api.wpfastestcache.net/paypal/buypremium/";
 				    					}
 
 				    				?>
-				    				<h1 style="float:left;" id="just-h1">Just</h1><h1><span style="margin-left:5px;" id="wpfc-premium-price"><?php echo $premium_price; ?></span></h1>
-				    				<p>The download button will be available after paid. You can buy the premium version now.</p>
+				    				<h1 style="float:left;" id="just-h1"><?php _e("Just", "wp-fastest-cache"); ?></h1><h1><span style="margin-left:5px;" id="wpfc-premium-price"><?php echo $premium_price; ?></span></h1>
+				    				<p><?php _e("The download button will be available after paid. You can buy the premium version now.", "wp-fastest-cache"); ?></p>
 
 				    				<?php if(!preg_match("/Caiu\s*Na/i", get_bloginfo("name")) && !preg_match("/(caiuna|escort|porn)/i", $_SERVER["HTTP_HOST"])){ ?>
 					    				<?php if(class_exists("WpFastestCachePowerfulHtml")){ ?>
 						    					<button id="wpfc-buy-premium-button" type="submit" class="wpfc-btn primaryDisableCta" style="width:200px;">
-							    					<span>Purchased</span>
+							    					<span><?php _e("Purchased", "wp-fastest-cache"); ?></span>
 							    				</button>
 						    				<?php }else{ ?>
-							    				<form action="https://api.wpfastestcache.net/paypal/buypremium/" method="post">
-							    					<input type="hidden" name="ip" value="<?php echo $_SERVER["REMOTE_ADDR"]; ?>">
-							    					<input type="hidden" name="wpfclang" value="<?php echo isset($this->options->wpFastestCacheLanguage) ? $this->options->wpFastestCacheLanguage : ""; ?>">
-							    					<input type="hidden" name="bloglang" value="<?php echo get_bloginfo('language'); ?>">
-							    					<input type="hidden" name="hostname" value="<?php echo str_replace(array("http://", "www."), "", $_SERVER["HTTP_HOST"]); ?>">
-								    				<button id="wpfc-buy-premium-button" type="submit" class="wpfc-btn primaryCta" style="width:200px;">
-								    					<span>Buy</span>
-								    				</button>
-							    				</form>
+
+						    					<?php if(is_multisite()){ ?>
+						    						<button id="wpfc-buy-premium-button" type="submit" class="wpfc-btn primaryCta" style="width:200px;background-color:red;border-color:red;">
+						    							<span>Not Available<br>for<br>Multi-Site</span>
+						    						</button>
+						    					<?php }else{ ?>
+							    					<form action="<?php echo $premium_buy_link; ?>" method="post">
+								    					<input type="hidden" name="ip" value="<?php echo $_SERVER["REMOTE_ADDR"]; ?>">
+								    					<input type="hidden" name="wpfclang" value="<?php echo isset($this->options->wpFastestCacheLanguage) ? esc_attr($this->options->wpFastestCacheLanguage) : ""; ?>">
+								    					<input type="hidden" name="bloglang" value="<?php echo get_bloginfo('language'); ?>">
+								    					<input type="hidden" name="hostname" value="<?php echo str_replace(array("http://", "www."), "", $_SERVER["HTTP_HOST"]); ?>">
+									    				<button id="wpfc-buy-premium-button" type="submit" class="wpfc-btn primaryCta" style="width:200px;">
+									    					<span><?php _e("Buy", "wp-fastest-cache"); ?></span>
+									    				</button>
+								    				</form>
+						    					<?php } ?>
+
 						    			<?php } ?>
 					    			<?php } ?>
 
@@ -1670,28 +1762,28 @@
 				    		</div>
 				    		<div class="wpfc-premium-step">
 				    			<div class="wpfc-premium-step-header">
-				    				<label>Download & Update</label>
+				    				<label><?php _e("Download & Update", "wp-fastest-cache"); ?></label>
 				    			</div>
 				    			<div class="wpfc-premium-step-content">
-				    				You can download and update the premium when you want if you paid.
+				    				<?php _e("You can download and update the premium when you want if you paid.", "wp-fastest-cache"); ?>
 				    			</div>
 				    			<div class="wpfc-premium-step-image" style="">
 				    				<img src="<?php echo plugins_url("wp-fastest-cache/images/download.png"); ?>">
 				    			</div>
 				    			<div class="wpfc-premium-step-footer">
-				    				<h1 id="get-now-h1">Get It Now!</h1>
-				    				<p>Please don't delete the free version. Premium version works with the free version.</p>
+				    				<h1 id="get-now-h1"><?php _e("Get It Now!", "wp-fastest-cache"); ?></h1>
+				    				<p><?php _e("Please don't delete the free version. Premium version works with the free version.", "wp-fastest-cache"); ?></p>
 
 
 				    				<?php if(class_exists("WpFastestCachePowerfulHtml")){ ?>
 				    					<a href="http://www.wpfastestcache.com/blog/premium-update-before-v1-3-6/">
 						    				<button id="wpfc-update-premium-button" class="wpfc-btn primaryDisableCta" style="width:200px;">
-						    					<span data-type="update">Update</span>
+						    					<span data-type="update"><?php _e("Update", "wp-fastest-cache"); ?></span>
 						    				</button>
 				    					</a>
 				    				<?php }else{ ?>
 					    				<button class="wpfc-btn primaryCta" id="wpfc-download-premium-button" class="wpfc-btn primaryDisableCta" style="width:200px;">
-					    					<span data-type="download">Download</span>
+					    					<span data-type="download"><?php _e("Download", "wp-fastest-cache"); ?></span>
 					    				</button>
 
 					    				<?php include(WPFC_MAIN_PATH."templates/download.html"); ?> 
@@ -1731,16 +1823,18 @@
 							<div class="wpfc-exclude-rule-line-left">
 								<select name="wpfc-exclude-rule-prefix">
 										<option selected="" value=""></option>
-										<option value="homepage">Home Page</option>
-										<option value="category">Categories</option>
-										<option value="tag">Tags</option>
-										<option value="post">Posts</option>
-										<option value="page">Pages</option>
-										<option value="attachment">Attachments</option>
-										<option value="startwith">Start With</option>
-										<option value="contain">Contain</option>
-										<option value="exact">Exact</option>
-										<option value="googleanalytics">has Google Analytics Parameters</option>
+										<option value="homepage"><?php _e("Home Page", "wp-fastest-cache"); ?></option>
+										<option value="category"><?php _e("Categories", "wp-fastest-cache"); ?></option>
+										<option value="tag"><?php _e("Tags", "wp-fastest-cache"); ?></option>
+										<option value="archive"><?php _e("Archives", "wp-fastest-cache"); ?></option>
+										<option value="post"><?php _e("Posts", "wp-fastest-cache"); ?></option>
+										<option value="page"><?php _e("Pages", "wp-fastest-cache"); ?></option>
+										<option value="attachment"><?php _e("Attachments", "wp-fastest-cache"); ?></option>
+										<option value="startwith"><?php _e("Starts With", "wp-fastest-cache"); ?></option>
+										<option value="contain"><?php _e("Contains", "wp-fastest-cache"); ?></option>
+										<option value="exact"><?php _e("Is Equal To", "wp-fastest-cache"); ?></option>
+										<option value="googleanalytics"><?php _e("has Google Analytics Parameters", "wp-fastest-cache"); ?></option>
+										<option value="woocommerce_items_in_cart"><?php _e("has Woocommerce Items in Cart", "wp-fastest-cache"); ?></option>
 								</select>
 							</div>
 							<div class="wpfc-exclude-rule-line-middle">
@@ -1757,11 +1851,11 @@
 			    		</div>
 		    			<!-- samples end -->
 
-		    			<h2 style="padding-bottom:10px;float:left;">Exclude Pages</h2>
+		    			<h2 style="padding-bottom:10px;float:left;"><?php _e("Exclude Pages", "wp-fastest-cache"); ?></h2>
 
 				    	<div style="float:left;margin-top:-37px;padding-left:608px;">
 					    	<button data-type="page" type="button" class="wpfc-add-new-exclude-button wpfc-dialog-buttons" style="display: inline-block;padding: 4px 10px;">
-					    		<span>Add New Rule</span>
+					    		<span><?php _e("Add New Rule", "wp-fastest-cache"); ?></span>
 					    	</button>
 				    	</div>
 
@@ -1774,11 +1868,11 @@
 				    	</div>
 
 
-				    	<h2 style="padding-bottom:10px;float:left;">Exclude User-Agents</h2>
+				    	<h2 style="padding-bottom:10px;float:left;"><?php _e("Exclude User-Agents", "wp-fastest-cache"); ?></h2>
 
 				    	<div style="float:left;margin-top:-37px;padding-left:608px;">
 					    	<button data-type="useragent" type="button" class="wpfc-add-new-exclude-button wpfc-dialog-buttons" style="display: inline-block;padding: 4px 10px;">
-					    		<span>Add New Rule</span>
+					    		<span><?php _e("Add New Rule", "wp-fastest-cache"); ?></span>
 					    	</button>
 				    	</div>
 
@@ -1793,11 +1887,11 @@
 
 
 
-				    	<h2 style="padding-bottom:10px;float:left;">Exclude Cookies</h2>
+				    	<h2 style="padding-bottom:10px;float:left;"><?php _e("Exclude Cookies", "wp-fastest-cache"); ?></h2>
 
 				    	<div style="float:left;margin-top:-37px;padding-left:608px;">
 					    	<button data-type="cookie" type="button" class="wpfc-add-new-exclude-button wpfc-dialog-buttons" style="display: inline-block;padding: 4px 10px;">
-					    		<span>Add New Rule</span>
+					    		<span><?php _e("Add New Rule", "wp-fastest-cache"); ?></span>
 					    	</button>
 				    	</div>
 
@@ -1811,11 +1905,11 @@
 				    	</div>
 
 
-				    	<h2 style="padding-bottom:10px;float:left;">Exclude CSS</h2>
+				    	<h2 style="padding-bottom:10px;float:left;"><?php _e("Exclude CSS", "wp-fastest-cache"); ?></h2>
 
 				    	<div style="float:left;margin-top:-37px;padding-left:608px;">
 					    	<button data-type="css" type="button" class="wpfc-add-new-exclude-button wpfc-dialog-buttons" style="display: inline-block;padding: 4px 10px;">
-					    		<span>Add New Rule</span>
+					    		<span><?php _e("Add New Rule", "wp-fastest-cache"); ?></span>
 					    	</button>
 				    	</div>
 
@@ -1831,11 +1925,11 @@
 
 
 
-				    	<h2 style="padding-bottom:10px;float:left;">Exclude JS</h2>
+				    	<h2 style="padding-bottom:10px;float:left;"><?php _e("Exclude JS", "wp-fastest-cache"); ?></h2>
 
 				    	<div style="float:left;margin-top:-37px;padding-left:608px;">
 					    	<button data-type="js" type="button" class="wpfc-add-new-exclude-button wpfc-dialog-buttons" style="display: inline-block;padding: 4px 10px;">
-					    		<span>Add New Rule</span>
+					    		<span><?php _e("Add New Rule", "wp-fastest-cache"); ?></span>
 					    	</button>
 				    	</div>
 
@@ -1868,15 +1962,15 @@
 				    </div>
 
 				    <div class="tab7" style="padding-left:20px;">
-				    	<h2 style="padding-bottom:10px;">CDN Settings</h2>
+				    	<h2 style="padding-bottom:10px;"><?php _e("CDN Settings", "wp-fastest-cache"); ?></h2>
 				    	<div>
 				    		<div class="integration-page" style="display: block;width:98%;float:left;">
 
 				    			<div wpfc-cdn-name="maxcdn" class="int-item int-item-left">
-				    				<img src="<?php echo plugins_url("wp-fastest-cache/images/maxcdn.png"); ?>" />
+				    				<img style="border-radius:50px;" src="<?php echo plugins_url("wp-fastest-cache/images/stackpath.png"); ?>" />
 				    				<div class="app">
-				    					<div style="font-weight:bold;font-size:14px;">CDN by MaxCDN</div>
-				    					<p>Experts in Content Delivery Network Services</p>
+				    					<div style="font-weight:bold;font-size:14px;">CDN by StackPath</div>
+				    					<p>Secure and accelerate your web sites</p>
 				    				</div>
 				    				<div class="meta"></div>
 				    			</div>
@@ -1891,11 +1985,21 @@
 				    				<div class="meta"></div>
 				    			</div>
 
-				    			<div wpfc-cdn-name="photon" class="int-item">
+				    			<div wpfc-cdn-name="photon" class="int-item int-item-left">
 				    				<img src="<?php echo plugins_url("wp-fastest-cache/images/photoncdn.png"); ?>" />
 				    				<div class="app">
 				    					<div style="font-weight:bold;font-size:14px;">CDN by Photon</div>
 				    					<p>Wordpress Content Delivery Network Services</p>
+				    				</div>
+				    				<div class="meta"></div>
+				    			</div>
+
+
+				    			<div wpfc-cdn-name="cloudflare" class="int-item">
+				    				<img style="border-radius:50px;" src="<?php echo plugins_url("wp-fastest-cache/images/cloudflare.png"); ?>" />
+				    				<div class="app">
+				    					<div style="font-weight:bold;font-size:14px;">CDN by Cloudflare</div>
+				    					<p>CDN, DNS, DDoS protection and security</p>
 				    				</div>
 				    				<div class="meta"></div>
 				    			</div>
@@ -1970,7 +2074,7 @@
 				    </div>
 
 				    <div class="tab8" style="padding-left:20px;">
-				    	<h2 style="padding-bottom:10px;">Database Cleanup</h2>
+				    	<h2 style="padding-bottom:10px;"><?php _e("Database Cleanup", "wp-fastest-cache"); ?></h2>
 				    	<div>
 
 			    		<?php if(!$this->isPluginActive("wp-fastest-cache-premium/wpFastestCachePremium.php")){ ?>
@@ -1985,7 +2089,7 @@
 				    			
 				    			<div style="z-index:9999;width: 160px; height: 60px; position: absolute; margin-left: 230px; margin-top: 25px; color: white;">
 						    		<div style="font-family:sans-serif;font-size:13px;text-align: center; border-radius: 5px; float: left; background-color: rgb(51, 51, 51); color: white; width: 147px; padding: 20px 50px;">
-						    			<label>Only available in Premium version</label>
+						    			<label><?php _e("Only available in Premium version", "wp-fastest-cache"); ?></label>
 						    		</div>
 						    	</div>
 			    		<?php } ?>
@@ -2067,17 +2171,29 @@
 
 				    <?php include_once(WPFC_MAIN_PATH."templates/permission_error.html"); ?>
 
+				    <?php
+				    	if(isset($this->options->wpFastestCacheStatus)){
+					    	if(isset($_SERVER["HTTP_CDN_LOOP"]) && $_SERVER["HTTP_CDN_LOOP"] && $_SERVER["HTTP_CDN_LOOP"] == "cloudflare"){
+								$cloudflare_integration_exist = false;
+					    		$cdn_values = get_option("WpFastestCacheCDN");
 
+								if($cdn_values){
+									$std_obj = json_decode($cdn_values);
+									
+									foreach($std_obj as $key => $value){
+										if($value->id == "cloudflare"){
+											$cloudflare_integration_exist = true;
+											break;
+										}
+									}
+								}
 
-
-
-
-
-
-
-
-
-
+								if(!$cloudflare_integration_exist){
+									include_once(WPFC_MAIN_PATH."templates/cloudflare_warning.html"); 
+								}
+					    	}
+				    	}
+				    ?>
 			</div>
 
 			<div class="omni_admin_sidebar">
@@ -2167,11 +2283,11 @@
 			</script>
 			<script type="text/javascript">
 				jQuery("#wpFastestCachePreload").click(function(){
-					if(typeof jQuery(this).attr("checked") != "undefined"){
+					if(jQuery(this).is(':checked')){
 						if(jQuery("div[id^='wpfc-modal-preload-']").length === 0){
 							Wpfc_New_Dialog.dialog("wpfc-modal-preload", {close: function(){
 								Wpfc_New_Dialog.clone.find("div.window-content input").each(function(){
-									if(typeof jQuery(this).attr("checked") != "undefined"){
+									if(jQuery(this).is(':checked')){
 										jQuery("div.tab1 div[template-id='wpfc-modal-preload'] div.window-content input[name='" + jQuery(this).attr("name") + "']").attr("checked", true);
 									}else{
 										jQuery("div.tab1 div[template-id='wpfc-modal-preload'] div.window-content input[name='" + jQuery(this).attr("name") + "']").attr("checked", false);
@@ -2194,12 +2310,18 @@
 						<div style="width: 0px; height: 0px; border-top: 6px solid transparent; border-right: 6px solid #333333; border-bottom: 6px solid transparent; float: right; margin-right: 0px; margin-top: 25px;"></div>
 					</div>
 					<div style="font-family:sans-serif;font-size:13px;text-align: center; border-radius: 5px; float: left; background-color: rgb(51, 51, 51); color: white; width: 147px; padding: 10px 0px;">
-						<label>Only available in Premium version</label>
+						<label><?php _e("Only available in Premium version", "wp-fastest-cache"); ?></label>
 					</div>
 				</div>
 
 				<script type="text/javascript">
 					jQuery("div.questionCon.disabled").click(function(e){
+						if(e.target.tagName == "IMG"){
+							if(e.target.src.match(/info\.png/)){
+								return;
+							}
+						}
+
 						if(typeof window.wpfc.tooltip != "undefined"){
 							clearTimeout(window.wpfc.tooltip);
 						}
@@ -2255,14 +2377,20 @@
 							jQuery(this).attr('checked', true);
 						}
 					});
+
+					//if "Lazy Load" has been selected both "Mobile" and "Mobile Theme" options enabled
+					jQuery("#wpFastestCacheLazyLoad").click(function(e){
+						if(jQuery(this).is(':checked')){
+							jQuery("#wpFastestCacheMobile").attr('checked', true);
+							jQuery("#wpFastestCacheMobileTheme").attr('checked', true);
+						}
+					});
 				});
 			</script>
 			<script>
 				jQuery(document).ready(function() {
 					Wpfclang.init("<?php echo $wpFastestCacheLanguage; ?>");
 				});
-				
-				document.getElementById("wpFastestCacheLanguage").value = "<?php echo $wpFastestCacheLanguage; ?>";
 			</script>
 			<?php
 			if(isset($_SERVER["SERVER_SOFTWARE"]) && $_SERVER["SERVER_SOFTWARE"] && !preg_match("/iis/i", $_SERVER["SERVER_SOFTWARE"]) && !preg_match("/nginx/i", $_SERVER["SERVER_SOFTWARE"])){

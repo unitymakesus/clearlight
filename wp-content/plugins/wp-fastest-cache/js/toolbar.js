@@ -1,19 +1,5 @@
-if(window.attachEvent) {
-    window.attachEvent('onload', wpfc_delete_curent_page_cache);
-} else {
-    if(window.onload) {
-        var curronload = window.onload;
-        var newonload = function(evt) {
-            curronload(evt);
-            wpfc_delete_curent_page_cache(evt);
-        };
-        window.onload = newonload;
-    } else {
-        window.onload = wpfc_delete_curent_page_cache;
-    }
-}
-function wpfc_delete_curent_page_cache(){
-	jQuery( document ).ready(function() {
+window.addEventListener('load', function(){
+	jQuery(document).ready(function(){
 		jQuery("body").append('<div id="revert-loader-toolbar"></div>');
 
 		jQuery("#wp-admin-bar-wpfc-toolbar-parent-default li").click(function(e){
@@ -59,4 +45,5 @@ function wpfc_delete_curent_page_cache(){
 			}
 		});
 	});
-}
+});
+

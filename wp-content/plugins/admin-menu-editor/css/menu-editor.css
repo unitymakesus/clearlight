@@ -10,7 +10,7 @@
   width: 310px;
   float: left;
   display: block;
-  border: 1px solid #cdd5d5;
+  border: 1px solid #ccd0d4;
   box-shadow: 0 1px 1px rgba(0, 0, 0, 0.04);
   background-color: #FFFFFF;
   border-radius: 0px;
@@ -272,6 +272,19 @@
   height: 25px;
   min-height: 25px; }
 
+/*
+ * Group headings
+ */
+.ws_edit_field.ws_field_group_heading {
+  height: 1px;
+  min-height: 0;
+  padding-top: 0;
+  background: #ccc;
+  margin: 8px -4px 5px; }
+  .ws_edit_field.ws_field_group_heading span {
+    display: none;
+    font-weight: bold; }
+
 /* The reset-to-default button */
 .ws_reset_button {
   display: block;
@@ -284,6 +297,8 @@
   height: 16px;
   vertical-align: top;
   background: url("../images/pencil_delete_gray.png") no-repeat center; }
+  .ame-is-wp53-plus .ws_reset_button {
+    margin-top: 5px; }
 
 .ws_reset_button:hover {
   background-image: url("../images/pencil_delete.png"); }
@@ -299,8 +314,7 @@
   visibility: hidden; }
 
 /* The input box in each field editor */
-#ws_menu_editor .ws_editbox input[type="text"],
-#ws_menu_editor .ws_editbox select {
+#ws_menu_editor .ws_editbox input[type="text"], #ws_menu_editor .ws_editbox select {
   display: block;
   float: left;
   width: 254px;
@@ -309,6 +323,9 @@
   line-height: 17px;
   padding-top: 3px;
   padding-bottom: 3px; }
+  .ame-is-wp53-plus #ws_menu_editor .ws_editbox input[type="text"],
+  .ame-is-wp53-plus #ws_menu_editor .ws_editbox select {
+    height: 28px; }
 
 #ws_menu_editor .ws_edit_field label {
   display: block;
@@ -319,13 +336,16 @@
 
 #ws_menu_editor input[type="text"].ws_field_value {
   min-height: 25px; }
+  .ame-is-wp53-plus #ws_menu_editor input[type="text"].ws_field_value {
+    min-height: 28px; }
 
 /* Dropdown button for combo-box fields */
 #ws_menu_editor .ws_dropdown_button,
 #ws_menu_access_editor .ws_dropdown_button {
   box-sizing: border-box;
-  width: 20px;
+  width: 25px;
   height: 25px;
+  min-height: 25px;
   margin: 1px 1px 1px 0;
   padding: 0;
   text-align: center;
@@ -346,9 +366,25 @@
   -webkit-border-top-left-radius: 0;
   -webkit-border-bottom-left-radius: 0; }
 
+.ame-is-wp53-plus #ws_menu_editor .ws_dropdown_button,
+#ws_menu_access_editor.ame-is-wp53-plus .ws_dropdown_button {
+  height: 28px;
+  border-color: #7e8993;
+  background-color: white;
+  border-left-style: none;
+  font-size: 10px !important;
+  line-height: 24px;
+  color: #555; }
+  .ame-is-wp53-plus #ws_menu_editor .ws_dropdown_button:hover,
+  #ws_menu_access_editor.ame-is-wp53-plus .ws_dropdown_button:hover {
+    color: #23282d; }
+
 #ws_menu_access_editor .ws_dropdown_button {
   display: inline-block;
   height: 27px; }
+
+#ws_menu_access_editor.ame-is-wp53-plus .ws_dropdown_button {
+  height: 30px; }
 
 #ws_menu_editor .ws_dropdown_button {
   display: block;
@@ -374,8 +410,11 @@ to accommodate the drop-down button.
   box-sizing: border-box;
   height: 27px; }
 
+#ws_menu_access_editor.ame-is-wp53-plus input.ws_has_dropdown {
+  height: 30px; }
+
 #ws_menu_editor .ws_has_dropdown input.ws_field_value {
-  width: 234px; }
+  width: 229px; }
 
 /* Unlike others, this field is just a single checkbox, so it has a smaller height */
 #ws_menu_editor .ws_edit_field-custom {
@@ -632,7 +671,12 @@ select.ws_dropdown optgroup option {
   padding: 0;
   position: relative;
   box-sizing: border-box;
-  height: 25px; }
+  height: 25px;
+  min-height: 25px; }
+  .ame-is-wp53-plus #ws_menu_editor .ws_select_icon {
+    height: 28px;
+    min-height: 28px;
+    margin-top: 1px; }
 
 /* Current icon node (CSS class version, for the built-in WP icon sprites) */
 .ws_select_icon .icon16 {
@@ -647,6 +691,8 @@ select.ws_dropdown optgroup option {
   position: relative;
   top: -3px;
   left: -3px; }
+  .ame-is-wp53-plus .ws_select_icon .icon16 {
+    top: -1px; }
 
 /* Current icon node (image version) */
 .ws_select_icon img {
@@ -805,15 +851,28 @@ a#ws-ame-delete-color-preset:hover {
 /* Color scheme display in the editor widget. */
 .ws_color_scheme_display {
   display: inline-block;
-  height: 20px;
-  width: 186px;
+  box-sizing: border-box;
+  height: 26px;
+  width: 190px;
   margin-right: 5px;
-  padding: 2px 3px;
+  margin-left: 1px;
+  padding: 2px 4px;
   font-size: 12px;
   border: 1px solid #ddd;
   background: white;
   cursor: pointer;
   line-height: 20px; }
+  .ame-is-wp53-plus .ws_color_scheme_display {
+    border-color: #7e8993;
+    border-radius: 4px;
+    margin-top: 1px;
+    margin-bottom: 1px;
+    padding: 3px 8px;
+    height: 28px;
+    line-height: 20px; }
+
+.ws_open_color_editor {
+  width: 58px; }
 
 .ws_color_display_item {
   display: inline-block;
@@ -837,6 +896,8 @@ a#ws-ame-delete-color-preset:hover {
   position: fixed;
   left: 0;
   top: 0;
+  right: 0;
+  bottom: 0;
   opacity: 0.70;
   -moz-opacity: 0.70;
   filter: alpha(opacity=70);
@@ -846,18 +907,17 @@ a#ws-ame-delete-color-preset:hover {
 .ui-front {
   z-index: 10000; }
 
-.ui-dialog {
+.settings_page_menu_editor .ui-dialog {
   background: white;
   border: 1px solid #c0c0c0;
   padding: 0;
   -moz-border-radius: 5px;
   -webkit-border-radius: 5px;
   border-radius: 5px; }
-  .ui-dialog .ui-dialog-content {
+  .settings_page_menu_editor .ui-dialog .ui-dialog-content {
     padding: 8px 8px 8px 8px;
     font-size: 1.1em; }
-
-.ui-dialog-titlebar {
+.settings_page_menu_editor .ui-dialog-titlebar {
   display: block;
   height: 22px;
   margin: 0;
@@ -872,12 +932,10 @@ a#ws-ame-delete-color-preset:hover {
   border-top-left-radius: 4px;
   border-top-right-radius: 4px;
   border-bottom: 1px solid #809fd9; }
-
-.ui-dialog-title {
+.settings_page_menu_editor .ui-dialog-title {
   color: white;
   font-weight: bold; }
-
-.ui-dialog-titlebar-close {
+.settings_page_menu_editor .ui-button.ui-dialog-titlebar-close {
   background: #86A7E3 url(../images/x.png) no-repeat center;
   width: 22px;
   height: 22px;
@@ -887,8 +945,7 @@ a#ws-ame-delete-color-preset:hover {
   border-radius: 3px;
   -moz-border-radius: 3px;
   -webkit-border-radius: 3px; }
-
-.ui-dialog-titlebar-close:hover {
+.settings_page_menu_editor .ui-dialog-titlebar-close:hover {
   /*background-image: url(../images/x-light.png);*/
   background-color: #a6c2f5; }
 
@@ -956,7 +1013,8 @@ a#ws-ame-delete-color-preset:hover {
   margin-right: 5px; }
 
 .ws_launch_access_editor {
-  min-width: 40px; }
+  min-width: 40px;
+  width: 58px; }
 
 #ws_menu_access_editor {
   width: 400px;
@@ -1408,6 +1466,28 @@ a#ws-ame-delete-color-preset:hover {
   margin-top: 0;
   margin-bottom: 1em; }
 
+.ame-available-add-ons tr:first-of-type td {
+  margin-top: 0;
+  padding-top: 0; }
+.ame-available-add-ons td {
+  padding-top: 10px;
+  padding-bottom: 10px; }
+.ame-available-add-ons .ame-add-on-heading {
+  padding-left: 0; }
+
+.ame-add-on-name {
+  font-weight: 600; }
+
+.ame-add-on-details-link::after {
+  /*content: " \f504";
+  font-family: dashicons, sans-serif;*/ }
+
+/*********************************************
+      WordPress 5.3+ consistent styles
+**********************************************/
+.ame-is-wp53-plus .ws_edit_field input[type="button"] {
+  margin-top: 1px; }
+
 /*********************************************
       Miscellaneous
 **********************************************/
@@ -1440,5 +1520,107 @@ a#ws-ame-delete-color-preset:hover {
 
 .test-content {
   padding: 8px; }
+
+/*********************************************
+      "Test access" dialog
+**********************************************/
+#ws_ame_test_access_screen {
+  display: none;
+  background: #fcfcfc; }
+
+#ws_ame_test_inputs {
+  padding-bottom: 16px; }
+
+.ws_ame_test_input {
+  display: block;
+  float: left;
+  width: 100%;
+  margin: 2px 0;
+  box-sizing: content-box; }
+
+.ws_ame_test_input_name {
+  display: block;
+  float: left;
+  width: 35%;
+  margin-right: 4%;
+  text-align: right;
+  padding-top: 6px;
+  line-height: 16px; }
+
+.ws_ame_test_input_value {
+  display: block;
+  float: right;
+  width: 60%;
+  -webkit-box-sizing: border-box;
+  -moz-box-sizing: border-box;
+  box-sizing: border-box; }
+
+#ws_ame_test_actions {
+  float: left;
+  width: 100%;
+  margin-top: 1em; }
+
+#ws_ame_test_button_container {
+  width: 35%;
+  margin-right: 4%;
+  float: left;
+  text-align: right; }
+
+#ws_ame_test_progress {
+  display: none;
+  width: 60%;
+  float: right; }
+  #ws_ame_test_progress .spinner {
+    float: none;
+    vertical-align: bottom;
+    margin-left: 0;
+    margin-right: 4px; }
+
+#ws_ame_test_access_body {
+  width: 100%;
+  position: relative;
+  border: 1px solid #ddd;
+  -webkit-border-radius: 3px;
+  -moz-border-radius: 3px;
+  border-radius: 3px; }
+
+#ws_ame_test_frame_container {
+  margin-right: 250px;
+  background: white;
+  min-height: 500px;
+  position: relative; }
+
+#ws_ame_test_access_frame {
+  -webkit-box-sizing: border-box;
+  -moz-box-sizing: border-box;
+  box-sizing: border-box;
+  width: 100%;
+  height: 100%;
+  min-height: 500px;
+  border: none;
+  margin: 0;
+  padding: 0; }
+
+#ws_ame_test_access_sidebar {
+  -webkit-box-sizing: border-box;
+  -moz-box-sizing: border-box;
+  box-sizing: border-box;
+  position: absolute;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  width: 250px;
+  padding: 16px 24px;
+  background-color: #f3f3f3;
+  border-left: 1px solid #ddd; }
+  #ws_ame_test_access_sidebar h4:first-of-type {
+    margin-top: 0; }
+
+#ws_ame_test_frame_placeholder {
+  display: block;
+  padding: 16px 24px; }
+
+#ws_ame_test_output {
+  display: none; }
 
 /*# sourceMappingURL=menu-editor.css.map */

@@ -63,7 +63,7 @@
 			<table width="100%" height="100%">
 				<tbody>
 					<tr>
-						<td valign="middle" style="vertical-align: middle; font-weight: bold; color: rgb(255, 255, 255); text-shadow: 0px 1px 1px rgba(0, 0, 0, 0.5); padding-left: 10px; font-size: 13px; cursor: move;">Exclude Page Wizard</td>
+						<td valign="middle" style="vertical-align: middle; font-weight: bold; color: rgb(255, 255, 255); text-shadow: 0px 1px 1px rgba(0, 0, 0, 0.5); padding-left: 10px; font-size: 13px; cursor: move;"><?php _e("Exclude Page Wizard", "wp-fastest-cache"); ?></td>
 						<td width="20" align="center" style="vertical-align: middle;"></td>
 						<td width="20" align="center" style="vertical-align: middle; font-family: Arial,Helvetica,sans-serif; color: rgb(170, 170, 170); cursor: default;">
 							<div title="Close Window" class="close-wiz"></div>
@@ -86,26 +86,30 @@
 										<table width="100%" cellspacing="0" cellpadding="5" border="0" class="cond-line active-line">
 											<tbody>
 												<tr>
-													<td width="100" height="35" class="wpfc-condition-text" style="padding-left:10px;font-family: Verdana,Geneva,Arial,Helvetica,sans-serif;font-size: 12px;">If REQUEST_URI</td>
+													<td width="100" height="35" class="wpfc-condition-text" style="padding-left:10px;font-family: Verdana,Geneva,Arial,Helvetica,sans-serif;font-size: 12px;"><?php _e("If REQUEST_URI", "wp-fastest-cache"); ?></td>
 													<td class="" width="95">
 														<select name="wpfc-exclude-rule-prefix" style="width: 98px !important;">
 															<option selected="" value=""></option>
-															<option value="homepage">Home Page</option>
-															<option value="category">Categories</option>
-															<option value="tag">Tags</option>
-															<option value="post">Posts</option>
-															<option value="page">Pages</option>
-															<option value="attachment">Attachments</option>
-										    				<option value="startwith">Starts With</option>
-										    				<option value="contain">Contains</option>
-										    				<option value="exact">Is Equal To</option>
-										    				<option value="googleanalytics">has Google Analytics Parameters</option>
+															<option value="homepage"><?php _e("Home Page", "wp-fastest-cache"); ?></option>
+															<option value="category"><?php _e("Categories", "wp-fastest-cache"); ?></option>
+															<option value="tag"><?php _e("Tags", "wp-fastest-cache"); ?></option>
+															<option value="post"><?php _e("Posts", "wp-fastest-cache"); ?></option>
+															<option value="page"><?php _e("Pages", "wp-fastest-cache"); ?></option>
+
+															<option value="archive"><?php _e("Archives", "wp-fastest-cache"); ?></option>
+
+															<option value="attachment"><?php _e("Attachments", "wp-fastest-cache"); ?></option>
+										    				<option value="startwith"><?php _e("Starts With", "wp-fastest-cache"); ?></option>
+										    				<option value="contain"><?php _e("Contains", "wp-fastest-cache"); ?></option>
+										    				<option value="exact"><?php _e("Is Equal To", "wp-fastest-cache"); ?></option>
+										    				<option value="googleanalytics"><?php _e("has Google Analytics Parameters", "wp-fastest-cache"); ?></option>
+										    				<option value="woocommerce_items_in_cart"><?php _e("has Woocommerce Items in Cart", "wp-fastest-cache"); ?></option>
 										    			</select>
 										    		</td>
 										    		<td width="300">
 										    			<div class="wpfc-exclude-rule-line-middle">
-										    				<input type="text" name="wpfc-exclude-rule-content" style="width:300px;">
-										    				<input type="hidden" name="wpfc-exclude-rule-type" style="width:300px;">
+										    				<input type="text" name="wpfc-exclude-rule-content" style="width:289px;">
+										    				<input type="hidden" name="wpfc-exclude-rule-type" style="width:289px;">
 										    			</div>
 										    		</td>
 										    	</tr>
@@ -180,23 +184,55 @@
 				var clone_modal_id = "wpfc-modal-exclude-" + new Date().getTime();
 
 				clone_modal.find("select").change(function(e){
-					if(jQuery(this).val().match(/^(homepage|category|tag|post|page|attachment|googleanalytics)$/)){
-						clone_modal.find("input[name='wpfc-exclude-rule-content']").hide();
+					if(jQuery(this).val().match(/^(homepage|category|tag|archive|post|page|attachment|googleanalytics|woocommerce_items_in_cart)$/)){
+						clone_modal.find("input[name='wpfc-exclude-rule-content']").closest("td").hide();
 						clone_modal.find("input[name='wpfc-exclude-rule-content']").val(jQuery(this).val());
+
+						jQuery(this).closest("td").width(395);
+						jQuery(this).width(395);
 					}else{
-						clone_modal.find("input[name='wpfc-exclude-rule-content']").show();
+						clone_modal.find("input[name='wpfc-exclude-rule-content']").closest("td").show();
 						clone_modal.find("input[name='wpfc-exclude-rule-content']").val("");
+
+						jQuery(this).closest("td").width(95);
+						jQuery(this).width(95);
 					}
 				});
 
-				if(e.prefix.match(/^(homepage|category|tag|post|page|attachment|googleanalytics)$/)){
-					clone_modal.find("input[name='wpfc-exclude-rule-content']").hide();
+
+				if(e.prefix.match(/^(homepage|category|tag|archive|post|page|attachment|googleanalytics|woocommerce_items_in_cart)$/)){
+					clone_modal.find("input[name='wpfc-exclude-rule-content']").closest("td").hide();
+
+					clone_modal.find("select").closest("td").width(395);
+					clone_modal.find("select").width(395);
 				}
 
 				clone_modal.attr("id", clone_modal_id);
 				clone_modal.find("select[name='wpfc-exclude-rule-prefix']").val(jQuery(this).attr("prefix"));
 				clone_modal.find("input[name='wpfc-exclude-rule-content']").val(jQuery(this).attr("content"));
 				clone_modal.find("input[name='wpfc-exclude-rule-type']").val(jQuery(this).attr("type"));
+
+
+				clone_modal.find("select[name='wpfc-exclude-rule-prefix'] option").each(function(){
+					if(this.value == "woocommerce_items_in_cart"){
+						if(e.type == "cookie"){
+							return;
+						}else{
+							jQuery(this).remove();
+						}
+					}else{
+						if(e.type != "page"){
+							if(this.value != "contain"){
+								jQuery(this).remove();
+								
+							}
+						}
+
+					}
+
+
+				});
+
 
 				if(e.type != "page"){
 					if(e.type == "useragent"){
@@ -208,12 +244,6 @@
 					}else if(e.type == "cookie"){
 						clone_modal.find(".wpfc-condition-text").text("If Cookie");
 					}
-
-					clone_modal.find("select[name='wpfc-exclude-rule-prefix'] option").each(function(){
-						if(this.value != "contain"){
-							jQuery(this).remove();
-						}
-					});
 				}
 				
 
@@ -275,6 +305,8 @@
 				title = "Home Page";
 			}else if(prefix == "tag"){
 				title = "Tags";
+			}else if(prefix == "archive"){
+				title = "Archives";
 			}else if(prefix == "category"){
 				title = "Categories";
 			}else if(prefix == "post"){
@@ -285,6 +317,8 @@
 				title = "Attachments";
 			}else if(prefix == "googleanalytics"){
 				title = "Google Analytics Parameters";
+			}else if(prefix == "woocommerce_items_in_cart"){
+				title = "Woocommerce Items in Cart";
 			}
 
 			return title;
@@ -305,7 +339,7 @@
 				}
 
 				if(type == "page" || type == "css" || type == "js"){
-					if(prefix.match(/^(homepage|category|tag|post|page|attachment|googleanalytics)$/)){
+					if(prefix.match(/^(homepage|category|tag|archive|post|page|attachment|googleanalytics|woocommerce_items_in_cart)$/)){
 						if(prefix == "homepage"){
 							return "The " + b_start + "homepage" + b_end + " has been excluded";
 						}else{
@@ -317,7 +351,11 @@
 				}else if(type == "useragent"){
 					return "User-Agent: " + request_uri;
 				}else if(type == "cookie"){
-					return "Cookie: " + request_uri;
+					if(content == "Admin"){
+						return "Caching has been disabled for " + b_start + "Admin" + b_end + " users";
+					}else{
+						return "Cookie: " + request_uri;
+					}
 				}
 
 		},
@@ -347,13 +385,26 @@
 				clone_modal.attr("id", clone_modal_id);
 				clone_modal.find("input[name='wpfc-exclude-rule-type']").val(clone_modal_type);
 				
-				if(clone_modal_type != "page"){
-					clone_modal.find("select[name='wpfc-exclude-rule-prefix'] option").each(function(){
-						if(this.value != "contain"){
+				clone_modal.find("select[name='wpfc-exclude-rule-prefix'] option").each(function(){
+					if(this.value == "woocommerce_items_in_cart"){
+						if(clone_modal_type == "cookie"){
+							return;
+						}else{
 							jQuery(this).remove();
 						}
-					});
+					}else{
+						if(clone_modal_type != "page"){
+							if(this.value != "contain"){
+								jQuery(this).remove();
+								
+							}
+						}
+					}
 
+
+				});
+
+				if(clone_modal_type != "page"){
 					if(clone_modal_type == "useragent"){
 						clone_modal.find(".wpfc-condition-text").text("If User-Agent");
 					}else if(clone_modal_type == "css"){
@@ -369,12 +420,18 @@
 
 
 				clone_modal.find("select").change(function(){
-					if(jQuery(this).val().match(/^(homepage|category|tag|post|page|attachment|googleanalytics)$/)){
-						clone_modal.find("input[name='wpfc-exclude-rule-content']").hide();
+					if(jQuery(this).val().match(/^(homepage|category|tag|archive|post|page|attachment|googleanalytics|woocommerce_items_in_cart)$/)){
+						clone_modal.find("input[name='wpfc-exclude-rule-content']").closest("td").hide();
 						clone_modal.find("input[name='wpfc-exclude-rule-content']").val(jQuery(this).val());
+
+						jQuery(this).closest("td").width(395);
+						jQuery(this).width(395);
 					}else{
-						clone_modal.find("input[name='wpfc-exclude-rule-content']").show();
+						clone_modal.find("input[name='wpfc-exclude-rule-content']").closest("td").show();
 						clone_modal.find("input[name='wpfc-exclude-rule-content']").val("");
+
+						jQuery(this).closest("td").width(95);
+						jQuery(this).width(95);
 					}
 				});
 				
@@ -447,8 +504,13 @@
 			self.add_item(new Date().getTime(), {"type" : "page", "prefix" : "exact", "content" : "wp-login.php", "editable" : false});
 			//self.add_item(new Date().getTime(), {"prefix" : "startwith", "content" : "wp-content", "editable" : false});
 			self.add_item(new Date().getTime(), {"type" : "page", "prefix" : "startwith", "content" : "wp-admin", "editable" : false});
+			
 			self.add_item(new Date().getTime(), {"type" : "useragent", "prefix" : "contain", "content" : "facebookexternalhit", "editable" : false});
+			self.add_item(new Date().getTime(), {"type" : "useragent", "prefix" : "contain", "content" : "LinkedInBot", "editable" : false});
 			self.add_item(new Date().getTime(), {"type" : "useragent", "prefix" : "contain", "content" : "WhatsApp", "editable" : false});
+			self.add_item(new Date().getTime(), {"type" : "useragent", "prefix" : "contain", "content" : "Twitterbot", "editable" : false});
+
+			self.add_item(new Date().getTime(), {"type" : "cookie", "prefix" : "contain", "content" : "Admin", "editable" : false});
 
 
 			if(typeof this.rules != "undefined" && this.rules && this.rules.length > 0){
