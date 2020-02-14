@@ -22,7 +22,7 @@
         <div class="row">
           <div class="col s12 m9 l6">
             <h1>Looking for custom glass or mirror products?</h1>
-            <p>Serving the community for nearly 25 years, we are North Carolina's premier custom glass and mirror fabricator and can make the perfect piece for your project.</p>
+            <p>Serving the community for more than 25 years, we are North Carolina's premier custom glass and mirror fabricator and can make the perfect piece for your project.</p>
             <a class="btn-large" href="{{ get_permalink(get_page_by_path('request-a-quote')) }}">What can we do for you?</a>
           </div>
         </div>
