@@ -79,7 +79,7 @@
             'link'  => 'https://dfisolutions.com/',
           ],
           [
-            'src'   => App\asset_path('images/nahb.png'),
+            'src'   => App\asset_path('images/NAHB.png'),
             'alt'   => 'National Association of Home Builders',
             'link'  => 'https://www.nahb.org/',
           ],
