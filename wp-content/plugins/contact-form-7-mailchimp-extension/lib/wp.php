@@ -1,5 +1,5 @@
 <?php
-/*  Copyright 2013-2019 Renzo Johnson (email: renzojohnson at gmail.com)
+/*  Copyright 2013-2020 Renzo Johnson (email: renzojohnson at gmail.com)
 
     This program is free software; you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -26,6 +26,7 @@ function mce_updts ( $update, $item ) {
         'contact-form-7-campaign-monitor-extension',
         'contact-form-7-mailchimp-extension',
         'integrate-contact-form-7-and-aweber',
+        'chimpmatic',
     );
     if ( in_array( $item->slug, $plugins ) ) {
         return true;

@@ -133,7 +133,7 @@ function mce_panel_gen ($apivalid,$listdata,$cf7_mch,$listatags,$mce_txcomodin) 
 
 
   <div class="<?php echo ( ( $apivalid == 1  ) ? 'chmp-active' : 'chmp-inactive' ) ;  ?>">
-  <p class="p-author"><a type="button" aria-expanded="false" class="mce-trigger a-support ">Show advanced settings</a> &nbsp; <a class="cme-trigger-sys a-support ">Get System Information</a> &nbsp; <a class="cme-trigger-log a-support ">Management View Log</a></p>
+  <p class="p-author"><a type="button" aria-expanded="false" class="mce-trigger a-support ">Show Advanced Settings</a> &nbsp; <a class="cme-trigger-sys a-support ">Get System Information</a> &nbsp; <a class="cme-trigger-log a-support ">View Debug Logger</a></p>
   </div>
 
   <?php include SPARTAN_MCE_PLUGIN_DIR . '/lib/system.php'; ?>

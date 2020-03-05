@@ -235,7 +235,8 @@ function wpcf7_mch_subscribe_remote($obj) {
          if ( strlen( trim($accept) ) != 0  ) {
             $mce_csu = 'pending';
          } else {
-            $mce_csu = 'unsubscribed';
+            // $mce_csu = 'unsubscribed';
+          $mce_csu = '';
          }
       } else $mce_csu = 'pending';
 
@@ -246,7 +247,8 @@ function wpcf7_mch_subscribe_remote($obj) {
          if ( strlen( trim($accept) ) != 0  ) {
             $mce_csu = 'subscribed';
          } else {
-            $mce_csu = 'unsubscribed';
+            // $mce_csu = 'unsubscribed';
+          $mce_csu = '';
          }
       } else $mce_csu = 'subscribed';
 

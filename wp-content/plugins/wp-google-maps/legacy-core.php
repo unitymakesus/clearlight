@@ -2099,7 +2099,8 @@ function wpgmza_settings_page_post()
 	if (isset($_POST['wpgmza_custom_css'])) { $wpgmza->settings['wpgmza_custom_css'] = sanitize_text_field($_POST['wpgmza_custom_css']); }
 	if (isset($_POST['wpgmza_custom_js'])) { $wpgmza->settings['wpgmza_custom_js'] = $_POST['wpgmza_custom_js']; }
 	
-	
+    if (isset($_POST['wpgmza_settings_user_interface_style'])) 
+    $wpgmza->settings['wpgmza_settings_user_interface_style'] = esc_attr($_POST['wpgmza_settings_user_interface_style']);
 	
 	if (isset($_POST['wpgmza_marker_xml_location'])) { update_option("wpgmza_xml_location",sanitize_text_field($_POST['wpgmza_marker_xml_location'])); }
 	if (isset($_POST['wpgmza_marker_xml_url'])) { update_option("wpgmza_xml_url",sanitize_text_field($_POST['wpgmza_marker_xml_url'])); }
@@ -2824,16 +2825,9 @@ function wpgmaps_menu_layout() {
         else {
 
             if (function_exists('wpgmza_register_pro_version')) {
-
-                $prov = get_option("WPGMZA_PRO");
-                $wpgmza_pro_version = $prov['version'];
                 wpgmza_pro_menu();
-                
-
-
             } else {
                 wpgmza_basic_menu();
-
             }
 
         }

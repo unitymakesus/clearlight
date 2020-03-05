@@ -297,3 +297,23 @@ span.invalid {
   display: block;
   /* font-family: Menlo,Monaco,Consolas,"Courier New",monospace; */
 }
+
+/* this is for the advanced settings */
+#contact-form-editor .form-table th {
+    width: 180px;
+}
+
+.atags,
+.gname {
+  display: block;
+}
+
+.atags {
+  margin-top: 20px;
+
+}
+
+.atags  input {
+    width: 90% !important;
+    margin-top: 5px;
+}
