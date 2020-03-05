@@ -108,34 +108,8 @@ add_action( 'pre_get_posts', function($query){
   }
 });
 
-
-
-/**
- * Remove span wrappers from around CF7 radio button elements
- */
-// add_filter('wpcf7_form_elements', function($content) {
-//   $content = preg_replace('/<(span).*?class="\s*(?:.*\s)?wpcf7-form-control-wrap(?:\s[^"]+)?\s*"[^\>]*>(.*)<\/\1>/i', '\2', $content);
-//
-//   return $content;
-// });
-
-
-/**
- * Define which templates have a sidebar
- */
-// add_filter('sage/display_sidebar', function ($display) {
-//   static $display;
-//
-//   // Show sidebar
-//   isset($display) || $display = in_array(true, [
-//     is_page()
-//   ]);
-//
-//   // Hide sidebar
-//   $display = !in_array(true, [
-//     is_front_page(),
-//     is_singular('gallery')
-//   ]);
-//
-//   return $display;
-// });
+add_filter('bladesvg', function () {
+    return [
+        'svg_path' => __DIR__ . '/svg',
+    ];
+});
