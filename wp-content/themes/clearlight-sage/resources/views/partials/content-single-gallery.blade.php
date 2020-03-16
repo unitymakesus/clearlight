@@ -22,7 +22,9 @@
           @if($images)
             @foreach($images as $image)
               <div class="child">
-                <img src="<?php echo $image['sizes']['medium']; ?>" alt="<?php echo $image['alt']; ?>" />
+                <a href="#" data-group="modaal-gallery" class="modaal-gallery" data-modaal-content-source="<?php echo $image['sizes']['large']; ?>">
+                  <img src="<?php echo $image['sizes']['medium']; ?>" alt="<?php echo $image['alt']; ?>" />
+                </a>
               </div>
             @endforeach
           @endif

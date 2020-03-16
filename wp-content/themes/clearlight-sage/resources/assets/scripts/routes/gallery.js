@@ -21,4 +21,9 @@ export default {
       gallery.recalculate(true, true);
     });
   },
+  finalize() {
+    $('.modaal-gallery').modaal({
+      type: 'image',
+    });
+  },
 };

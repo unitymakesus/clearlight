@@ -5,6 +5,7 @@ $roboto-font-path: "~materialize-css/dist/fonts/roboto/";
 @import "~materialize-css/sass/materialize";
 $fa-font-path: "~font-awesome/fonts";
 @import "~font-awesome/scss/font-awesome";
+@import "~modaal/dist/css/modaal.scss";
 
 @import "common/global";
 @import "common/grid";

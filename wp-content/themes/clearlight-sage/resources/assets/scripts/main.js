@@ -1,6 +1,7 @@
 /** import external dependencies */
 import 'jquery';
 import 'materialize-css';
+import './lib/modaal';
 
 /** import local dependencies */
 import Router from './util/Router';
