@@ -27,11 +27,27 @@
           </div>
         </div>
       </div>
+      <div class="flex-ribbons">
+        <div class="container">
+          <div class="flex-ribbons__inner">
+            <div>
+              <a href="https://www.clearlightglass.com/wp-content/uploads/2019/01/X181213-Proof-of-North-Carolina-Construction-News-Article.pdf" target="_blank" rel="noopener noreferrer">
+                <img src="{{ App\asset_path('images/ribbon-top-10-industry-white.png') }}" alt="Top 10 Industry Leader, by North Carolina Construction News for Shower and Mirror Work" />
+              </a>
+            </div>
+            <div>
+              <img src="{{ App\asset_path('images/ribbon-2020-top-glass-fab-white.png') }}" alt="{{ __('2020 Top Glass Fabricator, Natural Glass Association’s Glass Magazine') }}" />
+            </div>
+          </div>
+        </div>
+      </div>
     </div>
   </section>
 
   {{-- Customization tiles --}}
   <section class="background-frosty-to-white">
+    <div class="container" style="position:relative;">
+    </div>
     <div class="container">
       <div class="row block-grid up-s2 up-m3 up-l6">
         @include('partials.card-image', [
