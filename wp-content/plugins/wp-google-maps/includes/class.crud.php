@@ -35,6 +35,9 @@ class Crud extends Factory implements \IteratorAggregate, \JsonSerializable
 	{
 		global $wpdb;
 		
+		$this->table_name = $table_name;
+		Crud::cacheColumnsByTableName($table_name);
+		
 		$this->fields = array();
 		$this->overrides = array();
 		
@@ -71,11 +74,7 @@ class Crud extends Factory implements \IteratorAggregate, \JsonSerializable
 		else
 			throw new \Exception('Invalid ID');
 		
-		$this->table_name = $table_name;
-		
 		$this->id = $id;
-		
-		Crud::cacheColumnsByTableName($table_name);
 		
 		if($read_mode != Crud::BULK_READ)
 		{
@@ -91,6 +90,13 @@ class Crud extends Factory implements \IteratorAggregate, \JsonSerializable
 			if(!empty($arbitraryDataColumnName) && !empty($this->fields[$arbitraryDataColumnName]))
 				$this->parse_arbitrary_data($this->fields[$arbitraryDataColumnName]);
 		}
+		
+		$this->onCrudInitialized();
+	}
+	
+	protected function onCrudInitialized()
+	{
+		
 	}
 	
 	private static function cacheColumnsByTableName($table_name)
@@ -506,6 +512,33 @@ class Crud extends Factory implements \IteratorAggregate, \JsonSerializable
 		$wpdb->query($stmt);
 		
 		$this->trashed = true;
+	}
+	
+	public function duplicate()
+	{
+		global $wpdb;
+		
+		$columns = array();
+		
+		foreach($wpdb->get_col("SHOW COLUMNS FROM `{$this->table_name}`") as $name)
+		{
+			if($name == 'id')
+				continue;
+			
+			$columns []= $name;
+		}
+		
+		$imploded = implode(',', $columns);
+		
+		$query = "INSERT INTO {$this->table_name} ($imploded) SELECT $imploded FROM {$this->table_name} WHERE id=%d";
+		
+		$stmt = $wpdb->prepare($query, $this->id);
+		
+		$wpdb->query($stmt);
+		
+		$class = get_class($this);
+		
+		return $class::createInstance($wpdb->insert_id);
 	}
 	
 	/**

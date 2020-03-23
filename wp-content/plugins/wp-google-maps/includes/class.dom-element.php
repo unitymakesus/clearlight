@@ -38,8 +38,10 @@ class DOMElement extends \DOMElement
 	public function querySelector($query)
 	{
 		$results = $this->querySelectorAll($query);		
+		
 		if(empty($results))
 			return null;
+		
 		return $results[0];
 	}
 	
@@ -66,7 +68,7 @@ class DOMElement extends \DOMElement
 		if($sort)
 			usort($results, array('WPGMZA\DOMElement', 'sortByDOMPosition'));
 		
-		return $results;
+		return new DOMQueryResults($results);
 	}
 	
 	/** 
@@ -122,6 +124,16 @@ class DOMElement extends \DOMElement
 		}
 		
 		return null;
+	}
+	
+	/**
+	 * Wraps this element in the element passed in, then replaces this nodes original position
+	 * @param DOMElement The element to wrap this element in
+	 */
+	public function wrap($wrapper)
+	{
+		$this->parentNode->replaceChild($wrapper, $this);
+		$wrapper->appendChild($this);
 	}
 	
 	/**
@@ -293,14 +305,21 @@ class DOMElement extends \DOMElement
 		
 		if($body = $node->querySelector("body"))
 		{
-			// TODO: I don't think a query selector is necessary here. Iterating over the bodies children should be more optimal.
-			foreach($node->querySelectorAll("body>*") as $child)
+			// TODO: I don't think a query selector is necessary here. Iterating over the bodies children should be more optimal
+			$results = $node->querySelectorAll("body>*");
+			
+			foreach($results as $child)
 				$this->appendChild($child);
+			
+			return $results;
 		}
 		else
+		{
 			$this->appendChild($node);
+			return $node;
+		}
 		
-		return $this;
+		return null;
 	}
 	
 	/**
@@ -530,6 +549,9 @@ class DOMElement extends \DOMElement
 			if(!$name)
 				continue;
 			
+			if(preg_match('/nonce/i', $name))
+				continue; // NB: Do not serialize nonce values
+			
 			switch($input->getAttribute('type'))
 			{
 				case 'checkbox':
@@ -716,4 +738,3 @@ class DOMElement extends \DOMElement
 	}
 }
 
-?>

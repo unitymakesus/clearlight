@@ -366,7 +366,7 @@
 	</div>
 	
 	<div id="marker-listing">
-		<div class="update-nag update-att">
+		<div class="update-nag update-att wpgmza-upsell">
 			<i class="fa fa-arrow-circle-right"></i>
 			<a target="_blank"
 				href="<?php 
@@ -545,7 +545,7 @@
 			</label>
 		</fieldset>
 		
-		<fieldset>
+		<fieldset id="wpgmza-developer-mode">
 			<legend><?php esc_html_e("Developer Mode", "wp-google-maps"); ?></legend>
 			<label>
 				<input name="wpgmza_developer_mode" type="checkbox"/>

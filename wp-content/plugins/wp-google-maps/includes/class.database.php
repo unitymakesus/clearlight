@@ -134,6 +134,10 @@ class Database extends Factory
 			) AUTO_INCREMENT=1 " . Database::getCharsetAndCollate();
 
 		dbDelta($sql);
+		
+		// TODO: Create marker first
+		
+		// $wpdb->query("ALTER TABLE `$WPGMZA_TABLE_NAME_MARKERS` ADD SPATIAL INDEX(lnglat)");
 	}
 	
 	protected function installPolygonTable()

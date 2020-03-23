@@ -699,6 +699,13 @@ jQuery(function($) {
 		
 	};
 	
+	// NB: Warn the user if the built in Array prototype has been extended. This will save debugging headaches where for ... in loops do bizarre things.
+	for(var key in [])
+	{
+		console.warn("It appears that the built in JavaScript Array has been extended, this can create issues with for ... in loops, which may cause failure.");
+		break;
+	}
+	
 	if(window.WPGMZA)
 		window.WPGMZA = $.extend(window.WPGMZA, core);
 	else
@@ -1081,11 +1088,11 @@ jQuery(function($) {
 		 */
 		between: function(a, b)
 		{
-			if(!(a instanceof WPGMZA.LatLng))
-				throw new Error("First argument must be an instance of WPGMZA.LatLng");
+			if(!(a instanceof WPGMZA.LatLng) && !("lat" in a && "lng" in a))
+				throw new Error("First argument must be an instance of WPGMZA.LatLng or a literal");
 			
-			if(!(b instanceof WPGMZA.LatLng))
-				throw new Error("Second argument must be an instance of WPGMZA.LatLng");
+			if(!(b instanceof WPGMZA.LatLng) && !("lat" in b && "lng" in b))
+				throw new Error("Second argument must be an instance of WPGMZA.LatLng or a literal");
 			
 			if(a === b)
 				return 0.0;
@@ -1095,8 +1102,8 @@ jQuery(function($) {
 			var lat2 = b.lat;
 			var lon2 = b.lng;
 			
-			var dLat = deg2rad(lat2-lat1);
-			var dLon = deg2rad(lon2-lon1); 
+			var dLat = deg2rad(lat2 - lat1);
+			var dLon = deg2rad(lon2 - lon1); 
 			
 			var a = 
 				Math.sin(dLat/2) * Math.sin(dLat/2) +
@@ -2776,12 +2783,6 @@ jQuery(function($) {
 			});
 		}
 
-		$(document).on("click", ".wpgmza_edit_btn", function() {
-			var cur_id = jQuery(this).attr("data-edit-marker-id");
-
-			WPGMZA.AdminMarkerDataTable.prototype.onCenterMarker(cur_id);		
-		});
-
 		$('#wpgmza_max_zoom, #wpgmza_min_zoom').on("change input", function(event) {
 			self.onZoomLimitChanged(event);
 		});
@@ -2795,7 +2796,7 @@ jQuery(function($) {
 		return new WPGMZA.MapEditPage();
 	}
 
-	WPGMZA.MapEditPage.prototype.onZoomLimitChanged = function()
+	WPGMZA.MapEditPage.prototype.onZoomLimitChanged = function(event)
 	{
 		this.map.setOptions({
 			minZoom:	$("#wpgmza_max_zoom").val(),
@@ -3076,8 +3077,15 @@ jQuery(function($) {
 	{
 		var self = this;
 		
+		this._keypressHistory = [];
+		
 		this.updateEngineSpecificControls();
 		this.updateGDPRControls();
+		
+		$("#wpgmza-developer-mode").hide();
+		$(window).on("keypress", function(event) {
+			self.onKeyPress(event);
+		});
 		
 		$("select[name='wpgmza_maps_engine']").on("change", function(event) {
 			self.updateEngineSpecificControls();
@@ -3150,6 +3158,24 @@ jQuery(function($) {
 		OLGeocoder.clearCache(function(response){
 			jQuery('#wpgmza_flush_cache_btn').removeAttr('disabled');
 		});
+	}
+	
+	WPGMZA.MapSettingsPage.prototype.onKeyPress = function(event)
+	{
+		var string;
+		
+		this._keypressHistory.push(event.key);
+		
+		if(this._keypressHistory.length > 9)
+			this._keypressHistory = this._keypressHistory.slice(this._keypressHistory.length - 9);
+		
+		string = this._keypressHistory.join("");
+		
+		if(string == "codecabin" && !this._developerModeRevealed)
+		{
+			$("#wpgmza-developer-mode").show();
+			this._developerModeRevealed = true;
+		}
 	}
 	
 	jQuery(function($) {
@@ -3521,6 +3547,14 @@ jQuery(function($) {
 		return new constructor(element, options);
 	}
 	
+	/**
+	 * The maps current latitude
+	 * 
+	 * @property lat
+	 * @memberof WPGMZA.Map
+	 * @name WPGMZA.Map#lat
+	 * @type Number
+	 */
 	Object.defineProperty(WPGMZA.Map.prototype, "lat", {
 		
 		get: function() {
@@ -3535,6 +3569,14 @@ jQuery(function($) {
 		
 	});
 	
+	/**
+	 * The maps current longitude
+	 * 
+	 * @property lng
+	 * @memberof WPGMZA.Map
+	 * @name WPGMZA.Map#lng
+	 * @type Number
+	 */
 	Object.defineProperty(WPGMZA.Map.prototype, "lng", {
 		
 		get: function() {
@@ -3549,6 +3591,14 @@ jQuery(function($) {
 		
 	});
 	
+	/**
+	 * The maps current zoom level
+	 *  
+	 * @property zoom
+	 * @memberof WPGMZA.Map
+	 * @name WPGMZA.Map#zoom
+	 * @type Number
+	 */
 	Object.defineProperty(WPGMZA.Map.prototype, "zoom", {
 		
 		get: function() {
@@ -4437,8 +4487,9 @@ jQuery(function($) {
 	/**
 	 * Called when the marker has been added to a map
 	 * @method
-	 * @method
 	 * @memberof WPGMZA.Marker
+	 * @listens module:WPGMZA.Marker~added
+	 * @fires module:WPGMZA.Marker~select When this marker is targeted by the marker shortcode attribute
 	 */
 	WPGMZA.Marker.prototype.onAdded = function(event)
 	{
@@ -4530,6 +4581,7 @@ jQuery(function($) {
 	 * Called when the marker has been clicked
 	 * @method
 	 * @memberof WPGMZA.Marker
+	 * @listens module:WPGMZA.Marker~click
 	 */
 	WPGMZA.Marker.prototype.onClick = function(event)
 	{
@@ -4540,6 +4592,7 @@ jQuery(function($) {
 	 * Called when the marker has been selected, either by the icon being clicked, or from a marker listing
 	 * @method
 	 * @memberof WPGMZA.Marker
+	 * @listens module:WPGMZA.Marker~select
 	 */
 	WPGMZA.Marker.prototype.onSelect = function(event)
 	{
@@ -4550,6 +4603,7 @@ jQuery(function($) {
 	 * Called when the user hovers the mouse over this marker
 	 * @method
 	 * @memberof WPGMZA.Marker
+	 * @listens module:WPGMZA.Marker~mouseover
 	 */
 	WPGMZA.Marker.prototype.onMouseOver = function(event)
 	{
@@ -8277,9 +8331,7 @@ jQuery(function($) {
 		var options = {};
 
 		options.scrollwheel  = true;
-
 		options.draggable	=  true;
-
 		options.disableDoubleClickZoom	= false;
 		
 		this.googleMap.setOptions(options);
@@ -9150,14 +9202,13 @@ jQuery(function($) {
 			return;
 		
 		// IMPORTANT: Please note that due to what appears to be a bug in OpenLayers, the following code MUST be exected specifically in this order, or the circle won't appear
-		var wgs84Sphere = new ol.Sphere(6378137);
 		var radius = parseFloat(this.radius) * 1000 / 2;
 		var x, y;
 		
 		x = this.center.lng;
 		y = this.center.lat;
 		
-		var circle4326 = ol.geom.Polygon.circular(wgs84Sphere, [x, y], radius, 64);
+		var circle4326 = ol.geom.Polygon.circular([x, y], radius, 64);
 		var circle3857 = circle4326.clone().transform('EPSG:4326', 'EPSG:3857');
 		
 		this.olFeature = new ol.Feature(circle3857);
@@ -9857,7 +9908,11 @@ jQuery(function($) {
 	
 	WPGMZA.OLMap.prototype.wrapLongitude = function()
 	{
-		var center = this.getCenter();
+		var transformed = ol.proj.transform(this.olMap.getView().getCenter(), "EPSG:3857", "EPSG:4326");
+		var center = {
+			lat: transformed[1],
+			lng: transformed[0]
+		};
 		
 		if(center.lng >= -180 && center.lng <= 180)
 			return;

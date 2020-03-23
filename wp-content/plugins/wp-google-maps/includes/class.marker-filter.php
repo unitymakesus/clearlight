@@ -134,6 +134,14 @@ class MarkerFilter extends Factory
 		$query->params[] = $radius;
 	}
 	
+	protected function applyIDsClause($set)
+	{
+		if(empty($this->ids))
+			return;
+		
+		$query->in('id', $set);
+	}
+	
 	protected function applyLimit($query)
 	{
 		if(empty($this->_limit))
@@ -159,6 +167,7 @@ class MarkerFilter extends Factory
 		$query->table	= $WPGMZA_TABLE_NAME_MARKERS;
 		
 		$this->applyRadiusClause($query);
+		$this->applyIDsClause($query);
 		$this->applyLimit($query);
 		
 		return $query;
@@ -199,7 +208,7 @@ class MarkerFilter extends Factory
 			$markers[] = Marker::createInstance($data, Crud::BULK_READ);
 		}
 		
-		return $markers;
+		return apply_filters('wpgmza_fetch_integrated_markers', $markers, $this);
 	}
 	
 	public function getFilteredIDs()
