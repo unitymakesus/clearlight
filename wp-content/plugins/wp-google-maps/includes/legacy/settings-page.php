@@ -596,7 +596,7 @@ function wpgmza_legacy_settings_page_basic()
 	$ret .= "                   </tr>";
 	
 	$ret .= "             <tr>
-							 <td width='200' valign='top' style='vertical-align:top;'>".__("Disable Autopimize Compatibility Fix","wp-google-maps").":</td>
+							 <td width='200' valign='top' style='vertical-align:top;'>".__("Disable Autoptimize Compatibility Fix","wp-google-maps").":</td>
 						  <td>
 							 <input 
 								type='checkbox' 

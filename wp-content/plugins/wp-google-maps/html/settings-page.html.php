@@ -532,7 +532,7 @@
 		</fieldset>
 		
 		<fieldset>
-			<legend><?php esc_html_e("Disable Autopimize Compatibility Fix", "wp-google-maps"); ?></legend>
+			<legend><?php esc_html_e("Disable Autoptimize Compatibility Fix", "wp-google-maps"); ?></legend>
 			<label>
 				<input name="disable_autoptimize_compatibility_fix" type="checkbox"/>
 				<p>

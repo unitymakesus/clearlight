@@ -3,7 +3,7 @@
 Plugin Name: WP Fastest Cache
 Plugin URI: http://wordpress.org/plugins/wp-fastest-cache/
 Description: The simplest and fastest WP Cache system
-Version: 0.9.0.4
+Version: 0.9.0.5
 Author: Emre Vona
 Author URI: http://tr.linkedin.com/in/emrevona
 Text Domain: wp-fastest-cache
@@ -312,7 +312,7 @@ GNU General Public License for more details.
 		public function clear_cache_after_update_plugin($upgrader_object, $options){
 			if($options['action'] == 'update'){
 				if($options['type'] == 'plugin' && isset($options['plugins'])){
-					$this->deleteCache();
+					$this->deleteCache(true);
 				}
 			}
 		}
@@ -320,7 +320,7 @@ GNU General Public License for more details.
 		public function clear_cache_after_update_theme($upgrader_object, $options){
 			if($options['action'] == 'update'){
 				if($options['type'] == 'theme' && isset($options['themes'])){
-					$this->deleteCache();
+					$this->deleteCache(true);
 				}
 			}
 		}
@@ -1850,7 +1850,16 @@ GNU General Public License for more details.
 
 					if(preg_match("/(data-product_variations|data-siteorigin-parallax)\=[\"\'][^\"\']+[\"\']/i", $matches[0])){
 						$cdnurl = preg_replace("/(https?\:)?(\/\/)(www\.)?/", "", $cdnurl);
-						$matches[0] = preg_replace("/(quot\;|\s)(https?\:)?(\\\\\/\\\\\/|\/\/)(www\.)?".$cdn->originurl."/i", "$1$2$3$4".$cdnurl, $matches[0]);
+
+						// if(preg_match("/i\d\.wp\.com/i", $cdnurl)){
+						// 	$matches[0] = preg_replace("/(quot\;|\s)(https?\:)?(\\\\\/\\\\\/|\/\/)(www\.)?".$cdn->originurl."/i", "$1$2$3".$cdnurl, $matches[0]);
+						// }else{
+						// 	$matches[0] = preg_replace("/(quot\;|\s)(https?\:)?(\\\\\/\\\\\/|\/\/)(www\.)?".$cdn->originurl."/i", "$1$2$3$4".$cdnurl, $matches[0]);
+						// }
+
+						$matches[0] = preg_replace("/(quot\;|\s)(https?\:)?(\\\\\/\\\\\/|\/\/)(www\.)?".$cdn->originurl."/i", "$1$2$3".$cdnurl, $matches[0]);
+
+						
 					}else if(preg_match("/\{\"concatemoji\"\:\"[^\"]+\"\}/i", $matches[0])){
 						$matches[0] = preg_replace("/(http(s?)\:)?".preg_quote("\/\/", "/")."(www\.)?/i", "", $matches[0]);
 						$matches[0] = preg_replace("/".preg_quote($cdn->originurl, "/")."/i", $cdnurl, $matches[0]);

@@ -105,3 +105,21 @@ msgstr ""
 #. Author URI of the plugin
 msgid "https://profiles.wordpress.org/mndpsingh287/"
 msgstr ""
+#. Post link
+msgid "Duplicate This"
+msgstr ""
+#. Post Link title (status as draft)
+msgid "Duplicate this as draft"
+msgstr ""
+
+#. Post Link title (status as publish)
+msgid "Duplicate this as publish"
+msgstr ""
+
+#. Post Link title (status as private)
+msgid "Duplicate this as private"
+msgstr ""
+
+#. Post Link title (status as pending)
+msgid "Duplicate this as pending"
+msgstr ""
