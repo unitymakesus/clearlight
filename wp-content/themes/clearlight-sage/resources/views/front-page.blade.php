@@ -36,7 +36,9 @@
               </a>
             </div>
             <div>
-              <img src="{{ App\asset_path('images/ribbon-2020-top-glass-fab-white.png') }}" alt="{{ __('2020 Top Glass Fabricator, Natural Glass Association’s Glass Magazine') }}" />
+              <a href="https://www.clearlightglass.com/wp-content/uploads/2020/04/PGI_01_ID147837031_341cb6190ed80f1622f01bb2f3f0a6fb.jpg" target="_blank" rel="noopener noreferrer">
+                <img src="{{ App\asset_path('images/ribbon-2020-top-glass-fab-white.png') }}" alt="{{ __('2020 Top Glass Fabricator, Natural Glass Association’s Glass Magazine') }}" />
+              </a>
             </div>
           </div>
         </div>
