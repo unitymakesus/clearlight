@@ -128,6 +128,7 @@
               'img'   => 'charitable',
               'title' => 'Charitable<br />Projects',
               'text'  => 'We are proud of to offer charitable projects to give back to North Carolina’s communities.',
+              'link'  => get_permalink(get_page_by_path('about/charitable-projects')),
             ],
           ]
         ])
