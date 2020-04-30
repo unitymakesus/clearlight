@@ -97,12 +97,16 @@
 __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var _babel_runtime_regenerator__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! @babel/runtime/regenerator */ "./node_modules/@babel/runtime/regenerator/index.js");
 /* harmony import */ var _babel_runtime_regenerator__WEBPACK_IMPORTED_MODULE_0___default = /*#__PURE__*/__webpack_require__.n(_babel_runtime_regenerator__WEBPACK_IMPORTED_MODULE_0__);
+/* harmony import */ var _babel_runtime_helpers_asyncToGenerator__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! @babel/runtime/helpers/asyncToGenerator */ "./node_modules/@babel/runtime/helpers/asyncToGenerator.js");
+/* harmony import */ var _babel_runtime_helpers_asyncToGenerator__WEBPACK_IMPORTED_MODULE_1___default = /*#__PURE__*/__webpack_require__.n(_babel_runtime_helpers_asyncToGenerator__WEBPACK_IMPORTED_MODULE_1__);
+
 
 
 
 var cf7signature_resized = 0; // for compatibility with contact-form-7-signature-addon
 
 var wpcf7cf_timeout;
+var wpcf7cf_change_time_ms = window.wpcf7cf_running_tests ? 0 : 100;
 var wpcf7cf_show_animation = {
   "height": "show",
   "marginTop": "show",
@@ -250,7 +254,7 @@ Wpcf7cfForm.prototype.displayFields = function () {
     var show_group = window.wpcf7cf.should_group_be_shown(condition, form.$form);
 
     if (show_group) {
-      jQuery('[data-id=' + condition.then_field + ']', form.$form).eq(0).removeClass('wpcf7cf-hidden');
+      jQuery('[data-id="' + condition.then_field + '"]', form.$form).eq(0).removeClass('wpcf7cf-hidden');
     }
   }
 
@@ -273,6 +277,16 @@ Wpcf7cfForm.prototype.displayFields = function () {
           var $this = jQuery(this);
           $this.val(this.defaultValue);
           $this.prop('checked', this.defaultChecked);
+        });
+        jQuery('option', $group).each(function () {
+          this.selected = this.defaultSelected;
+        });
+        jQuery('select', $group).each(function () {
+          var $select = jQuery(this);
+
+          if ($select.val() === null) {
+            $select.val(jQuery("option:first", $select).val());
+          }
         });
         $inputs.change(); //display_fields();
       }
@@ -349,7 +363,7 @@ Wpcf7cfForm.prototype.updateEventListeners = function () {
     clearTimeout(wpcf7cf_timeout);
     wpcf7cf_timeout = setTimeout(function () {
       form.displayFields();
-    }, 100);
+    }, wpcf7cf_change_time_ms);
   }); // PRO ONLY
 
   jQuery('.wpcf7cf-togglebutton', form.$form).off('click.toggle_wpcf7cf').on('click.toggle_wpcf7cf', function () {
@@ -576,14 +590,14 @@ function Wpcf7cfMultistep($multistep, form) {
     multistep.$dots.append("\n            <div class=\"dot\" data-step=\"".concat(i, "\">\n                <div class=\"step-index\">").concat(i, "</div>\n                <div class=\"step-title\">").concat(multistep.$steps.eq(i - 1).data('title'), "</div>\n            </div>\n        "));
   }
 
-  multistep.$btn_next.on('click.wpcf7cf_step', function _callee() {
+  multistep.$btn_next.on('click.wpcf7cf_step', /*#__PURE__*/_babel_runtime_helpers_asyncToGenerator__WEBPACK_IMPORTED_MODULE_1___default()( /*#__PURE__*/_babel_runtime_regenerator__WEBPACK_IMPORTED_MODULE_0___default.a.mark(function _callee() {
     var result;
-    return _babel_runtime_regenerator__WEBPACK_IMPORTED_MODULE_0___default.a.async(function _callee$(_context) {
+    return _babel_runtime_regenerator__WEBPACK_IMPORTED_MODULE_0___default.a.wrap(function _callee$(_context) {
       while (1) {
         switch (_context.prev = _context.next) {
           case 0:
             _context.next = 2;
-            return _babel_runtime_regenerator__WEBPACK_IMPORTED_MODULE_0___default.a.awrap(multistep.validateStep(multistep.currentStep));
+            return multistep.validateStep(multistep.currentStep);
 
           case 2:
             result = _context.sent;
@@ -597,8 +611,8 @@ function Wpcf7cfMultistep($multistep, form) {
             return _context.stop();
         }
       }
-    });
-  }); // If form is submitted (by pressing retrun for example), and if we are not on the last step,
+    }, _callee);
+  }))); // If form is submitted (by pressing retrun for example), and if we are not on the last step,
   // then trigger click event on the $next button instead.
 
   multistep.form.$form.on('submit.wpcf7cf_step', function (e) {
@@ -626,11 +640,14 @@ Wpcf7cfMultistep.prototype.validateStep = function (step_index) {
   var $form = multistep.form.$form;
   $form.find('.wpcf7-response-output').addClass('wpcf7-display-none');
   return new Promise(function (resolve) {
-    var fd = new FormData(); // TEST IF FILES UPLOADS WORK? THEN REMOVE THIS
-    // jQuery.each($form.find('[data-id="step'+step_index+'"] input[type="file"]'), function(index, el) {
-    //     fd.append(jQuery(el).attr('name'), jQuery(el)[0].files[0]);
-    // });
+    var fd = new FormData(); // Make sure to add file fields to FormData
 
+    jQuery.each($form.find('[data-id="step-' + step_index + '"] input[type="file"]'), function (index, el) {
+      if (!el.files.length) return false;
+      var file = el.files[0];
+      var fieldName = el.name;
+      fd.append(fieldName, file);
+    });
     var formdata = $form.serializeArray();
     jQuery.each(formdata, function (key, input) {
       fd.append(input.name, input.value);
@@ -646,15 +663,15 @@ Wpcf7cfMultistep.prototype.validateStep = function (step_index) {
       /*
       * Insert _form_data_id if 'json variable' has
       */
-      if (typeof json._cf7mls_db_form_data_id != 'undefined') {
-        if (!form.find('input[name="_cf7mls_db_form_data_id"]').length) {
-          form.append('<input type="hidden" name="_cf7mls_db_form_data_id" value="' + json._cf7mls_db_form_data_id + '" />');
-        }
-      } //reset error messages
-
-
-      $multistep.find('.wpcf7-form-control-wrap').removeClass('cf7mls-invalid');
+      // if (typeof json._cf7mls_db_form_data_id != 'undefined') {
+      //     if (!form.find('input[name="_cf7mls_db_form_data_id"]').length) {
+      //         form.append('<input type="hidden" name="_cf7mls_db_form_data_id" value="'+json._cf7mls_db_form_data_id+'" />');
+      //     }
+      // }
+      //reset error messages
+      //$multistep.find('.wpcf7-form-control-wrap').removeClass('cf7mls-invalid');
       $multistep.find('.wpcf7-form-control-wrap .wpcf7-not-valid-tip').remove();
+      $multistep.find('.wpcf7-not-valid').removeClass('wpcf7-not-valid');
       $multistep.find('.wpcf7-response-output').remove();
       $multistep.find('.wpcf7-response-output.wpcf7-validation-errors').removeClass('wpcf7-validation-errors');
 
@@ -663,15 +680,15 @@ Wpcf7cfMultistep.prototype.validateStep = function (step_index) {
         jQuery.each(json.invalid_fields, function (index, el) {
           if ($multistep.find('input[name="' + index + '"]').length || $multistep.find('input[name="' + index + '[]"]').length || $multistep.find('select[name="' + index + '"]').length || $multistep.find('select[name="' + index + '[]"]').length || $multistep.find('textarea[name="' + index + '"]').length || $multistep.find('textarea[name="' + index + '[]"]').length) {
             checkError = checkError + 1;
-            var controlWrap = jQuery('.wpcf7-form-control-wrap.' + index, $form);
-            controlWrap.addClass('cf7mls-invalid');
+            var controlWrap = jQuery('.wpcf7-form-control-wrap.' + index, $form); //controlWrap.addClass('cf7mls-invalid');
+
+            controlWrap.find('input').addClass('wpcf7-not-valid');
             controlWrap.find('span.wpcf7-not-valid-tip').remove();
             controlWrap.append('<span role="alert" class="wpcf7-not-valid-tip">' + el.reason + '</span>'); //return false;
           }
         });
         resolve('failed'); //$multistep.append('<div class="wpcf7-response-output wpcf7-display-none wpcf7-validation-errors" style="display: block;" role="alert">' + json.message + '</div>');
 
-        console.log($multistep.parent().find('.wpcf7-response-output'));
         $multistep.parent().find('.wpcf7-response-output').removeClass('wpcf7-display-none').html(json.message);
       } else if (json.success) {
         resolve('success');
@@ -694,7 +711,15 @@ Wpcf7cfMultistep.prototype.moveToStep = function (step_index) {
   multistep.$multistep.attr('data-current_step', multistep.currentStep);
   multistep.$steps.hide();
   multistep.$steps.eq(multistep.currentStep - 1).show().trigger('wpcf7cf_change_step', [previousStep, multistep.currentStep]);
-  multistep.form.$form[0].scrollIntoView();
+  var formEl = multistep.form.$form[0];
+  var topOffset = formEl.getBoundingClientRect().top;
+
+  if (topOffset < 0 && previousStep > 0) {
+    formEl.scrollIntoView({
+      behavior: "smooth"
+    });
+  }
+
   multistep.form.updateSummaryFields();
   window.wpcf7cf.updateMultistepState(multistep);
 };
@@ -892,41 +917,7 @@ window.wpcf7cf = {
       operator = operator === '>' ? 'greater than' : operator;
       operator = operator === '<' ? 'less than' : operator;
 
-      if ($field.length === 1) {
-        // single field (tested with text field, single checkbox, select with single value (dropdown), select with multiple values)
-        if ($field.is('select')) {
-          if (operator === 'not equals') {
-            condition_ok = true;
-          }
-
-          $field.find('option:selected').each(function () {
-            var $option = jQuery(this);
-            var option_val = $option.val();
-
-            if (operator === 'equals' && option_val === if_val || operator === 'equals (regex)' && regex_patt.test($option.val())) {
-              condition_ok = true;
-            } else if (operator === 'not equals' && option_val === if_val || operator === 'not equals (regex)' && !regex_patt.test($option.val())) {
-              condition_ok = false;
-              return false; // break out of the loop
-            }
-          });
-          show_group = show_group && condition_ok;
-        }
-
-        var field_val = $field.val();
-        var field_val_as_number = isFinite(parseFloat(field_val)) ? parseFloat(field_val) : 0;
-
-        if ($field.attr('type') === 'checkbox') {
-          var field_is_checked = $field.is(':checked');
-
-          if (operator === 'equals' && field_is_checked && field_val === if_val || operator === 'not equals' && !field_is_checked || operator === 'is empty' && !field_is_checked || operator === 'not empty' && field_is_checked || operator === 'greater than' && field_is_checked && field_val_as_number > if_val_as_number || operator === 'less than' && field_is_checked && field_val_as_number < if_val_as_number || operator === 'greater than or equals' && field_is_checked && field_val_as_number >= if_val_as_number || operator === 'less than or equals' && field_is_checked && field_val_as_number <= if_val_as_number || operator === 'equals (regex)' && field_is_checked && regex_patt.test(field_val) || operator === 'not equals (regex)' && !field_is_checked) {
-            condition_ok = true;
-          }
-        } else if (operator === 'equals' && field_val === if_val || operator === 'not equals' && field_val !== if_val || operator === 'equals (regex)' && regex_patt.test(field_val) || operator === 'not equals (regex)' && !regex_patt.test(field_val) || operator === 'greater than' && field_val_as_number > if_val_as_number || operator === 'less than' && field_val_as_number < if_val_as_number || operator === 'greater than or equals' && field_val_as_number >= if_val_as_number || operator === 'less than or equals' && field_val_as_number <= if_val_as_number || operator === 'is empty' && field_val === '' || operator === 'not empty' && field_val !== '' || operator === 'function' && typeof window[if_val] == 'function' && window[if_val]($field)) {
-          condition_ok = true;
-        }
-      } else if ($field.length > 1) {
-        // multiple fields (tested with checkboxes, exclusive checkboxes, dropdown with multiple values)
+      if ($field.is(':checkbox') || $field.is(':radio')) {
         var all_values = [];
         var checked_values = [];
         $field.each(function () {
@@ -936,27 +927,86 @@ window.wpcf7cf = {
             checked_values.push(jQuery(this).val());
           }
         });
-        var checked_value_index = jQuery.inArray(if_val, checked_values);
-        var value_index = jQuery.inArray(if_val, all_values);
-
-        if (operator === 'is empty' && checked_values.length === 0 || operator === 'not empty' && checked_values.length > 0) {
-          condition_ok = true;
-        }
-
-        for (var ind = 0; ind < checked_values.length; ind++) {
-          var checked_val = checked_values[ind];
-          var checked_val_as_number = isFinite(parseFloat(checked_val)) ? parseFloat(checked_val) : 0;
-
-          if (operator === 'equals' && checked_val === if_val || operator === 'not equals' && checked_val !== if_val || operator === 'equals (regex)' && regex_patt.test(checked_val) || operator === 'not equals (regex)' && !regex_patt.test(checked_val) || operator === 'greater than' && checked_val_as_number > if_val_as_number || operator === 'less than' && checked_val_as_number < if_val_as_number || operator === 'greater than or equals' && checked_val_as_number >= if_val_as_number || operator === 'less than or equals' && checked_val_as_number <= if_val_as_number) {
-            condition_ok = true;
-          }
-        }
+        condition_ok = this.isConditionTrue(checked_values, operator, if_val, $field);
+      } else {
+        condition_ok = this.isConditionTrue($field.val(), operator, if_val, $field);
       }
 
       show_group = show_group && condition_ok;
     }
 
     return show_group;
+  },
+  isConditionTrue: function isConditionTrue(values, operator) {
+    var testValue = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : '';
+    var $field = arguments.length > 3 && arguments[3] !== undefined ? arguments[3] : jQuery();
+
+    if (!Array.isArray(values)) {
+      values = [values];
+    }
+
+    var condition_ok = false; // start by assuming that the condition is not met
+
+    if (!values || values.length == 0 || values.every(function (v) {
+      return !v || 0;
+    })) {
+      // no values or only empty values passed (0 is not considered empty)
+      if (operator === 'is empty') {
+        condition_ok = true;
+      }
+
+      if (operator === 'not empty') {
+        condition_ok = false;
+      }
+    } else {
+      if (operator === 'is empty') {
+        condition_ok = false;
+      }
+
+      if (operator === 'not empty') {
+        condition_ok = true;
+      }
+    }
+
+    var testValueNumber = isFinite(parseFloat(testValue)) ? parseFloat(testValue) : NaN;
+
+    if (operator === 'not equals' || operator === 'not equals (regex)') {
+      // start by assuming that the condition is met
+      condition_ok = true;
+    }
+
+    if (operator === 'function' && typeof window[testValue] == 'function' && window[testValue]($field) // here we call the actual user defined function
+    ) {
+        condition_ok = true;
+      }
+
+    var regex_patt = /.*/i; // fallback regex pattern
+
+    var isValidRegex = true;
+
+    if (operator === 'equals (regex)' || operator === 'not equals (regex)') {
+      try {
+        regex_patt = new RegExp(testValue, 'i');
+      } catch (e) {
+        isValidRegex = false;
+      }
+    }
+
+    for (var i = 0; i < values.length; i++) {
+      var value = values[i];
+      var valueNumber = isFinite(parseFloat(value)) ? parseFloat(value) : NaN;
+      var valsAreNumbers = !isNaN(valueNumber) && !isNaN(testValueNumber);
+
+      if (operator === 'equals' && value === testValue || operator === 'equals (regex)' && regex_patt.test(value) || operator === 'greater than' && valsAreNumbers && valueNumber > testValueNumber || operator === 'less than' && valsAreNumbers && valueNumber < testValueNumber || operator === 'greater than or equals' && valsAreNumbers && valueNumber >= testValueNumber || operator === 'less than or equals' && valsAreNumbers && valueNumber <= testValueNumber) {
+        condition_ok = true;
+        break;
+      } else if (operator === 'not equals' && value === testValue || operator === 'not equals (regex)' && regex_patt.test(value)) {
+        condition_ok = false;
+        break;
+      }
+    }
+
+    return condition_ok;
   }
 };
 jQuery('.wpcf7-form').each(function () {
@@ -981,6 +1031,53 @@ jQuery.fn.wpcf7ExclusiveCheckbox = function () {
 
 /***/ }),
 
+/***/ "./node_modules/@babel/runtime/helpers/asyncToGenerator.js":
+/*!*****************************************************************!*\
+  !*** ./node_modules/@babel/runtime/helpers/asyncToGenerator.js ***!
+  \*****************************************************************/
+/*! no static exports found */
+/***/ (function(module, exports) {
+
+function asyncGeneratorStep(gen, resolve, reject, _next, _throw, key, arg) {
+  try {
+    var info = gen[key](arg);
+    var value = info.value;
+  } catch (error) {
+    reject(error);
+    return;
+  }
+
+  if (info.done) {
+    resolve(value);
+  } else {
+    Promise.resolve(value).then(_next, _throw);
+  }
+}
+
+function _asyncToGenerator(fn) {
+  return function () {
+    var self = this,
+        args = arguments;
+    return new Promise(function (resolve, reject) {
+      var gen = fn.apply(self, args);
+
+      function _next(value) {
+        asyncGeneratorStep(gen, resolve, reject, _next, _throw, "next", value);
+      }
+
+      function _throw(err) {
+        asyncGeneratorStep(gen, resolve, reject, _next, _throw, "throw", err);
+      }
+
+      _next(undefined);
+    });
+  };
+}
+
+module.exports = _asyncToGenerator;
+
+/***/ }),
+
 /***/ "./node_modules/@babel/runtime/regenerator/index.js":
 /*!**********************************************************!*\
   !*** ./node_modules/@babel/runtime/regenerator/index.js ***!
@@ -999,7 +1096,7 @@ module.exports = __webpack_require__(/*! regenerator-runtime */ "./node_modules/
 /*! no static exports found */
 /***/ (function(module, exports, __webpack_require__) {
 
-/* WEBPACK VAR INJECTION */(function(module) {function _typeof(obj) { if (typeof Symbol === "function" && typeof Symbol.iterator === "symbol") { _typeof = function _typeof(obj) { return typeof obj; }; } else { _typeof = function _typeof(obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; }; } return _typeof(obj); }
+/* WEBPACK VAR INJECTION */(function(module) {function _typeof(obj) { "@babel/helpers - typeof"; if (typeof Symbol === "function" && typeof Symbol.iterator === "symbol") { _typeof = function _typeof(obj) { return typeof obj; }; } else { _typeof = function _typeof(obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; }; } return _typeof(obj); }
 
 /**
  * Copyright (c) 2014-present, Facebook, Inc.
@@ -1135,7 +1232,7 @@ var runtime = function (exports) {
     };
   };
 
-  function AsyncIterator(generator) {
+  function AsyncIterator(generator, PromiseImpl) {
     function invoke(method, arg, resolve, reject) {
       var record = tryCatch(generator[method], generator, arg);
 
@@ -1146,14 +1243,14 @@ var runtime = function (exports) {
         var value = result.value;
 
         if (value && _typeof(value) === "object" && hasOwn.call(value, "__await")) {
-          return Promise.resolve(value.__await).then(function (value) {
+          return PromiseImpl.resolve(value.__await).then(function (value) {
             invoke("next", value, resolve, reject);
           }, function (err) {
             invoke("throw", err, resolve, reject);
           });
         }
 
-        return Promise.resolve(value).then(function (unwrapped) {
+        return PromiseImpl.resolve(value).then(function (unwrapped) {
           // When a yielded Promise is resolved, its final value becomes
           // the .value of the Promise<{value,done}> result for the
           // current iteration.
@@ -1171,7 +1268,7 @@ var runtime = function (exports) {
 
     function enqueue(method, arg) {
       function callInvokeWithMethodAndArg() {
-        return new Promise(function (resolve, reject) {
+        return new PromiseImpl(function (resolve, reject) {
           invoke(method, arg, resolve, reject);
         });
       }
@@ -1208,8 +1305,9 @@ var runtime = function (exports) {
   // AsyncIterator objects; they just return a Promise for the value of
   // the final result produced by the iterator.
 
-  exports.async = function (innerFn, outerFn, self, tryLocsList) {
-    var iter = new AsyncIterator(wrap(innerFn, outerFn, self, tryLocsList));
+  exports.async = function (innerFn, outerFn, self, tryLocsList, PromiseImpl) {
+    if (PromiseImpl === void 0) PromiseImpl = Promise;
+    var iter = new AsyncIterator(wrap(innerFn, outerFn, self, tryLocsList), PromiseImpl);
     return exports.isGeneratorFunction(outerFn) ? iter // If outerFn is a generator, return the full iterator.
     : iter.next().then(function (result) {
       return result.done ? result.value : iter.next();
