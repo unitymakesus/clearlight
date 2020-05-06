@@ -20,10 +20,11 @@
     <div class="hero-text">
       <div class="container">
         <div class="row">
-          <div class="col s12 m9 l6">
-            <h1>Looking for custom glass or mirror products?</h1>
-            <p>Serving the community for more than 25 years, we are North Carolina's premier custom glass and mirror fabricator and can make the perfect piece for your project.</p>
-            <a class="btn-large" href="{{ get_permalink(get_page_by_path('request-a-quote')) }}">What can we do for you?</a>
+          <div class="col s12 m9 l7">
+            <h1>Protective Barrier Systems For COVID-19 Safety & Containment</h1>
+            <p>Clearlight is helping fight the spread of the virus by offering protective barriers or sneeze guards in office reception and work areas for the medical, dental and professional communities in North Carolina as they reopen. We offer barriers in acrylic (plexiglass) and glass that are either moveable or permanent.</p>
+            <a class="btn-large" href="{{ get_permalink(get_page_by_path('protective-barrier-systems-for-covid-19')) }}">Click here to explore barrier options!</a>
+            <a class="btn-large" href="tel:1-336-993-7300">Call now 336-993-7300</a>
           </div>
         </div>
       </div>
