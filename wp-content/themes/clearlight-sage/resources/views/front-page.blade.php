@@ -22,7 +22,7 @@
         <div class="row">
           <div class="col s12 m9 l7">
             <h1>Protective Barrier Systems For COVID-19 Safety & Containment</h1>
-            <p>Clearlight is helping fight the spread of the virus by offering protective barriers or sneeze guards in office reception and work areas for the medical, dental and professional communities in North Carolina as they reopen. We offer barriers in acrylic (plexiglass) and glass that are either moveable or permanent.</p>
+            <p>Clearlight is helping fight the spread of the virus by offering protective barriers or sneeze guards in office reception and work areas for the medical, dental and professional communities in North Carolina and nationwide as they reopen. We offer barriers in acrylic (plexiglass) and glass that are either moveable or permanent.</p>
             <a class="btn-large" href="{{ get_permalink(get_page_by_path('protective-barrier-systems-for-covid-19')) }}">Click here to explore barrier options!</a>
             <a class="btn-large" href="tel:1-336-993-7300">Call now 336-993-7300</a>
           </div>
