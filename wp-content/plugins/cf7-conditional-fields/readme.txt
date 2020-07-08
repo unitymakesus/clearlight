@@ -1,12 +1,12 @@
 === Contact Form 7 - Conditional Fields ===
 Contributors: Jules Colle
-Donate link: https://www.paypal.com/cgi-bin/webscr?cmd=_donations&business=j_colle%40hotmail%2ecom&lc=US&item_name=Jules%20Colle%20%2d%20WP%20plugins%20%2d%20Responsive%20Gallery%20Grid&item_number=rgg&currency_code=USD&bn=PP%2dDonationsBF%3abtn_donateCC_LG%2egif%3aNonHosted
+Donate link: https://shop.bdwm.be/contact-form-7-conditional-fields-pro/
 Author: Jules Colle
 Website: http://bdwm.be
 Tags: wordpress, contact form 7, forms, conditional fields
 Requires at least: 4.1
-Tested up to: 5.4
-Stable tag: 1.8.6
+Tested up to: 5.4.2
+Stable tag: 1.9.7
 Requires PHP: 5.6
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
@@ -24,7 +24,7 @@ After you have added the field group(s), click Save and go to the "Conditional f
 
 [Follow this tutorial](https://conditional-fields-cf7.bdwm.be/conditional-fields-for-contact-form-7-tutorial/)
 
-== Main/ New features ==
+== Main features ==
 
 = Support for required fields =
 
@@ -56,7 +56,22 @@ Example email:
 
 = Advanced =
 
-Advanced users can code up the conditions as plain text instead of using the select boxes, using the import/export feature.
+Advanced users can code up the conditions as plain text instead of using the select boxes, using the Text View.
+
+== Need more power? ==
+
+Just like WordPress, the power of Contact Form 7 lies in its rich eco-system of extensions that build on top of it. However, it can be difficult to find a set of complex extensions that work well together.
+
+That's why I created Conditional Fields Pro. It adds some powerful features to Contact form 7 and guarantees that everything will run smoothly with Conditional Fields.
+
+Pro features include:
+
+* Repeatable fields (repeaters)
+* Forms with multiple steps (multistep)
+* Custom conditions with JavaScript functions
+* Additional operators ( greater than, less than, .. )
+
+[Get Conditional Fields PRO!](https://conditional-fields-cf7.bdwm.be/contact-form-7-conditional-fields-pro/)
 
 == Installation ==
 
@@ -101,6 +116,40 @@ The conditional fields javascript code is loaded during wp_footer, so a call to 
 2. Defining rules to show/hide groups of input elements in the backend interface
 
 == Changelog ==
+
+= 1.9.7 (2020-07-07) =
+* fix IE11 compatibility
+
+= 1.9.6 (2020-07-04) =
+* PRO: Fixed bug: checkboxes and multiselect validation not working inside repeater
+
+= 1.9.5 (2020-07-01) =
+* PRO: Fixed bug: multistep forms interference with other forms after calling wpcf7cf.initForm()
+* PRO: Fixed bug: function operator no longer working.
+
+= 1.9.4 (2020-06-23) =
+* Fixed bug: JS error when conditonal fields settings where not saved manually by the user.
+
+= 1.9.3 (2020-06-21) =
+* Ignore conditions where group or field name does not exist, instead of throwing an error
+* Get rid of PHP notice related to new settings
+* Something went wrong with SVN commit 1.9.1 and 1.9.2 (so although these version might show up, it's not really a valid version)
+
+= 1.9 (2020-06-21) =
+* Performance improvements
+* Added extra setting: "Conditional Fields UI". If you have a lot of conditions, set this to "Text mode" for better performance in the admin interface.
+* Improved styling on Conditional Fields Settings page
+* Improved [docs](https://conditional-fields-cf7.bdwm.be/)
+* Improved the [form tester](https://conditional-fields-cf7.bdwm.be/form-tester/)
+* PRO: Multistep bug that was causing checkboxes and multiselect to not trigger validation errors
+* PRO: Summary added support for files, checkboxes and multiselect
+* Added test to ensure that normal view entries are always converted to text view correctly
+
+= 1.8.7 (2020-06-01) =
+* PRO: Change auto-update mechanism
+* Some minor JS refactoring
+* Improved on some edge cases with `equals ""` and `not equals ""`
+* Improved test suites.
 
 = 1.8.6 (2020-04-18) =
 * Fixed: accidentally packed the entire jQuery library in scripts.js
@@ -399,5 +448,6 @@ Fixed bug with exclusive checkboxes (https://wordpress.org/support/topic/groups-
 
 = 0.1 =
 First release
+
 
 

@@ -5,7 +5,7 @@
 
 if (!defined( 'ABSPATH')) exit;
 
-class Expoert_CSV{
+class Export_CSV{
 
     /**
      * Download csv file

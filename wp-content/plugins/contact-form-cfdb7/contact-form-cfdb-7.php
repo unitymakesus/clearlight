@@ -7,7 +7,7 @@ Author: Arshid
 Author URI: http://ciphercoin.com/
 Text Domain: contact-form-cfdb7
 Domain Path: /languages/
-Version: 1.2.4.8
+Version: 1.2.4.9
 */
 
 function cfdb7_create_table(){
@@ -128,7 +128,7 @@ function cfdb7_before_send_mail( $form_tag ) {
                 $form_data[$key] = $tmpD;
             }
             if ( in_array($key, $uploaded_files ) ) {
-                $form_data[$key.'cfdb7_file'] = $time_now.'-'.$d;
+                $form_data[$key.'cfdb7_file'] = $time_now.'-'.basename( $files[ $key ] );
             }
         }
 
@@ -176,7 +176,7 @@ function cfdb7_init(){
 
         do_action( 'cfdb7_admin_init' );
 
-        $csv = new Expoert_CSV();
+        $csv = new Export_CSV();
         if( isset($_REQUEST['csv']) && ( $_REQUEST['csv'] == true ) && isset( $_REQUEST['nonce'] ) ) {
 
             $nonce  = filter_input( INPUT_GET, 'nonce', FILTER_SANITIZE_STRING );

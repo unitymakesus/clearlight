@@ -41,6 +41,7 @@ class Plugin extends Factory
 	private $_gutenbergIntegration;
 	private $_pro7Compatiblity;
 	private $_dynamicTranslations;
+	private $_legacyCloudAPIKeyHandler;
 	private $_spatialFunctionPrefix = '';
 	
 	protected $scriptLoader;
@@ -195,6 +196,7 @@ class Plugin extends Factory
 	public function onInit()
 	{
 		$this->_gdprCompliance = new GDPRCompliance();
+		$this->_legacyCloudAPIKeyHandler = new LegacyCloudAPIKeyHandler();
 	}
 	
 	/**
@@ -282,7 +284,9 @@ class Plugin extends Factory
 			'markerXMLPathURL'		=> Map::getMarkerXMLPathURL(),
 
 			'is_admin'				=> (is_admin() ? 1 : 0),
-			'locale'				=> get_locale()
+			'locale'				=> get_locale(),
+			
+			'isServerIIS'			=> (isset($_SERVER["SERVER_SOFTWARE"]) && preg_match('/microsoft-iis/i', $_SERVER["SERVER_SOFTWARE"]))
 		));
 		
 		if($post)

@@ -15,9 +15,14 @@ jQuery(function($) {
 		
 		this.map = map;
 		this.element = element;
+		this.element.wpgmzaStoreLocator = this;
+		
 		this.state = WPGMZA.StoreLocator.STATE_INITIAL;
 		
 		$(element).find(".wpgmza-not-found-msg").hide();
+		
+		// Address input
+		this.addressInput = WPGMZA.AddressInput.createInstance( $(element).find("input.wpgmza-address")[0], map );
 		
 		// TODO: This will be moved into this module instead of listening to the map event
 		this.map.on("storelocatorgeocodecomplete", function(event) {
@@ -29,6 +34,19 @@ jQuery(function($) {
 			self.map.markerFilter.on("filteringcomplete", function(event) {
 				self.onFilteringComplete(event);
 			});
+			
+		});
+		
+		// Catch enter
+		$(element).on("keypress", "input", function(event) {
+			
+			if(event.which != 13)
+				return;
+			
+			// NB: Legacy compatibilty. Do not merge this into 8.1.0
+			searchLocations(self.map.id);
+			
+			self.onSearch(event);
 			
 		});
 

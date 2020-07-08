@@ -660,6 +660,7 @@ class RestAPI extends Factory
 				$map->updateXMLFile();
 				
 				return $marker;
+				
 				break;
 			
 			case 'DELETE':

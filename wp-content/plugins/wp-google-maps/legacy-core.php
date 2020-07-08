@@ -2748,7 +2748,7 @@ function wpgmza_map_page() {
         update_option("wpgmza_review_nag",time());
     }
 
-    wpgmza_review_nag();    
+    wpgmza_review_nag();
 
     //google_maps_api_key_warning();    
     
