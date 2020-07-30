@@ -83,6 +83,11 @@
             'alt'   => 'National Association of Home Builders',
             'link'  => 'https://www.nahb.org/',
           ],
+          [
+            'src'   => App\asset_path('images/esourcebook.png'),
+            'alt'   => 'eSourceBook',
+            'link'  => 'https://www.esourcebook.net/united-states/kernersville/glass-industry-supplier/clearlight-glass-and-mirror/',
+          ],
         ]
       ])
       <div class="col">
@@ -91,7 +96,12 @@
         </a>
       </div>
     </div>
-
+    <div class="row">
+      <div class="col s12 center-align">
+        <div class="h6 uppercase">{{ __('Find Us On eSourceBook', 'sage') }}</div>
+        <img src="{{ App\asset_path('images/esourcebook-qr.png') }}" alt="" />
+      </div>
+    </div>
     <div class="row">
       <div class="col s12 m4">
         <a href="/wp-content/uploads/2019/09/X190904-Terms-and-Conditions.pdf">Terms &amp; Conditions</a> &nbsp; <a href="{{ get_permalink(get_page_by_path('privacy-policy')) }}">Privacy Policy</a>
