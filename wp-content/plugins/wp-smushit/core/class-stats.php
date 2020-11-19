@@ -81,26 +81,9 @@ class Stats {
 			}
 		);
 
-		// Send Smush stats for PRO members.
-		add_filter( 'wpmudev_api_project_extra_data-912164', array( $this, 'send_smush_stats' ) );
-	}
-
-	/**
-	 * Return global stats.
-	 *
-	 * Stats sent
-	 *  array( 'total_images','bytes', 'human', 'percent')
-	 *
-	 * @return array|bool|mixed
-	 */
-	public function send_smush_stats() {
-		$stats = $this->global_stats();
-
-		$required_stats = array( 'total_images', 'bytes', 'human', 'percent' );
-
-		$stats = is_array( $stats ) ? array_intersect_key( $stats, array_flip( $required_stats ) ) : array();
-
-		return $stats;
+		// Update the media_attachments list.
+		add_action( 'add_attachment', array( $this, 'add_to_media_attachments_list' ) );
+		add_action( 'delete_attachment', array( $this, 'update_lists' ), 12 );
 	}
 
 	/**
@@ -284,6 +267,65 @@ class Stats {
 	}
 
 	/**
+	 * Adds the ID of the smushed image to the media_attachments list.
+	 *
+	 * @since 3.7.1
+	 *
+	 * @param int $id Attachment's ID.
+	 */
+	public function add_to_media_attachments_list( $id ) {
+		$posts = wp_cache_get( 'media_attachments', 'wp-smush' );
+
+		// Return if there's no list to update.
+		if ( ! $posts ) {
+			return;
+		}
+
+		$mime_type = get_post_mime_type( $id );
+		$id_string = strval( $id );
+
+		// Add the ID if the mime type is allowed and the ID isn't in the list already.
+		if ( $mime_type && in_array( $mime_type, Core::$mime_types, true ) && ! in_array( $id_string, $posts, true ) ) {
+			$posts[] = $id_string;
+			wp_cache_set( 'media_attachments', $posts, 'wp-smush' );
+		}
+	}
+
+	/**
+	 * Updates the IDs lists when an attachment is deleted.
+	 *
+	 * @since 3.7.2
+	 *
+	 * @param integer $id Deleted attachment ID.
+	 */
+	public function update_lists( $id ) {
+		$this->remove_from_media_attachments_list( $id );
+		self::remove_from_smushed_list( $id );
+	}
+
+	/**
+	 * Removes the ID of the deleted image from the media_attachments list.
+	 *
+	 * @since 3.7.1
+	 *
+	 * @param int $id Attachment's ID.
+	 */
+	private function remove_from_media_attachments_list( $id ) {
+		$posts = wp_cache_get( 'media_attachments', 'wp-smush' );
+
+		// Return if there's no list to update.
+		if ( ! $posts ) {
+			return;
+		}
+
+		$index = array_search( strval( $id ), $posts, true );
+		if ( false !== $index ) {
+			unset( $posts[ $index ] );
+			wp_cache_set( 'media_attachments', $posts, 'wp-smush' );
+		}
+	}
+
+	/**
 	 * Optimised image IDs.
 	 *
 	 * @param bool $force_update  Force update.
@@ -293,7 +335,6 @@ class Stats {
 	public function get_smushed_attachments( $force_update = false ) {
 		// If not forced to update, try to get from cache.
 		if ( ! $force_update ) {
-			// TODO: This is an issue. If not forcing the update, the cached version is never incremented during image Smush.
 			$smushed_count = wp_cache_get( WP_SMUSH_PREFIX . 'smushed_ids', 'wp-smush' );
 			// Return the cache value if cache is set.
 			if ( false !== $smushed_count && ! empty( $smushed_count ) ) {
@@ -322,6 +363,47 @@ class Stats {
 		wp_cache_set( WP_SMUSH_PREFIX . 'smushed_ids', $posts, 'wp-smush' );
 
 		return $posts;
+	}
+
+	/**
+	 * Adds an ID to the smushed IDs list from the object cache.
+	 *
+	 * @since 3.7.2
+	 *
+	 * @param integer $attachment_id ID of the smushed attachment.
+	 */
+	public static function add_to_smushed_list( $attachment_id ) {
+		$smushed_ids = wp_cache_get( WP_SMUSH_PREFIX . 'smushed_ids', 'wp-smush' );
+
+		if ( ! empty( $smushed_ids ) ) {
+			$attachment_id = strval( $attachment_id );
+
+			if ( ! in_array( $attachment_id, $smushed_ids, true ) ) {
+				$smushed_ids[] = $attachment_id;
+
+				// Set in cache.
+				wp_cache_set( WP_SMUSH_PREFIX . 'smushed_ids', $smushed_ids, 'wp-smush' );
+			}
+		}
+	}
+
+	/**
+	 * Removes an ID from the smushed IDs list from the object cache.
+	 *
+	 * @since 3.7.2
+	 *
+	 * @param integer $attachment_id ID of the smushed attachment.
+	 */
+	public static function remove_from_smushed_list( $attachment_id ) {
+		$smushed_ids = wp_cache_get( WP_SMUSH_PREFIX . 'smushed_ids', 'wp-smush' );
+
+		if ( ! empty( $smushed_ids ) ) {
+			$index = array_search( strval( $attachment_id ), $smushed_ids, true );
+			if ( false !== $index ) {
+				unset( $smushed_ids[ $index ] );
+				wp_cache_set( WP_SMUSH_PREFIX . 'smushed_ids', $smushed_ids, 'wp-smush' );
+			}
+		}
 	}
 
 	/**

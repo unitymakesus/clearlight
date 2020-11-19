@@ -1262,7 +1262,6 @@ body[class*="wp-google-maps"] .ui-slider-handle:hover {
 
 body[class*="wp-google-maps"] input[type="text"],
 body[class*="wp-google-maps"] select {
-  padding: 6px 8px;
   box-shadow: none;
   border: 1px solid #ccc;
   border-radius: 2px;
@@ -1814,7 +1813,7 @@ input[type="date"],
 input:not([type="checkbox"]):not([type="radio"]){
 	border: 1px solid #ddd;
 	box-shadow: none;
-	padding: 4px 9px;
+	
 	border-radius: 2px;
 	transition: border-color .12s ease-in-out;
 	background: #fff;
@@ -2737,4 +2736,12 @@ body.toplevel_page_wp-google-maps-menu .wp-core-ui .button:hover,
     border-color: #01618a !important;
     color: #01618a !important;
     background: #e4e4e4 !important;
+}
+div#wpgmza_autoc_disabled {
+    position: absolute;
+    bottom: 3px;
+    font-size: 0.8em;
+    right: 0;
+    width: 100%;
+    text-align: right;
 }

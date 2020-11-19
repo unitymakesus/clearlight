@@ -223,8 +223,8 @@ jQuery(function($) {
 	 * Removes the specified marker from this map
 	 * @return void
 	 */
-	WPGMZA.GoogleMap.prototype.removeMarker = function(marker)
-	{
+	WPGMZA.GoogleMap.prototype.removeMarker = function(marker) {
+		
 		marker.googleMarker.setMap(null);
 		
 		Parent.prototype.removeMarker.call(this, marker);

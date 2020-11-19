@@ -1,9 +1,9 @@
 === Contact Form 7 Extension For Mailchimp ===
 Contributors: rnzo, chimpmatic
 Donate link: https://bit.ly/2HdTzmO
-Tags: contact form 7, mailchimp, mailchimp tags, mailchimp list, newsletter, chimpmatic
+Tags: contact form 7, mailchimp, mailchimp tags, mailchimp audiences, newsletter, chimpmatic
 Requires at least: 4.9
-Tested up to: 5.4.9
+Tested up to: 5.5.9
 Stable tag: 5.3.1
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
@@ -15,10 +15,10 @@ MailChimp for Wordpress. Simple way to integrate MailChimp mailing lists to Cont
 Wordpress Extension For Mailchimp (Chimpmatic Lite). Integrate Contact Form 7 with [Mailchimp](https://chimpmatic.com). Automatically add form submissions to predetermined lists in Mailchimp, using Mailchimp's latest API. This Extension for Mailchimp supports multiple mailing lists and API Keys.
 
 > <strong>Extension For Mailchimp Support</strong><br>
-> Active support is not always provided for the <a href="https://chimpmatic.com/help/contact-form-7-mailchimp-extension" rel="friend">Contact Form 7 Mailchimp Extension</a> on the WordPress.org forums. One-on-one email support is available to people who email the <a href="https://chimpmatic.com/contact" rel="friend">Mailchimp Extension developer</a>.
+> Active support is not always provided for the <a href="https://chimpmatic.com/help/contact-form-7-mailchimp-extension" rel="friend">Contact Form 7 Mailchimp Extension</a> on the WordPress.org forums. One-on-one LIVE CHAT support is available to users who visit the <a href="https://chimpmatic.com/contact" rel="friend">Mailchimp Extension developer</a>.
 >
 > <strong>Bug Reports</strong><br>
-> Bug reports for the Contact Form 7 Mailchimp Extension are welcome in the <a href="https://chimpmatic.com/help/contact-form-7-mailchimp-extension" rel="friend">Wordpress developers</a> website.
+> Bug reports for the Contact Form 7 Mailchimp Extension are welcome in the <a href="https://chimpmatic.com/contact" rel="friend">Wordpress developers</a> website.
 
 = Key Features =
 
@@ -31,7 +31,7 @@ Wordpress Extension For Mailchimp (Chimpmatic Lite). Integrate Contact Form 7 wi
 * [Single opt-in](https://chimpmatic.com/help/contact-form-7-mailchimp-extension) - no confirmation email send to subscribers
 * [Double opt-in](https://chimpmatic.com/help/contact-form-7-mailchimp-extension) - confirmation email send to subscribers
 * [Opt-in checkbox](https://renzojohnson.com/contributions/contact-form-7-mailchimp-extension/mailchimp-opt-in-checkbox) - add the chance to opt-in/opt-out
-* Latest [Mailchimp API V3](https://chimpmatic.com/help/contact-form-7-mailchimp-extension)
+* Latest [Mailchimp API V3](https://chimpmatic.com)
 * Constantly updated
 
 = Premium Features =
@@ -94,6 +94,9 @@ Do you have questions or issues with Contact Form 7 Mailchimp Extension? Use the
 
 For more information, see [Releases](https://chimpmatic.com/help/contact-form-7-mailchimp-extension).
 
+= 0.5.28 =
+
+* Bug fixes
 
 = 0.5.16 =
 

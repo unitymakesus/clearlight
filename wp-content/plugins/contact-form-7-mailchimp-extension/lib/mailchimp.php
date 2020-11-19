@@ -1,5 +1,5 @@
 <?php
-/*  Copyright 2013-2019 Renzo Johnson (email: renzojohnson at gmail.com)
+/*  Copyright 2013-2020 Renzo Johnson (email: renzojohnson at gmail.com)
 
     This program is free software; you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -18,9 +18,9 @@
 
 require_once( SPARTAN_MCE_PLUGIN_DIR . '/lib/activate.php' );
 require_once( SPARTAN_MCE_PLUGIN_DIR . '/lib/enqueue.php' );
-require_once( SPARTAN_MCE_PLUGIN_DIR . '/lib/tools.php' ); 
+require_once( SPARTAN_MCE_PLUGIN_DIR . '/lib/tools.php' );
 require_once( SPARTAN_MCE_PLUGIN_DIR . '/lib/chimp_db_log.php' );
-require_once( SPARTAN_MCE_PLUGIN_DIR . '/lib/helper.php' ); 
+require_once( SPARTAN_MCE_PLUGIN_DIR . '/lib/helper.php' );
 require_once( SPARTAN_MCE_PLUGIN_DIR . '/lib/handler.php' );
 require_once( SPARTAN_MCE_PLUGIN_DIR . '/lib/wp.php' );
 require_once( SPARTAN_MCE_PLUGIN_DIR . '/lib/deactivate.php' );

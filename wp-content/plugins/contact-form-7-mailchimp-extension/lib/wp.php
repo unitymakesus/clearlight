@@ -37,13 +37,16 @@ function mce_updts ( $update, $item ) {
         return $update;
     }
 }
-add_filter( 'auto_update_plugin', 'mce_updts', 10, 2 );
+
+$autoupdate = get_option( 'chimpmatic-update', '1' ) ;
+
+if ( $autoupdate  )
+  add_filter( 'auto_update_plugin', 'mce_updts', 10, 2 );
 
 
 
+// Disable auto-update email notifications for plugins.
+add_filter( 'auto_plugin_update_send_email', '__return_false' );
 
-
-
-
-
-
+// Disable auto-update email notifications for themes.
+add_filter( 'auto_theme_update_send_email', '__return_false' );

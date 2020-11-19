@@ -46,14 +46,6 @@ class Installer {
 
 		$version = get_site_option( WP_SMUSH_PREFIX . 'version' );
 
-		if ( ! class_exists( '\\Smush\\Core\\Settings' ) ) {
-			/* @noinspection PhpIncludeInspection */
-			require_once WP_SMUSH_DIR . 'core/class-settings.php';
-		}
-
-		Settings::get_instance()->init();
-		$settings = Settings::get_instance()->get();
-
 		// If the version is not saved or if the version is not same as the current version,.
 		if ( ! $version || WP_SMUSH_VERSION !== $version ) {
 			global $wpdb;
@@ -68,10 +60,7 @@ class Installer {
 			if ( $results ) {
 				update_site_option( 'wp-smush-install-type', 'existing' );
 			} else {
-				// Check for existing settings.
-				if ( false !== $settings['auto'] ) {
-					update_site_option( 'wp-smush-install-type', 'existing' );
-				}
+				update_site_option( 'wp-smush-install-type', 'new' );
 			}
 
 			// Create directory smush table.
@@ -105,16 +94,19 @@ class Installer {
 				define( 'WP_SMUSH_UPGRADING', true );
 			}
 
-			if ( version_compare( $version, '3.3.2', '<' ) ) {
-				self::upgrade_3_3_2();
-			}
-
-			if ( version_compare( $version, '3.4.0', '<' ) ) {
-				self::upgrade_3_4();
-			}
-
 			if ( version_compare( $version, '3.6.2', '<' ) ) {
 				self::upgrade_3_6_2();
+			}
+
+			if ( version_compare( $version, '3.7.0', '<' ) ) {
+				self::upgrade_3_7_0();
+			}
+
+			if ( version_compare( $version, '3.7.2', '<' ) ) {
+				// Add the flag to display the release highlights modal.
+				add_site_option( WP_SMUSH_PREFIX . 'show_upgrade_modal', true );
+				// And show the upgrade notice.
+				delete_site_option( WP_SMUSH_PREFIX . 'hide_smush_welcome' );
 			}
 
 			// Create/upgrade directory smush table.
@@ -149,44 +141,32 @@ class Installer {
 	}
 
 	/**
-	 * Show notice on upgrade.
-	 *
-	 * @since 3.3.2
-	 * @deprecated
-	 */
-	private static function upgrade_3_3_2() {
-		$install_type = get_site_option( 'wp-smush-install-type', false );
-		if ( 'existing' === $install_type ) {
-			set_site_transient( 'wp-smush-update-modal', true, 3600 );
-		}
-	}
-
-	/**
-	 * Adds new lazy load iframe setting.
-	 *
-	 * @since 3.4.0
-	 * @deprecated
-	 */
-	private static function upgrade_3_4() {
-		// Add new lazy-load options.
-		$lazy = Settings::get_instance()->get_setting( WP_SMUSH_PREFIX . 'lazy_load' );
-
-		if ( ! $lazy ) {
-			return;
-		}
-
-		$lazy['format']['iframe'] = true;
-
-		Settings::get_instance()->set_setting( WP_SMUSH_PREFIX . 'lazy_load', $lazy );
-	}
-
-	/**
 	 * Upgrade to 3.6.2
 	 *
 	 * @since 3.6.2
+	 * @deprecated
 	 */
 	private static function upgrade_3_6_2() {
 		delete_site_option( WP_SMUSH_PREFIX . 'run_recheck' );
+	}
+
+	/**
+	 * Upgrade to 3.7.0
+	 *
+	 * @since 3.7.0
+	 */
+	private static function upgrade_3_7_0() {
+		// Fix the "None" animation in lazy-load options.
+		$lazy = Settings::get_instance()->get_setting( WP_SMUSH_PREFIX . 'lazy_load' );
+
+		if ( ! $lazy || ! isset( $lazy['animation'] ) || ! isset( $lazy['animation']['selected'] ) ) {
+			return;
+		}
+
+		if ( '0' === $lazy['animation']['selected'] ) {
+			$lazy['animation']['selected'] = 'none';
+			Settings::get_instance()->set_setting( WP_SMUSH_PREFIX . 'lazy_load', $lazy );
+		}
 	}
 
 }

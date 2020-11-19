@@ -5,8 +5,8 @@ Author: Jules Colle
 Website: http://bdwm.be
 Tags: wordpress, contact form 7, forms, conditional fields
 Requires at least: 4.1
-Tested up to: 5.4.2
-Stable tag: 1.9.7
+Tested up to: 5.5
+Stable tag: 1.9.14
 Requires PHP: 5.6
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
@@ -60,7 +60,7 @@ Advanced users can code up the conditions as plain text instead of using the sel
 
 == Need more power? ==
 
-Just like WordPress, the power of Contact Form 7 lies in its rich eco-system of extensions that build on top of it. However, it can be difficult to find a set of complex extensions that work well together.
+Just like WordPress, the power of Contact Form 7 lies in its [rich eco-system of extensions](https://conditional-fields-cf7.bdwm.be/list-of-all-contact-form-7-extensions/) that build on top of it. However, it can be difficult to find a set of complex extensions that work well together.
 
 That's why I created Conditional Fields Pro. It adds some powerful features to Contact form 7 and guarantees that everything will run smoothly with Conditional Fields.
 
@@ -116,6 +116,39 @@ The conditional fields javascript code is loaded during wp_footer, so a call to 
 2. Defining rules to show/hide groups of input elements in the backend interface
 
 == Changelog ==
+
+= 1.9.14 (2020-10-03) =
+* PRO:Repeater: Hide Remove button initially when repeater has min:0
+* PRO:Multistep: Disable Next button while validating step.
+* IE11 compat: Fix classList bug (occured in IE11 if form contained SVG elements)
+
+= 1.9.13 (2020-09-28) =
+* IE11 compatibility: Add Array.from polyfill
+
+= 1.9.12 (2020-09-24) =
+* PRO:Multistep: add new event 'wpcf7cf_step_invalid', triggered after step validation failed. [Example usage](https://conditional-fields-cf7.bdwm.be/multistep-automatically-scroll-to-the-first-invalid-field/)
+* PRO:Multifile: Fix bug where multifle* was not sending attachments
+
+= 1.9.11 (2020-09-07) =
+* PRO:Repeater: Fix bug [group inside repeater not visible when shown by default #64](https://github.com/pwkip/contact-form-7-conditional-fields/issues/64)
+* PRO:Multifile: Add new tag: [multifile]. Allows to upload multiple files at once.
+* PRO:Repeater: Fix bug that occured when removing sub-repeater before the animation of the previous removal was finished.
+* PRO:Repeater: Introduce global JS API function [wpcf7cf.repeaterAddSub](https://conditional-fields-cf7.bdwm.be/docs/javascript-api/wpcf7cf-repeateraddsub/)
+* PRO:Repeater: Introduce global JS API function [wpcf7cf.repeaterAddSubAtIndex](https://conditional-fields-cf7.bdwm.be/docs/javascript-api/wpcf7cf-repeateraddsubatindex/)
+* PRO:Repeater: Introduce global JS API function [wpcf7cf.repeaterRemoveSub](https://conditional-fields-cf7.bdwm.be/docs/javascript-api/wpcf7cf-repeaterremovesub/)
+* PRO:Repeater: Introduce global JS API function [wpcf7cf.repeaterRemoveSubAtIndex](https://conditional-fields-cf7.bdwm.be/docs/javascript-api/wpcf7cf-repeaterremovesubatindex/)
+* PRO:Multistep: Introduce global JS API function [wpcf7cf.multistepMoveToStep](https://conditional-fields-cf7.bdwm.be/docs/javascript-api/multistepmovetostep/)
+* PRO:Multistep: Introduce global JS API function [wpcf7cf.multistepMoveToStepWithValidation](https://conditional-fields-cf7.bdwm.be/docs/javascript-api/multistepmovetostepwithvalidation/)
+
+= 1.9.10 (2020-08-19) =
+* PRO: Fix multistep bug: general error message does not appear if step validation fails
+
+= 1.9.9 (2020-07-29) =
+* Fix bug when saving conditions from Text View
+* Tested with WP 5.5
+
+= 1.9.8 (2020-07-20) =
+* Make sure all posted data is analyzed after submitting (part of) a form. A recent update of CF7 stripped away some information, resulting in PHP Notices.
 
 = 1.9.7 (2020-07-07) =
 * fix IE11 compatibility
@@ -448,6 +481,5 @@ Fixed bug with exclusive checkboxes (https://wordpress.org/support/topic/groups-
 
 = 0.1 =
 First release
-
 
 

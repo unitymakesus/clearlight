@@ -253,6 +253,7 @@ class Plugin extends Factory
 		
 		$result = apply_filters('wpgmza_plugin_get_localized_data', array(
 			'adminurl'				=> admin_url(),
+			'siteHash'				=> md5(site_url()),
 			'ajaxurl' 				=> admin_url('admin-ajax.php'),
 			'pluginDirURL'			=> plugin_dir_url(WPGMZA_FILE),
 			

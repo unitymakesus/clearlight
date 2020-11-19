@@ -1,5 +1,5 @@
 <?php
-/*  Copyright 2013-2019 Renzo Johnson (email: renzojohnson at gmail.com)
+/*  Copyright 2013-2020 Renzo Johnson (email: renzojohnson at gmail.com)
 
     This program is free software; you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -159,8 +159,13 @@ function cf7_mch_tag_replace( $pattern, $subject, $posted_data, $html = false ) 
       return stripslashes( $replaced );
     }
 
-    if ( $special = apply_filters( 'wpcf7_special_mail_tags', '', $matches[1],'' ))
+
+    if ( $special = apply_filters( 'wpcf7_special_mail_tags', '', $matches[1],'','')) {
+
       return $special;
+
+    }
+
 
     return $matches[0];
   }
@@ -178,6 +183,12 @@ function wpcf7_mch_subscribe_remote($obj) {
 
 	if ( $cf7_mch['api-validation'] != 1 )
 		 return ;
+
+  $api   = isset( $cf7_mch['api'] ) ? $cf7_mch['api'] : '';
+  $pos  = strpos($api,"-");
+
+  if ($pos === false )
+      return ;
 
   $submission = WPCF7_Submission::get_instance();
 

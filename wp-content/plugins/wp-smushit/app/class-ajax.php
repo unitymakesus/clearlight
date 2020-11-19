@@ -118,6 +118,9 @@ class Ajax {
 		 * SETTINGS
 		 */
 		add_action( 'wp_ajax_recheck_api_status', array( $this, 'recheck_api_status' ) );
+
+		// Hide the new features modal.
+		add_action( 'wp_ajax_hide_new_features', array( $this, 'hide_new_features_modal' ) );
 	}
 
 	/***************************************
@@ -131,6 +134,16 @@ class Ajax {
 	public function skip_smush_setup() {
 		check_ajax_referer( 'smush_quick_setup' );
 		update_option( 'skip-smush-setup', true );
+		wp_send_json_success();
+	}
+
+	/**
+	 * Hide the new features modal
+	 *
+	 * @since 3.7.0
+	 */
+	public function hide_new_features_modal() {
+		delete_site_option( WP_SMUSH_PREFIX . 'show_upgrade_modal' );
 		wp_send_json_success();
 	}
 
@@ -364,8 +377,6 @@ class Ajax {
 	public function scan_images() {
 		check_ajax_referer( 'save_wp_smush_options', 'wp_smush_options_nonce' );
 
-		wp_cache_delete( 'media_attachments', 'wp-smush' );
-
 		$resmush_list = array();
 
 		// Scanning for NextGen or Media Library.
@@ -390,9 +401,6 @@ class Ajax {
 				)
 			);
 		}
-
-		// If a user manually runs smush check.
-		$return_ui = isset( $_REQUEST['get_ui'] ) && 'true' == $_REQUEST['get_ui'] ? true : false;
 
 		/**
 		 * Logic: If none of the required settings is on, don't need to resmush any of the images
@@ -425,7 +433,7 @@ class Ajax {
 		}
 
 		// Set to empty by default.
-		$ajax_response = '';
+		$content = '';
 
 		// Get Smushed Attachments.
 		if ( 'nextgen' !== $type ) {
@@ -571,6 +579,13 @@ class Ajax {
 			update_option( $key, $resmush_list, false );
 		}
 
+		// Delete resmush list if empty.
+		if ( empty( $resmush_list ) ) {
+			delete_option( $key );
+		}
+
+		$unsmushed_ids = array();
+
 		// Get updated stats for NextGen.
 		if ( 'nextgen' === $type ) {
 			// Reinitialize NextGen stats.
@@ -580,17 +595,30 @@ class Ajax {
 			$image_count         = $core->nextgen->ng_admin->image_count;
 			$smushed_count       = $core->nextgen->ng_admin->smushed_count;
 			$super_smushed_count = $core->nextgen->ng_admin->super_smushed;
+
+			$unsmushed_count = $core->nextgen->ng_admin->remaining_count;
+
+			if ( 0 < $unsmushed_count ) {
+				$raw_unsmushed = $core->nextgen->ng_stats->get_ngg_images( 'unsmushed' );
+				if ( ! empty( $raw_unsmushed ) && is_array( $raw_unsmushed ) ) {
+					$unsmushed_ids = array_keys( $raw_unsmushed );
+				}
+			}
+		} else {
+			$unsmushed_count = $core->remaining_count;
+
+			if ( 0 < $unsmushed_count ) {
+				$unsmushed_ids = array_values( $core->get_unsmushed_attachments() );
+			}
 		}
 
-		// Delete resmush list if empty.
-		if ( empty( $resmush_list ) ) {
-			delete_option( $key );
-		}
+		$resmush_count = count( $resmush_list );
+		$count         = $unsmushed_count + $resmush_count;
 
-		$resmush_count = $count = count( $resmush_list );
-		$count        += 'nextgen' === $type ? $core->nextgen->ng_admin->remaining_count : $core->remaining_count;
-
+		// If a user manually runs smush check.
 		// Return the Remsmush list and UI to be appended to Bulk Smush UI.
+		$return_ui = isset( $_REQUEST['get_ui'] ) && 'true' == $_REQUEST['get_ui'] ? true : false;
+
 		if ( $return_ui ) {
 			if ( 'nextgen' !== $type ) {
 				// Set the variables.
@@ -600,8 +628,10 @@ class Ajax {
 				$core->nextgen->ng_admin->resmush_ids = $resmush_list;
 			}
 
-			if ( $resmush_count ) {
-				$ajax_response = WP_Smush::get_instance()->admin()->bulk_resmush_content( $count );
+			if ( $count ) {
+				ob_start();
+				WP_Smush::get_instance()->admin()->print_pending_bulk_smush_content( $count, $resmush_count, $unsmushed_count );
+				$content = ob_get_clean();
 			}
 		}
 
@@ -624,10 +654,9 @@ class Ajax {
 			}
 		}
 
-		// If there is a Ajax response return it, else return null.
-		$return = ! empty( $ajax_response ) ? array(
+		$return = array(
 			'resmush_ids'        => $resmush_list,
-			'content'            => $ajax_response,
+			'unsmushed'          => $unsmushed_ids,
 			'count_image'        => $image_count,
 			'count_supersmushed' => $super_smushed_count,
 			'count_smushed'      => $smushed_count,
@@ -636,7 +665,11 @@ class Ajax {
 			'size_after'         => $stats['size_after'],
 			'savings_resize'     => ! empty( $stats['savings_resize'] ) ? $stats['savings_resize'] : 0,
 			'savings_conversion' => ! empty( $stats['savings_conversion'] ) ? $stats['savings_conversion'] : 0,
-		) : array();
+		);
+
+		if ( ! empty( $content ) ) {
+			$return['content'] = $content;
+		}
 
 		// Include the count.
 		if ( ! empty( $count ) && $count ) {
@@ -905,6 +938,8 @@ class Ajax {
 		// Check if a resmush request, update the resmush list.
 		if ( ! empty( $_REQUEST['is_bulk_resmush'] ) && 'false' !== $_REQUEST['is_bulk_resmush'] && $_REQUEST['is_bulk_resmush'] ) {
 			$smush->update_resmush_list( $attachment_id );
+		} else {
+			Core::add_to_smushed_list( $attachment_id );
 		}
 
 		// Runs after a image is successfully smushed.

@@ -3,7 +3,7 @@ Contributors: WPGMaps, NickDuncan, CodeCabin_, DylanAuty, PerryRylance
 Donate link: https://www.wpgmaps.com
 Tags: google maps, maps, map, map markers, google map, google maps plugin, wp google maps, wp google map, map plugin, directions, google map plugin, map widget
 Requires at least: 3.5
-Tested up to: 5.4.2
+Tested up to: 5.5
 Requires PHP: 5.3
 Stable tag: trunk
 License: GPLv2
@@ -76,7 +76,6 @@ The [WP Google Maps Pro Version](https://www.wpgmaps.com/purchase-professional-v
 * Add retina-ready map marker icons
 * WordPress Network friendly
 * Get the [WP Google Maps Professional Edition](https://www.wpgmaps.com/purchase-professional-version/) for only $39.99
-
 
 = Translations =
 Get a free copy of the WP Google Maps Pro version in exchange for translating our plugin!
@@ -197,6 +196,9 @@ Try [Nifty Maps](http://www.niftymaps.co) - Comprehensive Map Builder for all we
 
 == Upgrade Notice ==
 
+= 8.0.26 =
+Please update to 8.0.26 or above to ensure you are using the latest security enhancements.
+
 = 7.11.19 =
 Please update to 7.11.18 or above to ensure you are using the latest security enhancements.
 
@@ -209,16 +211,17 @@ Please update your WP Google Maps version to 6.3.14 to ensure you are using the 
 = 6.2.1 =
 Please update your WP Google Maps version to 6.2.1 to ensure you are using the latest security enhancements.
 
-= 6.1.10 =
-Please update WP Google Maps to version 6.1.10 to enable our latest security enhancements.
-
-= 6.1.5 =
-We no longer support timthumb and we have opted to remove it from WP Google Maps. Please update to 6.1.5 to ensure the removal of the timthumb script.
-
-= 6.0.27 =
-Please upgrade your version of WP Google Maps to version 6.0.27 as it includes multiple security improvements.
-
 == Changelog ==
+
+= 8.0.27 - 2020-10-15 - Medium priority =
+* Changes have been made to limit the amount of API calls we process for users using our API key (for new users). For more information please see https://www.wpgmaps.com/documentation/autocomplete-disabled/
+
+= 8.0.26 - 2020-08-25 - High priority =
+* Tested up to WordPress 5.5
+* Patched a vulnerability, thank you WP.org for identifying it!
+* Fixed a bug that stopped markers from being deleted on some WP installations (thank you Gary Boulter!)
+* Fixed a bug where editing a marker would cause a JS error in some instances
+
 
 = 8.0.25 :- 2020-06-12 :- Medium priority =
 * Tested up to WordPress 5.4.2
@@ -1484,6 +1487,10 @@ Please upgrade your version of WP Google Maps to version 6.0.27 as it includes m
 
 
 For more, please view the WP Google Maps site
+
+
+
+
 
 
 

@@ -1,5 +1,5 @@
 <?php
-/*  Copyright 2013-2019 Renzo Johnson (email: renzojohnson at gmail.com)
+/*  Copyright 2013-2020 Renzo Johnson (email: renzojohnson at gmail.com)
 
     This program is free software; you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -15,6 +15,21 @@
     along with this program; if not, write to the Free Software
     Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 */
+
+$mch_tool_autoupdate = get_option( 'chimpmatic-update') ;
+
+if ( $mch_tool_autoupdate === '0' or  $mch_tool_autoupdate ==='1' ) {
+
+    update_option( 'chimpmatic-update', $mch_tool_autoupdate );
+    //var_dump ( 'existe : ' . $mch_tool_autoupdate  ) ;
+} else {
+
+  $deprecated = null;
+  $autoload = 'no';
+  add_option( 'chimpmatic-update', '1', $deprecated, $autoload );
+  $mch_tool_autoupdate = 1;
+}
+
 ?>
 
   <table class="form-table mt0 description">
@@ -80,7 +95,15 @@
         </td>
       </tr>
 
-
+      <tr>
+        <th scope="row">Auto Update</th>
+        <td>
+          <fieldset><legend class="screen-reader-text"><span>Auto Update</span></legend><label for="wpcf7-mailchimp-updates">
+          <input type="checkbox" id="chimpmatic-update" name="chimpmatic-update" value="1"<?php echo ( $mch_tool_autoupdate == '1'  ) ? ' checked="checked"' : ''; ?> />
+          Auto Update Chimpmatic Lite</label>
+          </fieldset>
+        </td>
+      </tr>
 
     </tbody>
   </table>

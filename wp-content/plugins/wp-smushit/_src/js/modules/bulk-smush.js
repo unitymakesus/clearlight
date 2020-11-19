@@ -58,7 +58,7 @@ import Smush from '../smush/smush';
 					return false;
 				}
 
-				$( '.wp-smush-remaining' ).hide();
+				$( '.wp-smush-remaining' ).addClass( 'sui-hidden' );
 
 				// Show loader.
 				progress
@@ -101,6 +101,16 @@ import Smush from '../smush/smush';
 					}
 				} );
 			} );
+
+			/**
+			 * Show upsell on free version and when there are no images to compress.
+			 *
+			 * @since 3.7.2
+			 */
+			const upsellBox = document.getElementById( 'smush-box-bulk-upgrade' );
+			if ( upsellBox ) {
+				upsellBox.classList.remove( 'sui-hidden' );
+			}
 		},
 	};
 

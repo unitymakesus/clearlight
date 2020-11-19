@@ -29,7 +29,7 @@ var wpcf7cf_forms = [];
 window.wpcf7cf_dom = {};
 
 const wpcf7cf_reload_dom = function($form) {
-    wpcf7cf_dom = wpcf7cf.get_simplified_dom_model($form);
+    wpcf7cf_dom = wpcf7cf.get_simplified_dom_model($form[0]);
 }
 
 const wpcf7cf_getFieldsByOriginalName = function(originalName) {
@@ -54,6 +54,84 @@ if (!String.prototype.endsWith) {
 
 // Object.values polyfill
 if (!Object.values) Object.values = o=>Object.keys(o).map(k=>o[k]);
+
+// Array.from polyfill
+if (!Array.from) {
+    Array.from = (function () {
+      var toStr = Object.prototype.toString;
+      var isCallable = function (fn) {
+        return typeof fn === 'function' || toStr.call(fn) === '[object Function]';
+      };
+      var toInteger = function (value) {
+        var number = Number(value);
+        if (isNaN(number)) { return 0; }
+        if (number === 0 || !isFinite(number)) { return number; }
+        return (number > 0 ? 1 : -1) * Math.floor(Math.abs(number));
+      };
+      var maxSafeInteger = Math.pow(2, 53) - 1;
+      var toLength = function (value) {
+        var len = toInteger(value);
+        return Math.min(Math.max(len, 0), maxSafeInteger);
+      };
+  
+      // The length property of the from method is 1.
+      return function from(arrayLike/*, mapFn, thisArg */) {
+        // 1. Let C be the this value.
+        var C = this;
+  
+        // 2. Let items be ToObject(arrayLike).
+        var items = Object(arrayLike);
+  
+        // 3. ReturnIfAbrupt(items).
+        if (arrayLike == null) {
+          throw new TypeError("Array.from requires an array-like object - not null or undefined");
+        }
+  
+        // 4. If mapfn is undefined, then let mapping be false.
+        var mapFn = arguments.length > 1 ? arguments[1] : void undefined;
+        var T;
+        if (typeof mapFn !== 'undefined') {
+          // 5. else
+          // 5. a If IsCallable(mapfn) is false, throw a TypeError exception.
+          if (!isCallable(mapFn)) {
+            throw new TypeError('Array.from: when provided, the second argument must be a function');
+          }
+  
+          // 5. b. If thisArg was supplied, let T be thisArg; else let T be undefined.
+          if (arguments.length > 2) {
+            T = arguments[2];
+          }
+        }
+  
+        // 10. Let lenValue be Get(items, "length").
+        // 11. Let len be ToLength(lenValue).
+        var len = toLength(items.length);
+  
+        // 13. If IsConstructor(C) is true, then
+        // 13. a. Let A be the result of calling the [[Construct]] internal method of C with an argument list containing the single item len.
+        // 14. a. Else, Let A be ArrayCreate(len).
+        var A = isCallable(C) ? Object(new C(len)) : new Array(len);
+  
+        // 16. Let k be 0.
+        var k = 0;
+        // 17. Repeat, while k < len… (also steps a - h)
+        var kValue;
+        while (k < len) {
+          kValue = items[k];
+          if (mapFn) {
+            A[k] = typeof T === 'undefined' ? mapFn(kValue, k) : mapFn.call(T, kValue, k);
+          } else {
+            A[k] = kValue;
+          }
+          k += 1;
+        }
+        // 18. Let putStatus be Put(A, "length", len, true).
+        A.length = len;
+        // 20. Return A.
+        return A;
+      };
+    }());
+  }
 
 var Wpcf7cfForm = function($form) {
 
@@ -198,7 +276,7 @@ Wpcf7cfForm.prototype.displayFields = function() {
         var $group = jQuery(this);
         if ($group.is(':animated')) $group.finish(); // stop any current animations on the group
         if ($group.css('display') === 'none' && !$group.hasClass('wpcf7cf-hidden')) {
-            if ($group.prop('tagName') === 'SPAN') {
+            if ($group.prop('tagName') === 'SPAN' || $group.is(':hidden')) {
                 $group.show().trigger('wpcf7cf_show_group');
             } else {
                 $group.animate(wpcf7cf_show_animation, animation_intime).trigger('wpcf7cf_show_group'); // show
@@ -257,10 +335,9 @@ Wpcf7cfForm.prototype.updateSummaryFields = function() {
 
     // Make sure to add file fields to FormData
     jQuery.each(form.$form.find('input[type="file"]'), function(index, el) {
-        if (! el.files.length) return false;
-        const file = el.files[0];
+        if (! el.files.length) return true; // continue
         const fieldName = el.name;
-        fd.append(fieldName, new Blob() ,file.name);
+        fd.append(fieldName, new Blob() , Array.from(el.files).map(file => file.name).join(', '));
     });
 
     // add file fields to form-data
@@ -289,12 +366,12 @@ Wpcf7cfForm.prototype.updateHiddenFields = function() {
     form.$groups.each(function () {
         var $this = jQuery(this);
         if ($this.hasClass('wpcf7cf-hidden')) {
-            hidden_groups.push($this.data('id'));
+            hidden_groups.push($this.attr('data-id'));
             $this.find('input,select,textarea').each(function () {
                 hidden_fields.push(jQuery(this).attr('name'));
             });
         } else {
-            visible_groups.push($this.data('id'));
+            visible_groups.push($this.attr('data-id'));
         }
     });
 
@@ -331,12 +408,12 @@ Wpcf7cfForm.prototype.updateEventListeners = function() {
     // PRO ONLY
     form.get('.wpcf7cf-togglebutton').off('click.toggle_wpcf7cf').on('click.toggle_wpcf7cf',function() {
         var $this = jQuery(this);
-        if ($this.text() === $this.data('val-1')) {
-            $this.text($this.data('val-2'));
-            $this.val($this.data('val-2'));
+        if ($this.text() === $this.attr('data-val-1')) {
+            $this.text($this.attr('data-val-2'));
+            $this.val($this.attr('data-val-2'));
         } else {
-            $this.text($this.data('val-1'));
-            $this.val($this.data('val-1'));
+            $this.text($this.attr('data-val-1'));
+            $this.val($this.attr('data-val-1'));
         }
     });
     // END PRO ONLY
@@ -352,12 +429,16 @@ function Wpcf7cfRepeater($repeater, form) {
 
     repeater.form = form;
 
+    $repeater.parentRepeaters = Array.from($repeater.parents('.wpcf7cf_repeater').map(function() {
+        return this.getAttribute('data-id');
+    } )).reverse();
+
     $repeater.num_subs = 0;
-    $repeater.id = $repeater.data('id');
-    $repeater.orig_id = $repeater.data('orig_data_id');
-    $repeater.min = typeof( $repeater.data('min')) !== 'undefined' ? parseInt($repeater.data('min')) : 1;
-    $repeater.max = typeof( $repeater.data('max')) !== 'undefined' ? parseInt($repeater.data('max')) : 200;
-    $repeater.initial_subs = typeof( $repeater.data('initial')) !== 'undefined' ? parseInt($repeater.data('initial')) : $repeater.min;
+    $repeater.id = $repeater.attr('data-id');
+    $repeater.orig_id = $repeater.attr('data-orig_data_id');
+    $repeater.min = typeof( $repeater.attr('data-min')) !== 'undefined' ? parseInt($repeater.attr('data-min')) : 1;
+    $repeater.max = typeof( $repeater.attr('data-max')) !== 'undefined' ? parseInt($repeater.attr('data-max')) : 200;
+    $repeater.initial_subs = typeof( $repeater.attr('data-initial')) !== 'undefined' ? parseInt($repeater.attr('data-initial')) : $repeater.min;
     if ($repeater.initial_subs > $repeater.max) $repeater.initial_subs = $repeater.max;
     var $repeater_sub = $repeater.children('.wpcf7cf_repeater_sub').eq(0);
     var $repeater_controls = $repeater.children('.wpcf7cf_repeater_controls').eq(0);
@@ -447,7 +528,8 @@ function Wpcf7cfRepeater($repeater, form) {
 
     jQuery('> .wpcf7cf_repeater_sub',params.$repeater).eq(0).remove(); // remove the first sub, it's just a template.
 
-    repeater.updateSubs($repeater.initial_subs); 
+    repeater.updateSubs($repeater.initial_subs);
+    repeater.updateButtons();
 
 }
 
@@ -464,17 +546,10 @@ Wpcf7cfRepeater.prototype.getNewName = function(previousName) {
     return newName;
 }
 
-
-Wpcf7cfRepeater.prototype.updateSubs = function(subs_to_show) {
-    var repeater = this;
-    var params = repeater.params;
-    var subs_to_add = subs_to_show - params.$repeater.num_subs;
-
-    if (subs_to_add < 0) {
-        repeater.removeSubs(-subs_to_add);
-    } else if (subs_to_add > 0) {
-        repeater.addSubs(subs_to_add);
-    }
+Wpcf7cfRepeater.prototype.updateButtons = function() {
+    const repeater = this;
+    const params = repeater.params;
+    const num_subs = params.$repeater.num_subs;
 
     var showButtonRemove = false;
     var showButtonAdd = false;
@@ -499,46 +574,85 @@ Wpcf7cfRepeater.prototype.updateSubs = function(subs_to_show) {
         params.$button_remove.hide();
     }
 
-    params.$repeater_count_field.val(subs_to_show);
+    params.$repeater_count_field.val(num_subs);
+}
 
+Wpcf7cfRepeater.prototype.updateSubs = function(subs_to_show) {
+    var repeater = this;
+    var params = repeater.params;
+
+    // make sure subs_to_show is a valid number
+    subs_to_show = subs_to_show < params.$repeater.min ? params.$repeater.min : subs_to_show
+    subs_to_show = subs_to_show > params.$repeater.max ? params.$repeater.max : subs_to_show
+
+    var subs_to_add = subs_to_show - params.$repeater.num_subs;
+
+    if (subs_to_add < 0) {
+        repeater.removeSubs(-subs_to_add);
+    } else if (subs_to_add > 0) {
+        repeater.addSubs(subs_to_add);
+    }
 };
-Wpcf7cfRepeater.prototype.addSubs = function(subs_to_add) {
+/**
+ * add Subs to repeater
+ * @param {Number} subs_to_add 
+ * @param {Number} index - zero-based. leave blank (or null) to append at the end
+ */
+Wpcf7cfRepeater.prototype.addSubs = function(subs_to_add, index=null) {
+
     var $ = jQuery;
     var params = this.params;
     var repeater = this;
     var form = repeater.form;
+    
 
-
+    
     var $repeater = params.$repeater; 
     var $repeater_controls = params.$repeater_controls;
 
-    //jQuery(params.repeater_sub_html.replace(/name="(.*?)"/g,'name="wpcf7cf_repeater['+$repeater.id+']['+$repeater.num_subs+'][$1]" data-original-name="$1"')).hide().insertBefore($repeater_controls).animate(wpcf7cf_show_animation, params.wpcf7cf_settings.animation_intime);
-
+    if (subs_to_add + $repeater.num_subs > $repeater.max) {
+        subs_to_add = $repeater.max - $repeater.num_subs;
+    }
+    
     var html_str = '';
 
     for(var i=1; i<=subs_to_add; i++) {
         var sub_suffix = $repeater.num_subs+i;
         html_str += params.repeater_sub_html.replace(/\{\{repeater_sub_suffix\}\}/g,sub_suffix)
-        .replace(new RegExp('\{\{'+$repeater.orig_id+'_index\}\}','g'),sub_suffix);
+        .replace(new RegExp('\{\{'+$repeater.orig_id+'_index\}\}','g'),'<span class="wpcf7cf-index wpcf7cf__'+$repeater.orig_id+'">'+sub_suffix+'</span>');
     }
 
 
     var $html = jQuery(html_str);
 
+    jQuery('> .wpcf7cf_repeater_sub',$repeater).finish(); // finish any currently running animations immediately.
+
     // Add the newly created fields to the form
-    $html.hide().insertBefore($repeater_controls).animate(wpcf7cf_show_animation, params.wpcf7cf_settings.animation_intime).trigger('wpcf7cf_repeater_added');
+    if (index === null) {
+        $html.hide().insertBefore($repeater_controls).animate(wpcf7cf_show_animation, params.wpcf7cf_settings.animation_intime).trigger('wpcf7cf_repeater_added');
+    } else {
+        $html.hide().insertBefore(jQuery('> .wpcf7cf_repeater_sub', $repeater).eq(index)).animate(wpcf7cf_show_animation, params.wpcf7cf_settings.animation_intime).trigger('wpcf7cf_repeater_added');
+    }
+
 
     jQuery('.wpcf7cf_repeater', $html).each(function(){
         form.repeaters.push(new Wpcf7cfRepeater(jQuery(this),form));
     });
+
     form.$input_repeaters.val(JSON.stringify(form.repeaters.map((item)=>item.params.$repeater.id)));
 
     $repeater.num_subs+= subs_to_add;
+
+    if (index !== null) {
+        repeater.updateSuffixes();
+    }
 
     window.wpcf7cf.updateMultistepState(form.multistep);
     form.updateGroups();
     form.updateEventListeners();
     form.displayFields();
+
+    repeater.updateButtons();
 
     // Exclusive Checkbox
     $html.on( 'click', '.wpcf7-exclusive-checkbox input:checkbox', function() {
@@ -553,14 +667,107 @@ Wpcf7cfRepeater.prototype.addSubs = function(subs_to_add) {
 
     return false;
 };
-Wpcf7cfRepeater.prototype.removeSubs = function(num_subs) {
-    var $ = jQuery;
-    var params = this.params;
+
+/** TODO: implement this */
+Wpcf7cfRepeater.prototype.updateSuffixes = function() {
+
+    // Loop trough all subs
+    //  -- 1. update all fields, groups and repeaters names, id's, for's, ...
+    //  -- 2. loop trough all repeaters
+    //        -- update sub_html template for nested repeater
+    //        -- call updateSuffixes() for nested repeater
+
+    var $repeater = this.params.$repeater;
+    var num_subs = this.params.$repeater.num_subs;
     var form = this.form;
+    const orig_id = $repeater.attr('data-orig_data_id');
+    const repeater_id = $repeater.attr('data-id');
+    const repeater_suffix = repeater_id.replace(orig_id,'');
 
-    params.$repeater.num_subs-= num_subs;
+    let simplifiedDomArray = Object.values(wpcf7cf.get_simplified_dom_model(form.$form[0]));
+    
+    for (let i = 0; i < num_subs; i++) {
 
-    jQuery('> .wpcf7cf_repeater_sub',params.$repeater).slice(-num_subs).animate(wpcf7cf_hide_animation, {duration:params.wpcf7cf_settings.animation_intime, done:function() {
+        const $sub = jQuery('> .wpcf7cf_repeater_sub', $repeater).eq(i);
+
+        const newIndex = i+1;
+        const currentSuffix = $sub.attr('data-repeater_sub_suffix');
+        const newSuffix = repeater_suffix+'__'+newIndex;
+
+        $sub.attr('data-repeater_sub_suffix', newSuffix); // update sub attr
+        $sub.find('.wpcf7cf__'+orig_id).html(newIndex); // update {{r_index}} parts
+
+        simplifiedDomArray.forEach(function(el) {
+
+            if (el.suffix !== currentSuffix) return;
+
+            // TODO: may need an extra check to verify that the element is inside the current repeater
+            // (orig_id) . Otherwise problems may occur if there are repeaters on the same level.
+
+            const newName = el.name.replace(currentSuffix, newSuffix);
+
+            const pureElName = el.name.replace('[]','');
+            const pureNewName = newName.replace('[]','');
+
+            jQuery('[name="'+el.name+'"]', $sub).attr('name', newName);
+            jQuery('[id="'+el.name+'"]', $sub).attr('id', newName);
+            jQuery('label[for="'+el.name+'"]', $sub).attr('for', newName);
+            const $nested_repeater = jQuery('[data-id="'+el.name+'"]', $sub);
+            $nested_repeater.attr('data-id', newName);
+            jQuery('.wpcf7-form-control-wrap.'+pureElName,$sub).removeClass(pureElName).addClass(pureNewName);
+
+            if (el.type === 'repeater') {
+                const nested_repeater = form.repeaters.find( function(repeater) {
+                    return repeater.params.$repeater.get(0) === $nested_repeater.get(0);
+                });
+
+                if (!nested_repeater) return;
+
+                nested_repeater.params.repeater_sub_html = wpcf7cf.updateRepeaterSubHTML(
+                    nested_repeater.params.repeater_sub_html,
+                    currentSuffix,
+                    newSuffix,
+                    nested_repeater.params.$repeater.parentRepeaters
+                );
+
+                nested_repeater.updateSuffixes();
+
+            }
+
+        });
+    }
+
+};
+
+/**
+ * Return the parent repeaters, order is not guaranteed.
+ */
+Wpcf7cfRepeater.prototype.getParentRepeaters = function() {
+    const simplifiedDomArray = Object.values(wpcf7cf.get_simplified_dom_model(form.$form[0]));
+    form.repeaters.map(repeater => {
+
+    });
+};
+
+Wpcf7cfRepeater.prototype.removeSubs = function(subs_to_remove, index=null) {
+    var $ = jQuery;
+    var repeater = this;
+    var params = repeater.params;
+    var form = repeater.form;
+    var $repeater = params.$repeater;
+
+    if ($repeater.num_subs - subs_to_remove < $repeater.min) {
+        subs_to_remove = $repeater.num_subs - $repeater.min;
+    }
+
+    if (index===null) {
+        index = $repeater.num_subs-subs_to_remove;
+    }
+    $repeater.num_subs-= subs_to_remove;
+
+    jQuery('> .wpcf7cf_repeater_sub',$repeater).finish(); // finish any currently running animations immediately.
+
+    jQuery('> .wpcf7cf_repeater_sub',$repeater).slice(index,index+subs_to_remove).animate(wpcf7cf_hide_animation, {duration:params.wpcf7cf_settings.animation_intime, done:function() {
         var $this = jQuery(this);
         //remove the actual fields from the form
         $this.remove();
@@ -569,6 +776,12 @@ Wpcf7cfRepeater.prototype.removeSubs = function(num_subs) {
         form.updateGroups();
         form.updateEventListeners();
         form.displayFields();
+
+        repeater.updateButtons();
+
+        if (index !== null) {
+            repeater.updateSuffixes();
+        }
     }});
 
     return false;
@@ -591,12 +804,14 @@ function Wpcf7cfMultistep($multistep, form) {
         multistep.$dots.append(`
             <div class="dot" data-step="${i}">
                 <div class="step-index">${i}</div>
-                <div class="step-title">${multistep.$steps.eq(i-1).data('title')}</div>
+                <div class="step-title">${multistep.$steps.eq(i-1).attr('data-title')}</div>
             </div>
         `);
     }
 
     multistep.$btn_next.on('click.wpcf7cf_step', async function() {
+
+        multistep.$btn_next.addClass('disabled').attr('disabled', true);
         
         var result = await multistep.validateStep(multistep.currentStep);
         if (result === 'success') {
@@ -651,7 +866,7 @@ Wpcf7cfMultistep.prototype.validateStep = function(step_index) {
 
         // Make sure to add file fields to FormData
         jQuery.each($form.find('[data-id="step-'+step_index+'"] input[type="file"]'), function(index, el) {
-            if (! el.files.length) return false;
+            if (! el.files.length) return true; // = continue
             const file = el.files[0];
             const fieldName = el.name;
             fd.append(fieldName, file);
@@ -670,11 +885,13 @@ Wpcf7cfMultistep.prototype.validateStep = function(step_index) {
             contentType: false,
             dataType: 'json',
         }).done(function(json) {
-
+            
             $multistep.find('.wpcf7-form-control-wrap .wpcf7-not-valid-tip').remove();
             $multistep.find('.wpcf7-not-valid').removeClass('wpcf7-not-valid');
             $multistep.find('.wpcf7-response-output').remove();
             $multistep.find('.wpcf7-response-output.wpcf7-validation-errors').removeClass('wpcf7-validation-errors');
+
+            multistep.$btn_next.removeClass('disabled').attr('disabled', false);
 
             if (!json.success) {
                 var checkError = 0;
@@ -701,7 +918,15 @@ Wpcf7cfMultistep.prototype.validateStep = function(step_index) {
 
                 $multistep.parent().find('.wpcf7-response-output').removeClass('wpcf7-display-none').html(json.message);
 
+                wpcf7.setStatus( $form, 'invalid' );
+                multistep.$steps.trigger('wpcf7cf_step_invalid');
+
+                // wpcf7.triggerEvent( data.into, 'invalid', detail );
+
             } else if (json.success) {
+
+                wpcf7.setStatus( $form, 'init' );
+
                 resolve('success');
                 return false;
             }
@@ -759,7 +984,58 @@ Wpcf7cfMultistep.prototype.getFieldsInStep = function(step_index) {
 
 // END PRO ONLY
 
+/**
+ * @global
+ * @namespace wpcf7cf
+ */
 window.wpcf7cf = {
+
+    updateRepeaterSubHTML : function(html, oldSuffix, newSuffix, parentRepeaters) {
+        const oldIndexes = oldSuffix.split('__');
+        oldIndexes.shift(); // remove first empty element
+        const newIndexes = newSuffix.split('__');
+        newIndexes.shift(); // remove first empty element
+
+        let returnHtml = html;
+
+        if (
+            oldIndexes && newIndexes &&
+            oldIndexes.length === parentRepeaters.length &&
+            newIndexes.length === parentRepeaters.length
+        ) {
+
+            const parentRepeatersInfo = parentRepeaters.map((repeaterId, i) => {
+                return {[repeaterId.split('__')[0]]: [oldIndexes[i], newIndexes[i]]};
+            });
+
+            const length = parentRepeatersInfo.length;
+
+            let replacements = oldIndexes.map( (oldIndex, i) => {
+                return [
+                    '__'+oldIndexes.slice(0,length-i).join('__'),
+                    '__'+newIndexes.slice(0,length-i).join('__'),
+                ];
+            });
+
+            
+            for (let i=0; i<length ; i++) {
+                const id = Object.keys(parentRepeatersInfo[i])[0];
+                const find = parentRepeatersInfo[i][id][0];
+                const repl = parentRepeatersInfo[i][id][1];
+                replacements.push([
+                    `<span class="wpcf7cf-index wpcf7cf__${id}">${find}<\\/span>`,
+                    `<span class="wpcf7cf-index wpcf7cf__${id}">${repl}</span>`
+                ]);
+            }
+            
+            replacements.forEach( ([oldSuffix, newSuffix]) => {
+                returnHtml = returnHtml.replace(new RegExp(oldSuffix,'g'), newSuffix);
+            });
+
+        }
+
+        return returnHtml ;
+    },
 
     // keep this for backwards compatibility
     initForm : function($forms) {
@@ -773,6 +1049,18 @@ window.wpcf7cf = {
                 wpcf7cf_forms.push(new Wpcf7cfForm($form));
             }
         });
+    },
+
+    getWpcf7cfForm : function ($form) {
+        const matched_forms = wpcf7cf_forms.filter((form)=>{
+            const f1 =  form.$form.get(0);
+            const f2 =  $form.get(0);
+            return form.$form.get(0) === $form.get(0);
+        });
+        if (matched_forms.length) {
+            return matched_forms[0];
+        }
+        return false;
     },
 
     get_nested_conditions : function(conditions, $current_form) {
@@ -808,48 +1096,54 @@ window.wpcf7cf = {
         return sub_conditions;
     },
 
-    get_simplified_dom_model : function($current_form) {
+    get_simplified_dom_model : function(currentNode, simplified_dom = {}, parentGroups = [], parentRepeaters = []) {
 
-        var currentNode;
-        var ni = document.createNodeIterator($current_form[0], NodeFilter.SHOW_ELEMENT, null, false); //, NodeFilter.SHOW_ELEMENT, function(){ return NodeFilter.FILTER_ACCEPT; }
+        const type = currentNode.classList && currentNode.classList.contains('wpcf7cf_repeater') ? 'repeater' :
+            currentNode.dataset.class == 'wpcf7cf_group' ? 'group' :
+            currentNode.className == 'wpcf7cf_step' ? 'step' :
+            currentNode.hasAttribute('name') ? 'input' : false;
 
-        var simplified_dom = {};
+        let newParentRepeaters = [...parentRepeaters];
+        let newParentGroups = [...parentGroups];
 
-        while(currentNode = ni.nextNode()) {
+        if (type) {
 
-            const type = currentNode.classList.contains('wpcf7cf_repeater') ? 'repeater' :
-                         currentNode.dataset.class == 'wpcf7cf_group' ? 'group' :
-                         currentNode.className == 'wpcf7cf_step' ? 'step' :
-                         currentNode.hasAttribute('name') ? 'input' : false;
-
-            if (!type) {
-                continue;
-            } 
-
+            
             const name = type === 'input' ? currentNode.getAttribute('name') : currentNode.dataset.id;
-
-            // skip _wpcf7 hidden fields
-            if (name.substring(0,6) === '_wpcf7') continue;
-
-            const original_name = type === 'repeater' || type === 'group' ? currentNode.dataset.orig_data_id
-                                  : type === 'input' ? (currentNode.getAttribute('data-orig_name') || name)
-                                  : name;
-
-            const val = type === 'step' ? [currentNode.dataset.id.substring(5)] : [];
-
-            const original_name_length = original_name == null ? name.length : original_name.length;
-            const suffix = name.substring(original_name_length);
-
-            if (!simplified_dom[name]) {
-                // init entry
-                simplified_dom[name] = {name, type, original_name, suffix, val}
+            
+            if (type === 'repeater') {
+                newParentRepeaters.push(name);
+            }
+            if (type === 'group') {
+                newParentGroups.push(name);
             }
 
+            // skip _wpcf7 hidden fields
+            if (name.substring(0,6) === '_wpcf7') return {}; 
+    
+            const original_name = type === 'repeater' || type === 'group' ? currentNode.dataset.orig_data_id
+                                    : type === 'input' ? (currentNode.getAttribute('data-orig_name') || name)
+                                    : name;
+    
+            const nameWithoutBrackets = name.replace('[]','');
+            const originalNameWithoutBrackets = original_name.replace('[]','');
+    
+            const val = type === 'step' ? [currentNode.dataset.id.substring(5)] : [];
+    
+            const parentGroup = 'parent-group';
+    
+            const suffix = nameWithoutBrackets.replace(originalNameWithoutBrackets, '');
+    
+            if (!simplified_dom[name]) {
+                // init entry
+                simplified_dom[name] = {name, type, original_name, suffix, val, parentGroups, parentRepeaters}
+            }
+    
             if (type === 'input') {
-
+    
                 // skip unchecked checkboxes and radiobuttons
-                if ( (currentNode.type === 'checkbox' || currentNode.type === 'radio') && !currentNode.checked ) continue;
-
+                if ( (currentNode.type === 'checkbox' || currentNode.type === 'radio') && !currentNode.checked ) return {};
+    
                 // if multiselect, make sure to add all the values
                 if ( currentNode.multiple && currentNode.options ) {
                     simplified_dom[name].val = Object.values(currentNode.options).filter(o => o.selected).map(o => o.value)
@@ -857,8 +1151,12 @@ window.wpcf7cf = {
                     simplified_dom[name].val.push(currentNode.value);
                 }
             }
-
         }
+        
+        Array.from(currentNode.children).forEach(childNode => {
+            const dom = wpcf7cf.get_simplified_dom_model(childNode, simplified_dom, newParentGroups, newParentRepeaters);
+            simplified_dom = {...dom, ...simplified_dom} ;
+        });
 
         return simplified_dom;
     },
@@ -945,6 +1243,7 @@ window.wpcf7cf = {
         return show_group;
 
     },
+
     isConditionTrue(values, operator, testValue='', $field=jQuery()) {
 
         if (!Array.isArray(values)) {
@@ -1038,7 +1337,116 @@ window.wpcf7cf = {
 
         return condition_ok;
 
-    }
+    },
+
+    getFormObj($form) {
+        if (typeof $form === 'string') {
+            $form = jQuery($form).eq(0);
+        }
+        return wpcf7cf.getWpcf7cfForm($form);
+    },
+
+    getRepeaterObj($form, repeaterDataId) {
+        const form = wpcf7cf.getFormObj($form);
+        const repeater = form.repeaters.find( repeater => repeater.params.$repeater.attr('data-id') === repeaterDataId );
+
+        return repeater;
+
+    },
+
+    getMultiStepObj($form){
+        const form = wpcf7cf.getFormObj($form);
+        return form.multistep;
+    },
+
+    /**
+     * Append a new sub-entry to the repeater with the name `repeaterDataId` inside the form `$form`
+     * @memberof wpcf7cf
+     * @function wpcf7cf.repeaterAddSub
+     * @link
+     * @param {String|JQuery} $form - JQuery object or css-selector representing the form
+     * @param {String} repeaterDataId - *data-id* attribute of the repeater. Normally this is simply the name of the repeater. However, in case of a nested repeater you need to append the name with the correct suffix. For example `my-nested-repeater__1__3`. Hint (check the `data-id` attribute in the HTML code to find the correct suffix)
+     */
+    repeaterAddSub($form,repeaterDataId) {
+        const repeater = wpcf7cf.getRepeaterObj($form, repeaterDataId);
+        repeater.updateSubs(repeater.params.$repeater.num_subs+1);
+    },
+
+    /**
+     * Insert a new sub-entry at the given `index` of the repeater with the name `repeaterDataId` inside the form `$form`
+     * @memberof wpcf7cf
+     * @param {String|JQuery} $form - JQuery object or css-selector representing the form
+     * @param {String} repeaterDataId - *data-id* attribute of the repeater.
+     * @param {Number} index - position where to insert the new sub-entry within the repeater
+     */
+    repeaterAddSubAtIndex($form,repeaterDataId,index) {
+        const repeater = wpcf7cf.getRepeaterObj($form, repeaterDataId);
+        repeater.addSubs(1, index);
+    },
+
+    /**
+     * Remove the sub-entry at the given `index` of the repeater with the *data-id* attribute of `repeaterDataId` inside the form `$form`
+     * @memberof wpcf7cf
+     * @param {String|JQuery} $form - JQuery object or css-selector representing the form
+     * @param {String} repeaterDataId - *data-id* attribute of the repeater.
+     * @param {Number} index - position where to insert the new sub-entry within the repeater
+     */
+    repeaterRemoveSubAtIndex($form,repeaterDataId,index) {
+        const repeater = wpcf7cf.getRepeaterObj($form, repeaterDataId);
+        repeater.removeSubs(1, index);
+    },
+
+    /**
+     * Remove the last sub-entry from the repeater with the *data-id* attribute of `repeaterDataId` inside the form `$form`
+     * @memberof wpcf7cf
+     * @param {String|JQuery} $form - JQuery object or css-selector representing the form
+     * @param {String} repeaterDataId - *data-id* attribute of the repeater.
+     * @param {Number} index - position where to insert the new sub-entry within the repeater
+     */ 
+    repeaterRemoveSub($form,repeaterDataId) {
+        const repeater = wpcf7cf.getRepeaterObj($form, repeaterDataId);
+        repeater.updateSubs(repeater.params.$repeater.num_subs-1);
+    },
+
+    /**
+     * Set the number of subs for the repeater with the *data-id* attribute of `repeaterDataId` inside the form `$form`.
+     * Subs are either appended to or removed from the end of the repeater.
+     * @memberof wpcf7cf
+     * @param {String|JQuery} $form - JQuery object or css-selector representing the form
+     * @param {String} repeaterDataId - *data-id* attribute of the repeater.
+     * @param {Number} numberOfSubs - position where to insert the new sub-entry within the repeater
+     */ 
+    repeaterSetNumberOfSubs($form, repeaterDataId, numberOfSubs) {
+        const repeater = wpcf7cf.getRepeaterObj($form, repeaterDataId);
+        repeater.updateSubs(numberOfSubs);
+    },
+
+    /**
+     * Move to step number `step`, ignoring any validation.
+     * @memberof wpcf7cf
+     * @param {String|JQuery} $form - JQuery object or css-selector representing the form
+     * @param {*} step 
+     */
+    multistepMoveToStep($form, step) {
+        const multistep = wpcf7cf.getMultiStepObj($form);
+        multistep.moveToStep(step); 
+    },
+
+    /**
+     * Validate the current step, and move to step number `step` if validation passes.
+     * @memberof wpcf7cf
+     * @param {String|JQuery} $form - JQuery object or css-selector representing the form
+     * @param {Number} step 
+     */
+    async multistepMoveToStepWithValidation($form, step) {
+        const multistep = wpcf7cf.getMultiStepObj($form);
+
+        var result = await multistep.validateStep(multistep.currentStep);
+        if (result === 'success') {
+            multistep.moveToStep(step); 
+        }
+    },
+
 
 };
 
@@ -1062,4 +1470,3 @@ jQuery.fn.wpcf7ExclusiveCheckbox = function() {
         jQuery(this).closest('form').find('input:checkbox[name="' + name + '"]').not(this).prop('checked', false).eq(0).change();
     });
 };
-

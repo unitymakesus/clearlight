@@ -92,8 +92,7 @@ jQuery(function($) {
 		return $.extend(data, params);
 	}
 	
-	WPGMZA.DataTable.prototype.onDataTableAjaxRequest = function(data, callback, settings)
-	{
+	WPGMZA.DataTable.prototype.onDataTableAjaxRequest = function(data, callback, settings) {
 		var self = this;
 		var element = this.element;
 		var route = $(element).attr("data-wpgmza-rest-api-route");
@@ -126,6 +125,8 @@ jQuery(function($) {
 			}
 		};
 		
+console.log(options);
+
 		return WPGMZA.restAPI.call(route, options);
 	}
 	

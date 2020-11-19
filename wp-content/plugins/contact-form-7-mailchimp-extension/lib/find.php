@@ -1,5 +1,5 @@
 <?php
-/*  Copyright 2013-2019 Renzo Johnson (email: renzojohnson at gmail.com)
+/*  Copyright 2013-2020 Renzo Johnson (email: renzojohnson at gmail.com)
 
     This program is free software; you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -23,6 +23,29 @@ add_action( 'wp_ajax_no_priv_chimpmatic_logreset',  'chimpmatic_logreset' );
 
 add_action( 'wp_ajax_chimpmatic_logload',  'chimpmatic_logload' );
 add_action( 'wp_ajax_no_priv_chimpmatic_logload',  'chimpmatic_logload' );
+
+add_action( 'wp_ajax_wpcf7_mch_set_autoupdate',  'wpcf7_mch_set_autoupdate' );
+add_action( 'wp_ajax_no_wpcf7_mch_set_autoupdate',  'wpcf7_mch_set_autoupdate' );
+
+
+
+function wpcf7_mch_set_autoupdate() {
+  global $wpdb;
+
+  $valuecheck = isset( $_POST['valcheck'] ) ? $_POST['valcheck'] : 0 ;
+
+  if ( get_option( 'chimpmatic-update' ) !== false ) {
+        update_option( 'chimpmatic-update', $valuecheck );
+
+    } else {
+      $deprecated = null;
+      $autoload = 'no';
+      add_option( 'chimpmatic-update', $valuecheck, $deprecated, $autoload );
+    }
+
+  wp_die();
+}
+
 
 
 function get_log_array () {
