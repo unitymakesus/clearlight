@@ -61,7 +61,7 @@
           [
             'src'   => App\asset_path('images/homebuilders.png'),
             'alt'   => 'Home Builders Association of Winston Salem',
-            'link'  => 'http://hbaws.net/',
+            'link'  => 'https://hbaws.net/',
           ],
           [
             'src'   => App\asset_path('images/nc.png'),
@@ -91,7 +91,7 @@
         ]
       ])
       <div class="col">
-        <a href="http://www.bbb.org/northwestern-north-carolina/business-reviews/glass-beveled-carved-ornamental/clearlight-glass-mirror-inc-in-kernersville-nc-152800337/#bbbonlineclick" target="_blank" rel="noopener">
+        <a href="https://www.bbb.org/us/nc/kernersville/profile/beveled-glass/clearlight-glass-mirror-inc-0503-152800337" target="_blank" rel="noopener">
           <img alt="Better Business Bureau Review" src="http://seal-nwnc.bbb.org/seals/blue-seal-200-42-clearlight-glass-mirror-inc-152800337.png" />
         </a>
       </div>
