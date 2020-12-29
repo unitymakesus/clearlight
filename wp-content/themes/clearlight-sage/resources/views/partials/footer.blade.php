@@ -88,6 +88,11 @@
             'alt'   => 'eSourceBook',
             'link'  => 'https://www.esourcebook.net/united-states/kernersville/glass-industry-supplier/clearlight-glass-and-mirror/',
           ],
+          [
+            'src'   => App\asset_path('images/sgcc-glass-blue.png'),
+            'alt'   => 'The Safety Glazing Certifiation Council',
+            'link'  => 'https://www.sgcc.org/',
+          ],
         ]
       ])
       <div class="col">
