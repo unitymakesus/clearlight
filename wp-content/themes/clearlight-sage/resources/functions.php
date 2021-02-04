@@ -108,8 +108,13 @@ add_action( 'pre_get_posts', function($query){
   }
 });
 
+/**
+ * Update path of SVGs for Blade helper.
+ *
+ * @return array
+ */
 add_filter('bladesvg', function () {
     return [
-        'svg_path' => __DIR__ . '/svg',
+        'svg_path' => get_stylesheet_directory() . '/svg',
     ];
 });
