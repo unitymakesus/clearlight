@@ -7,7 +7,7 @@
           <h2>Ready to get started?</h2>
           <p class="size-medium">Contact us today to discover how we can make the perfect piece for your project.</p>
         </div>
-        <div class="row s12 m5 l4 offset-l1 valign-wrapper align-center ">
+        <div class="col s12 m5 l4 offset-l1 valign-wrapper">
           <a href="{{ get_permalink(get_page_by_path('request-a-quote')) }}" class="btn-large">Request a Custom Glass Quote</a>
         </div>
       </div>
@@ -27,7 +27,7 @@
               'link'  => 'https://www.esourcebook.net/united-states/kernersville/glass-industry-supplier/clearlight-glass-and-mirror/',
             ],
             [
-              'src'   => App\asset_path('images/sgcc-glass-blue.png'),
+              'src'   => App\asset_path('images/sgcc.png'),
               'alt'   => 'The Safety Glazing Certifiation Council',
               'link'  => 'https://www.sgcc.org/',
             ],
