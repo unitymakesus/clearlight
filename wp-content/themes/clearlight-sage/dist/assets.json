@@ -8,6 +8,7 @@
   "images/esourcebook-qr.png": "images/esourcebook-qr_39ad969a.png",
   "images/esourcebook.png": "images/esourcebook_f58aaffe.png",
   "images/etching.jpg": "images/etching_f035e561.jpg",
+  "images/footer-service-area-map.png": "images/footer-service-area-map_862c731a.png",
   "images/gallery.png": "images/gallery_28acb6f1.png",
   "images/gborobuilders.png": "images/gborobuilders_4357bff0.png",
   "images/glass-pattern.jpg": "images/glass-pattern_04a65808.jpg",
@@ -49,9 +50,9 @@
   "vendor/fontawesome-webfont.ttf?v=4.7.0": "vendor/fontawesome-webfont_b06871f2.ttf",
   "vendor/fontawesome-webfont.woff2?v=4.7.0": "vendor/fontawesome-webfont_af7ae505.woff2",
   "vendor/fontawesome-webfont.woff?v=4.7.0": "vendor/fontawesome-webfont_fee66e71.woff",
-  "scripts/customizer.js": "scripts/customizer_bbdbd89b.js",
-  "styles/main.css": "styles/main_bbdbd89b.css",
-  "scripts/main.js": "scripts/main_bbdbd89b.js",
-  "styles/tinymce.css": "styles/tinymce_bbdbd89b.css",
-  "scripts/tinymce.js": "scripts/tinymce_bbdbd89b.js"
+  "scripts/customizer.js": "scripts/customizer_5996a164.js",
+  "styles/main.css": "styles/main_5996a164.css",
+  "scripts/main.js": "scripts/main_5996a164.js",
+  "styles/tinymce.css": "styles/tinymce_5996a164.css",
+  "scripts/tinymce.js": "scripts/tinymce_5996a164.js"
 }

@@ -11,6 +11,16 @@ html {
   position: relative;
 }
 
+.text-bold {
+  font-weight: bold;
+}
+
+@media #{$medium-and-up} {
+  .text-right-l {
+    text-align: right;
+  }
+}
+
 // Background colors
 @each $color_name, $color in ('white':$white, 'frosty-green':$frosty-green, 'dark-green':$dark-green) {
   .background-#{$color_name} {

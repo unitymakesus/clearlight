@@ -1,25 +1,98 @@
 footer {
   @include white-frosty-gradient-down;
-  padding: 3rem 0 1rem;
+   padding: 0 0 1rem;
+
+   @media #{$small-and-down} {
+     text-align: center;
+   }
+
+  p {
+    line-height: 1.5em;
+    margin-top: 0;
+  }
+
+  .footer-logos {
+    background-color: rgb(208, 227, 221);
+    margin-bottom: 2rem;
+
+    .row {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      justify-content: space-around;
+
+      @media #{$large-and-up} {
+        flex-wrap: nowrap;
+      }
+    }
+
+    &__wrap {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      height: 150px;
+      width: 50%;
+      padding: 1rem;
+
+      @media #{$large-and-up} {
+        width: 175px;
+      }
+
+      img {
+        width: calc(150px - 1rem);
+        object-fit: contain;
+      }
+    }
+  }
 
   .fa {
     color: $medium-green;
   }
 
   a {
-    color: $medium-green;
-    text-decoration: underline;
+    color: $dark-green;
+    text-decoration: none;
 
     &:hover, &:active, &:focus {
-      color: $dark-gray;
+      text-decoration: underline;
+    }
+  }
+
+  .contact {
+    margin: 0 auto;
+
+    ul {
+      margin: 0;
+    }
+
+    ul > li {
+      margin-bottom: 2rem;
+    }
+  }
+
+  .copyright {
+    font-size: 0.875rem;
+
+    a {
+      color: inherit;
     }
   }
 
   li {
-    margin-bottom: .5em;
+     margin-top: 0;
   }
 
-  .row:last-child {
+  .logo {
+    background: rgba($frosty-green, .5);
+  }
+
+  .brand-logo {
+    display: inline-block;
+    margin-bottom: 2rem;
+  }
+
+
+  S.row:last-child {
     margin-top: 4em;
     margin-bottom: 0;
     font-size: 12px;
@@ -39,4 +112,5 @@ footer {
       }
     }
   }
-}
+
+ }
