@@ -8,7 +8,7 @@
           <p class="size-medium">Contact us today to discover how we can make the perfect piece for your project.</p>
         </div>
         <div class="row s12 m5 l4 offset-l1 valign-wrapper align-center ">
-          <a href="https://nimb.ws/LGWcYr" class="btn-large">Request a Custom Glass Quote</a>
+          <a href="{{ get_permalink(get_page_by_path('request-a-quote')) }}" class="btn-large">Request a Custom Glass Quote</a>
         </div>
       </div>
     </div>
