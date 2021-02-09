@@ -3,7 +3,7 @@
   <div class="card-panel background-dark-green {{ $card['class'] }}">
     @if ($card['img'])
       <div class="small-icon">
-        {{-- {{ App\svg_image($card['img']) }} --}}
+        {{ App\svg_image($card['img']) }}
       </div>
     @endif
     <h3>{!! $card['title'] !!}</h3>
