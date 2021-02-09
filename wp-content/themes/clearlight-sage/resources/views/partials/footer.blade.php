@@ -88,7 +88,7 @@
       </div>
       <div class="col s12 m6 l3">
         <p>We are consistently delivering to our customers throughout North Carolina, South Carolina, and Virgina.</p>
-        <p>We will work with you to ship your project anywhere you need. Please copntat us to discuss shipping options.</p>
+        <p>We will work with you to ship your project anywhere you need. Please contact us to discuss shipping options.</p>
       </div>
       <div class="col s12 m12 l4">
         <a href="{{ get_permalink(get_page_by_path('about/contact')) }}">
