@@ -98,7 +98,7 @@
     </div>
     <div class="row copyright">
       <div class="col s12 m4">
-        <a href="/wp-content/uploads/2019/09/X190904-Terms-and-Conditions.pdf">Terms &amp; Conditions</a> &nbsp; <a href="{{ get_permalink(get_page_by_path('privacy-policy')) }}">Privacy Policy</a>
+        <a href="/wp-content/uploads/2021/04/X190904-Terms-and-Conditions.pdf">Terms &amp; Conditions</a> &nbsp; <a href="{{ get_permalink(get_page_by_path('privacy-policy')) }}">Privacy Policy</a>
       </div>
       <div class="col s12 m4 center-align">
         &copy; {{ current_time('Y') }} Clearlight Glass &amp; Mirror. All rights reserved.
