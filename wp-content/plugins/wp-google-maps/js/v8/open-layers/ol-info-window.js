@@ -8,11 +8,11 @@ jQuery(function($) {
 	
 	var Parent;
 	
-	WPGMZA.OLInfoWindow = function(mapObject)
+	WPGMZA.OLInfoWindow = function(feature)
 	{
 		var self = this;
 		
-		Parent.call(this, mapObject);
+		Parent.call(this, feature);
 		
 		this.element = $("<div class='wpgmza-infowindow ol-info-window-container ol-info-window-plain'></div>")[0];
 			
@@ -40,39 +40,42 @@ jQuery(function($) {
 	
 	/**
 	 * Opens the info window
-	 * TODO: This should take a mapObject, not an event
+	 * TODO: This should take a feature, not an event
 	 * @return boolean FALSE if the info window should not & will not open, TRUE if it will
 	 */
-	WPGMZA.OLInfoWindow.prototype.open = function(map, mapObject)
+	WPGMZA.OLInfoWindow.prototype.open = function(map, feature)
 	{
 		var self = this;
-		var latLng = mapObject.getPosition();
+		var latLng = feature.getPosition();
 		
-		if(!Parent.prototype.open.call(this, map, mapObject))
+		if(!Parent.prototype.open.call(this, map, feature))
 			return false;
 		
 		// Set parent for events to bubble up
 		this.parent = map;
 		
 		if(this.overlay)
-			this.mapObject.map.olMap.removeOverlay(this.overlay);
+			this.feature.map.olMap.removeOverlay(this.overlay);
 			
 		this.overlay = new ol.Overlay({
 			element: this.element,
-			stopEvent: false
+			stopEvent: true,
+			insertFirst: true
 		});
 		
 		this.overlay.setPosition(ol.proj.fromLonLat([
 			latLng.lng,
 			latLng.lat
 		]));
-		self.mapObject.map.olMap.addOverlay(this.overlay);
+		self.feature.map.olMap.addOverlay(this.overlay);
 		
 		$(this.element).show();
 		
+		this.setContent(this.content);
+		
 		if(WPGMZA.OLMarker.renderMode == WPGMZA.OLMarker.RENDER_MODE_VECTOR_LAYER)
 		{
-			WPGMZA.getImageDimensions(mapObject.getIcon(), function(size) {
+			WPGMZA.getImageDimensions(feature.getIcon(), function(size) {
 				
 				$(self.element).css({left: Math.round(size.width / 2) + "px"});
 				
@@ -95,13 +98,17 @@ jQuery(function($) {
 		
 		this.trigger("infowindowclose");
 		
-		this.mapObject.map.olMap.removeOverlay(this.overlay);
+		this.feature.map.olMap.removeOverlay(this.overlay);
 		this.overlay = null;
 	}
 	
 	WPGMZA.OLInfoWindow.prototype.setContent = function(html)
 	{
-		$(this.element).html("<i class='fa fa-times ol-info-window-close' aria-hidden='true'></i>" + html);
+		Parent.prototype.setContent.call(this, html);
+		
+		this.content = html;
+		var eaBtn = !WPGMZA.isProVersion() ? this.addEditButton() : '';
+		$(this.element).html(eaBtn+"<i class='fa fa-times ol-info-window-close' aria-hidden='true'></i>" + html);
 	}
 	
 	WPGMZA.OLInfoWindow.prototype.setOptions = function(options)
@@ -139,17 +146,17 @@ jQuery(function($) {
 				var height	= $(self.element).height();
 				var offset	= -height * 0.45;
 				
-				self.mapObject.map.animateNudge(0, offset, self.mapObject.getPosition());
+				self.feature.map.animateNudge(0, offset, self.feature.getPosition());
 			}
 			
 			imgs.each(function(index, el) {
 				el.onload = function() {
-					if(++numImagesLoaded == numImages && !inside(self.element, self.mapObject.map.element))
+					if(++numImagesLoaded == numImages && !inside(self.element, self.feature.map.element))
 						panIntoView();
 				}
 			});
 			
-			if(numImages == 0 && !inside(self.element, self.mapObject.map.element))
+			if(numImages == 0 && !inside(self.element, self.feature.map.element))
 				panIntoView();
 		}
 	}

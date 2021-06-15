@@ -1,43 +1,41 @@
 <?php
 
-namespace SovereignStack\SecuritySafe;
+	namespace SovereignStack\SecuritySafe;
 
-// Prevent Direct Access
-if ( ! defined( 'ABSPATH' ) ) { die; }
+	// Prevent Direct Access
+	( defined( 'ABSPATH' ) ) || die;
 
+	/**
+	 * Class PolicyHideWPVersion
+	 * @package SecuritySafe
+	 * @since 1.1.3
+	 */
+	class PolicyHideWPVersion {
 
-/**
- * Class PolicyHideWPVersion
- * @package SecuritySafe
- * @since 1.1.3
- */
-class PolicyHideWPVersion {
+		/**
+		 * PolicyHideWPVersion constructor.
+		 */
+		function __construct() {
 
+			// Remove Version From RSS
+			add_filter( 'the_generator', [ $this, 'rss_version' ] );
 
-    /**
-     * PolicyHideWPVersion constructor.
-     */
-	function __construct(){
+			// Remove Generator Tag in HTML
+			remove_action( 'wp_head', 'wp_generator' );
 
-        // Remove Version From RSS
-        add_filter( 'the_generator', [ $this, 'rss_version' ] );
+		}
 
-        // Remove Generator Tag in HTML
-        remove_action('wp_head', 'wp_generator');
+		/**
+		 * Remove WordPress Version From RSS
+		 *
+		 * @return string
+		 *
+		 * @since  1.1.3
+		 */
+		function rss_version() {
 
-	} // __construct()
+			return '';
 
+		}
 
-    /**
-     * Remove WordPress Version From RSS
-     * @since  1.1.3
-     * @return string
-     */ 
-    function rss_version(){
-
-        return '';
-
-    } // rss_version()
-
-
-} // PolicyHideWPVersion()
+	}

@@ -3,8 +3,8 @@
 	Donate link: https://www.pickplugins.com/item/accordions-html-css3-responsive-accordion-grid-for-wordpress/?ref=dashboard
 	Tags: accordion, tabs, FAQ, WooCommerce FAQ Tab, accordion short-code, accordions widget,  tab
 	Requires at least: 3.8
-	Tested up to: 5.6
-	Stable tag: 2.2.27
+	Tested up to: 5.7
+	Stable tag: 2.2.32
 	License: GPLv2 or later
 	License URI: http://www.gnu.org/licenses/gpl-2.0.html
 
@@ -138,6 +138,23 @@ then paste this shortcode anywhere in your page to display accordions<br />
 
 
 == Changelog ==
+
+	= 2.2.32 =
+    * 2021-04-22 - fix - html output issue fixed
+
+	= 2.2.31 =
+    * 2021-04-22 - fix - escaping issue fixed.
+    * 2021-04-22 - fix - HTML saving issue fixed.
+
+	= 2.2.30 =
+    * 2021-04-21 - fix - sanitization issue fixed
+
+	= 2.2.29 =
+    * 2021-04-16 - fix - minor security issue fixed
+    * 2021-04-16 - remove - removed unnecessary files.
+
+	= 2.2.28 =
+    * 2021-04-13 - fix - security issue fixed
 
 	= 2.2.27 =
     * 2020-10-14 - fix - security issue fixed

@@ -135,7 +135,7 @@ class class_accordions_post_meta{
                 $(document).on('click', '.settings-tabs input[name="accordions_options[view_type]"]', function(){
                     var val = $(this).val();
 
-                    console.log( val );
+                    //console.log( val );
 
                     $('.settings-tabs .tab-navs li').each(function( index ) {
                         data_visible = $( this ).attr('data_visible');
@@ -164,7 +164,7 @@ class class_accordions_post_meta{
         </script>
 
         <div class="settings-tabs vertical">
-            <input class="current_tab" type="hidden" name="accordions_options[current_tab]" value="<?php echo $current_tab; ?>">
+            <input class="current_tab" type="hidden" name="accordions_options[current_tab]" value="<?php echo esc_attr($current_tab); ?>">
             <div class="view-types">
 
                 <?php
@@ -197,7 +197,7 @@ class class_accordions_post_meta{
                     $data_visible = isset($tab['data_visible']) ? $tab['data_visible'] : '';
                     $hidden = isset($tab['hidden']) ? $tab['hidden'] : false;
                     ?>
-                    <li <?php if(!empty($data_visible)):  ?> data_visible="<?php echo $data_visible; ?>" <?php endif; ?> class="tab-nav <?php if($hidden) echo 'hidden';?> <?php if($active) echo 'active';?>" data-id="<?php echo $id; ?>"><?php echo $title; ?></li>
+                    <li <?php if(!empty($data_visible)):  ?> data_visible="<?php echo esc_attr($data_visible); ?>" <?php endif; ?> class="tab-nav <?php if($hidden) echo 'hidden';?> <?php if($active) echo 'active';?>" data-id="<?php echo esc_attr($id); ?>"><?php echo $title; ?></li>
                     <?php
                 }
                 ?>
@@ -209,7 +209,7 @@ class class_accordions_post_meta{
                 $active = $tab['active'];
                 ?>
 
-                <div class="tab-content <?php if($active) echo 'active';?>" id="<?php echo $id; ?>">
+                <div class="tab-content <?php if($active) echo 'active';?>" id="<?php echo esc_attr($id); ?>">
                     <?php
                     do_action('accordions_metabox_content_'.$id, $post_id);
                     ?>
@@ -238,7 +238,7 @@ class class_accordions_post_meta{
         if (!isset($_POST['accordions_nonce_check_value']))
             return $post_id;
 
-        $nonce = $_POST['accordions_nonce_check_value'];
+        $nonce = sanitize_text_field($_POST['accordions_nonce_check_value']);
 
         // Verify that the nonce is valid.
         if (!wp_verify_nonce($nonce, 'accordions_nonce_check'))

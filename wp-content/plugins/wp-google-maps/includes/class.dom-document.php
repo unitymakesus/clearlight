@@ -5,7 +5,20 @@ namespace WPGMZA;
 if(!defined('ABSPATH'))
 	return;
 
-require_once(plugin_dir_path(__FILE__) . 'class.dom-element.php');
+/**
+ * We don't actually need to be callin require once here at all
+ * 
+ * The autoloader works fine, but because it was rebuilt in some ways for PHP8 
+ * 
+ * We will leave it as it, with a conditional PHP8 brach for now
+ * 
+ * Expect this to be removed more fully soon
+*/
+if(version_compare(phpversion(), '8.0', '>=')){
+	require_once(plugin_dir_path(__FILE__) . 'php8/class.dom-element.php');
+} else {
+	require_once(plugin_dir_path(__FILE__) . 'class.dom-element.php');
+}
 
 class DOMDocument extends \DOMDocument
 {
@@ -63,7 +76,6 @@ class DOMDocument extends \DOMDocument
 	{
 		if(!is_string($src))
 			throw new \Exception('Input must be a string');
-		
 		$result = \DOMDocument::load($src, $options);
 		$this->src_file = $src;
 		
@@ -107,7 +119,9 @@ class DOMDocument extends \DOMDocument
 					array('loadPHPFile', "line: $phpLineNumber"), 
 					$message
 				);
-				trigger_error($message, E_USER_WARNING);
+
+				/* Supress error because MO files cause issues which can be ignored */
+				@trigger_error($message, E_USER_WARNING);
 				
 				return;
 			}
@@ -153,8 +167,14 @@ class DOMDocument extends \DOMDocument
 		if(empty($html))
 			throw new \Exception("$src is empty");
 		
-		$html = DOMDocument::convertUTF8ToHTMLEntities($html);
-		$suppress_warnings = !(defined('WP_DEBUG') && WP_DEBUG);
+		$this->src_file		= $src;
+		$html				= DOMDocument::convertUTF8ToHTMLEntities($html);
+		$suppress_warnings	= !(defined('WP_DEBUG') && WP_DEBUG);
+		
+		if(!$suppress_warnings)
+		{
+			$error_handler = set_error_handler(array($this, 'onError'), E_WARNING);
+		}
 		
 		// From PHP 5.4.0 onwards, loadHTML takes 2 arguments
 		if(version_compare(PHP_VERSION, '5.4.0', '>='))
@@ -172,7 +192,8 @@ class DOMDocument extends \DOMDocument
 				$result = $this->loadHTML($html);
 		}
 		
-		$this->src_file = $src;
+		if(!$suppress_warnings)
+			set_error_handler($error_handler);
 		
 		$this->onLoaded();
 		

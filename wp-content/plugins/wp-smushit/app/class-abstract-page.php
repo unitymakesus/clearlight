@@ -42,6 +42,15 @@ abstract class Abstract_Page {
 	protected $meta_boxes = array();
 
 	/**
+	 * Modals to render.
+	 *
+	 * @since 3.8.3
+	 *
+	 * @var array
+	 */
+	protected $modals = array();
+
+	/**
 	 * Submenu tabs.
 	 *
 	 * @var array
@@ -62,7 +71,7 @@ abstract class Abstract_Page {
 	 *
 	 * @var string $upgrade_url
 	 */
-	protected $upgrade_url = 'https://premium.wpmudev.org/project/wp-smush-pro/';
+	protected $upgrade_url = 'https://wpmudev.com/project/wp-smush-pro/';
 
 	/**
 	 * Abstract_Page constructor.
@@ -125,6 +134,9 @@ abstract class Abstract_Page {
 		add_filter( 'admin_body_class', array( $this, 'smush_body_classes' ) );
 		// Filter built-in wpmudev branding script.
 		add_filter( 'wpmudev_whitelabel_plugin_pages', array( $this, 'builtin_wpmudev_branding' ) );
+
+		// Filter query args to remove from the URL.
+		add_filter( 'removable_query_args', array( $this, 'add_removable_query_args' ) );
 	}
 
 	/**
@@ -208,7 +220,7 @@ abstract class Abstract_Page {
 			$this->upgrade_url
 		);
 		?>
-		<div class="notice smush-notice" style="display: none;">
+		<div class="notice smush-notice">
 			<div class="smush-notice-logo">
 				<img
 					src="<?php echo esc_url( WP_SMUSH_URL . 'app/assets/images/incsub-logo.png' ); ?>"
@@ -230,6 +242,25 @@ abstract class Abstract_Page {
 			</div>
 		</div>
 		<?php
+	}
+
+	/**
+	 * Prints the markup for the countdown numbers.
+	 *
+	 * @since 3.7.3
+	 *
+	 * @param int $number Number to print in the markup.
+	 */
+	private function print_black_friday_countdown_number( $number ) {
+		if ( $number < 10 ) {
+			$first  = 0;
+			$second = $number;
+		} else {
+			$second = $number % 10;
+			$first  = ( $number - $second ) / 10;
+		}
+
+		printf( '<div><span>%s</span><span>%s</span></div>', (int) $first, (int) $second );
 	}
 
 	/**
@@ -325,6 +356,19 @@ abstract class Abstract_Page {
 	}
 
 	/**
+	 * Filters the query args to remove from the URL.
+	 *
+	 * @since 3.8.0
+	 *
+	 * @param array $args Removable query args.
+	 * @return array
+	 */
+	public function add_removable_query_args( $args ) {
+		$args[] = 'notice';
+		return $args;
+	}
+
+	/**
 	 * Allows to register meta boxes for the page.
 	 *
 	 * @since 2.9.0
@@ -388,8 +432,7 @@ abstract class Abstract_Page {
 
 		// Load page header.
 		$this->render_page_header();
-		$this->add_update_dialog();
-		$this->show_modals();
+		$this->render_modals();
 		$this->render_inner_content();
 
 		// Nonce field.
@@ -400,95 +443,45 @@ abstract class Abstract_Page {
 	}
 
 	/**
-	 * Show an update dialog.
-	 *
-	 * @since 3.3.2
-	 */
-	private function add_update_dialog() {
-		$show_modal = get_site_transient( 'wp-smush-update-modal' );
-		if ( ! $show_modal ) {
-			return;
-		}
-
-		delete_site_transient( 'wp-smush-update-modal' );
-
-		$this->view( 'resizing-update', array(), 'modals' );
-		?>
-		<script>
-			window.addEventListener('load', function() {
-				SUI.dialogs['resizing-update'].show();
-			});
-		</script>
-		<?php
-	}
-
-	/**
-	 * Show onboarding and new feature dialogs.
+	 * Renders all the modals to be used in the page.
 	 *
 	 * @since 3.7.0
 	 */
-	private function show_modals() {
+	private function render_modals() {
 		$hide_quick_setup = false !== get_option( 'skip-smush-setup' );
 
 		// Show configure screen for only a new installation and for only network admins.
 		if ( ( ! is_multisite() && ! $hide_quick_setup ) || ( is_multisite() && ! is_network_admin() && ! $this->settings->is_network_enabled() && ! $hide_quick_setup ) ) {
-			$this->view( 'onboarding', array(), 'modals' );
-			$this->view( 'checking-files', array(), 'modals' );
+			$this->modals['onboarding']     = array();
+			$this->modals['checking-files'] = array();
 		}
 
-		// Show new pricing modal when it wasn't dismissed and it's free.
-		if ( get_site_option( WP_SMUSH_PREFIX . 'show_upgrade_modal' ) && ! WP_Smush::is_pro() ) {
+		// Show new features modal if the modal wasn't dismissed.
+		if ( get_site_option( WP_SMUSH_PREFIX . 'show_upgrade_modal' ) ) {
 
 			// Display only on single installs and on Network admin for multisites.
 			if ( ( ! is_multisite() && $hide_quick_setup ) || ( is_multisite() && is_network_admin() ) ) {
-				$yearly_url = add_query_arg(
-					array(
-						'coupon'       => 'SMUSH30OFF',
-						'checkout'     => 0,
-						'utm_source'   => 'smush',
-						'utm_medium'   => 'plugin',
-						'utm_campaign' => 'smush_pricingmodal_yearly',
-					),
-					$this->upgrade_url
-				);
+				$cta_url = $this->get_tab_url( 'webp' );
 
-				$monthly_url = add_query_arg(
-					array(
-						'coupon'       => 'SMUSH30OFF',
-						'checkout'     => 0,
-						'utm_source'   => 'smush',
-						'utm_medium'   => 'plugin',
-						'utm_campaign' => 'smush_pricingmodal_monthly',
-					),
-					$this->upgrade_url
-				);
+				// In MU, use the main site URL if the 'webp' tab isn't shown on the Network admin.
+				if ( is_multisite() && empty( $this->tabs['webp'] ) ) {
+					$cta_url = menu_page_url( 'smush', false ) . '&view=webp';
+				}
 
-				$main_cta_url = add_query_arg(
-					array(
-						'coupon'       => 'SMUSH30OFF',
-						'checkout'     => 0,
-						'utm_source'   => 'smush',
-						'utm_medium'   => 'plugin',
-						'utm_campaign' => 'smush_pricingmodal_checkallplansbutton',
-					),
-					$this->upgrade_url
-				);
-
-				$template_args = array(
-					'yearly_url'   => $yearly_url . '#yearly',
-					'monthly_url'  => $monthly_url . '#monthly',
-					'main_cta_url' => $main_cta_url,
-				);
-
-				$this->view( 'updated', $template_args, 'modals' );
-				?>
-				<script>
-					window.addEventListener("load", function(){
-						window.SUI.openModal( 'smush-updated-dialog', 'wpbody-content', undefined, false );
-					});
-				</script>
-				<?php
+				$this->modals['updated'] = array( 'cta_url' => $cta_url );
 			}
+		}
+
+		$screen = get_current_screen();
+		if ( ! empty( $screen ) && ! empty( $screen->base ) && ( 'toplevel_page_smush' === $screen->base || 'toplevel_page_smush-network' === $screen->base ) ) {
+			// Modal for the "Choose Directory" link in the summary box.
+			$this->modals['directory-list']  = array();
+			$this->modals['progress-dialog'] = array();
+		}
+
+		// Render all modals.
+		foreach ( $this->modals as $modal_file => $args ) {
+			$this->view( $modal_file, $args, 'modals' );
 		}
 	}
 
@@ -650,9 +643,9 @@ abstract class Abstract_Page {
 				<?php endif; ?>
 				<?php if ( ! apply_filters( 'wpmudev_branding_hide_doc_link', false ) ) : ?>
 					<?php
-					$doc = 'https://premium.wpmudev.org/docs/wpmu-dev-plugins/smush/';
+					$doc = 'https://wpmudev.com/docs/wpmu-dev-plugins/smush/';
 					if ( WP_Smush::is_pro() ) {
-						$doc = 'https://premium.wpmudev.org/docs/wpmu-dev-plugins/smush/?utm_source=smush&utm_medium=plugin&utm_campaign=smush_pluginlist_docs';
+						$doc = 'https://wpmudev.com/docs/wpmu-dev-plugins/smush/?utm_source=smush&utm_medium=plugin&utm_campaign=smush_pluginlist_docs';
 					}
 					?>
 					<a href="<?php echo esc_url( $doc ); ?>" class="sui-button sui-button-ghost" target="_blank">
@@ -664,9 +657,7 @@ abstract class Abstract_Page {
 
 		<div class="sui-floating-notices">
 			<div role="alert" id="wp-smush-ajax-notice" class="sui-notice" aria-live="assertive"></div>
-			<div role="alert" id="wp-smush-s3support-alert" class="sui-notice" aria-live="assertive"></div>
-			<div role="alert" id="wp-smush-hide-tutorials-notice" class="sui-notice" aria-live="assertive"></div>
-			<?php do_action( 'wp_smush_header_notices' ); ?>
+			<?php do_action( 'wp_smush_header_notices', $this->get_current_tab() ); ?>
 		</div>
 		<?php
 	}
@@ -800,18 +791,25 @@ abstract class Abstract_Page {
 	 * Check if the page should be rendered.
 	 *
 	 * @since 3.2.2
+	 * @since 3.8.0  Added $tab parameter.
+	 *
+	 * @param string $tab  Tab to check for. Use blank for get_current_tab().
 	 *
 	 * @return bool
 	 */
-	public function should_render() {
+	public function should_render( $tab = '' ) {
 		// Render all pages on single site installs.
 		if ( ! is_multisite() ) {
 			return true;
 		}
 
+		if ( empty( $tab ) ) {
+			$tab = $this->get_current_tab();
+		}
+
 		$access = get_site_option( WP_SMUSH_PREFIX . 'networkwide' );
 
-		if ( ! $access || 'directory' === $this->get_current_tab() ) {
+		if ( ! $access || in_array( $tab, array( 'directory', 'webp' ), true ) ) {
 			return is_network_admin() ? true : false;
 		}
 
@@ -820,11 +818,11 @@ abstract class Abstract_Page {
 		}
 
 		if ( is_array( $access ) ) {
-			if ( is_network_admin() && ! in_array( $this->get_current_tab(), $access, true ) ) {
+			if ( is_network_admin() && ! in_array( $tab, $access, true ) ) {
 				return true;
 			}
 
-			if ( ! is_network_admin() && in_array( $this->get_current_tab(), $access, true ) ) {
+			if ( ! is_network_admin() && in_array( $tab, $access, true ) ) {
 				return true;
 			}
 		}

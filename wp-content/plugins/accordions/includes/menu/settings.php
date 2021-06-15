@@ -2,7 +2,7 @@
 if ( ! defined('ABSPATH')) exit;  // if direct access
 
 
-$current_tab = isset($_REQUEST['tab']) ? $_REQUEST['tab'] : 'general';
+$current_tab = isset($_REQUEST['tab']) ? sanitize_text_field($_REQUEST['tab']) : 'general';
 
 $accordions_settings_tab = array();
 
@@ -49,9 +49,9 @@ $accordions_settings = get_option('accordions_settings');
 ?>
 <div class="wrap">
 	<div id="icon-tools" class="icon32"><br></div><h2><?php echo sprintf(__('%s Settings', 'accordions'), accordions_plugin_name)?></h2>
-		<form  method="post" action="<?php echo str_replace( '%7E', '~', $_SERVER['REQUEST_URI']); ?>">
+		<form  method="post" action="<?php echo str_replace( '%7E', '~', esc_url_raw($_SERVER['REQUEST_URI'])); ?>">
 	        <input type="hidden" name="accordions_hidden" value="Y">
-            <input type="hidden" name="tab" value="<?php echo $current_tab; ?>">
+            <input type="hidden" name="tab" value="<?php echo esc_attr($current_tab); ?>">
             <?php
             if(!empty($_POST['accordions_hidden'])){
                 $nonce = sanitize_text_field($_POST['_wpnonce']);
@@ -72,7 +72,7 @@ $accordions_settings = get_option('accordions_settings');
                         $id = $tab['id'];
                         $active = $tab['active'];
                         ?>
-                        <div class="right-panel-content <?php if($active) echo 'active';?> right-panel-content-<?php echo $id; ?>">
+                        <div class="right-panel-content <?php if($active) echo 'active';?> right-panel-content-<?php echo esc_attr($id); ?>">
                             <?php
                             do_action('accordions_settings_tabs_right_panel_'.$id);
                             ?>
@@ -93,7 +93,7 @@ $accordions_settings = get_option('accordions_settings');
                         $is_pro = isset($tab['is_pro']) ? $tab['is_pro'] : false;
                         $pro_text = isset($tab['pro_text']) ? $tab['pro_text'] : '';
                         ?>
-                        <li <?php if(!empty($data_visible)):  ?> data_visible="<?php echo $data_visible; ?>" <?php endif; ?> class="tab-nav <?php if($hidden) echo 'hidden';?> <?php if($active) echo 'active';?>" data-id="<?php echo $id; ?>">
+                        <li <?php if(!empty($data_visible)):  ?> data_visible="<?php echo esc_attr($data_visible); ?>" <?php endif; ?> class="tab-nav <?php if($hidden) echo 'hidden';?> <?php if($active) echo 'active';?>" data-id="<?php echo esc_attr($id); ?>">
                             <?php echo $title; ?>
                             <?php
                             if($is_pro):
@@ -112,7 +112,7 @@ $accordions_settings = get_option('accordions_settings');
                     $title = $tab['title'];
                     $active = $tab['active'];
                     ?>
-                    <div class="tab-content <?php if($active) echo 'active';?>" id="<?php echo $id; ?>">
+                    <div class="tab-content <?php if($active) echo 'active';?>" id="<?php echo esc_attr($id); ?>">
                         <?php
                         do_action('accordions_settings_content_'.$id, $tab);
                         ?>

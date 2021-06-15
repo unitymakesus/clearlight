@@ -30,12 +30,12 @@ function accordions_metabox_content_shortcode($post_id){
         ?>
 
         <div class="copy-to-clipboard">
-            <input type="text" value="[accordions id='<?php echo $post_id;  ?>']"> <span class="copied"><?php echo __('Copied','accordions'); ?></span>
+            <input type="text" value="[accordions id='<?php echo esc_attr($post_id);  ?>']"> <span class="copied"><?php echo __('Copied','accordions'); ?></span>
             <p class="description"><?php echo __('You can use this shortcode under post content','accordions'); ?></p>
         </div>
 
         <div class="copy-to-clipboard">
-            <input type="text" value="[accordions_pplugins id='<?php echo $post_id;  ?>']"> <span class="copied"><?php echo __('Copied','accordions'); ?></span>
+            <input type="text" value="[accordions_pplugins id='<?php echo esc_attr($post_id);  ?>']"> <span class="copied"><?php echo __('Copied','accordions'); ?></span>
             <p class="description"><?php echo __('To avoid conflict with 3rd party shortcode also used same <code>[accordions]</code>You can use this shortcode under post content.','accordions'); ?></p>
         </div>
 
@@ -76,12 +76,12 @@ function accordions_metabox_content_shortcode($post_id){
         ?>
 
         <div class="copy-to-clipboard">
-            <input type="text" value="[accordions_tabs id='<?php echo $post_id;  ?>']"> <span class="copied"><?php echo __('Copied','accordions'); ?></span>
+            <input type="text" value="[accordions_tabs id='<?php echo esc_attr($post_id);  ?>']"> <span class="copied"><?php echo __('Copied','accordions'); ?></span>
             <p class="description"><?php echo __('You can use this shortcode under post content','accordions'); ?></p>
         </div>
 
         <div class="copy-to-clipboard">
-            <input type="text" value="[accordions_tabs_pplugins id='<?php echo $post_id;  ?>']"> <span class="copied"><?php echo __('Copied','accordions'); ?></span>
+            <input type="text" value="[accordions_tabs_pplugins id='<?php echo esc_attr($post_id);  ?>']"> <span class="copied"><?php echo __('Copied','accordions'); ?></span>
             <p class="description"><?php echo __('To avoid conflict with 3rd party shortcode also used same <code>[accordions_tabs]</code>You can use this shortcode under post content','accordions'); ?></p>
         </div>
 
@@ -1329,7 +1329,7 @@ add_action('accordions_post_meta_save','accordions_post_meta_save');
 
 function accordions_post_meta_save($job_id){
 
-    $accordions_options = isset($_POST['accordions_options']) ? stripslashes_deep($_POST['accordions_options']) : '';
+    $accordions_options = isset($_POST['accordions_options']) ? accordions_recursive_sanitize_arr($_POST['accordions_options']) : '';
     update_post_meta($job_id, 'accordions_options', $accordions_options);
 
 

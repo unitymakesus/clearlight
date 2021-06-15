@@ -1,54 +1,51 @@
 <?php
 
-namespace SovereignStack\SecuritySafe;
+	namespace SovereignStack\SecuritySafe;
 
-// Prevent Direct Access
-if ( ! defined( 'ABSPATH' ) ) { die; }
+	// Prevent Direct Access
+	( defined( 'ABSPATH' ) ) || die;
 
+	/**
+	 * Class PolicyHideWPVersionAdmin
+	 * @package SecuritySafe
+	 * @since 1.2.0
+	 */
+	class PolicyHideWPVersionAdmin {
 
-/**
- * Class PolicyHideWPVersionAdmin
- * @package SecuritySafe
- * @since 1.2.0
- */
-class PolicyHideWPVersionAdmin {
+		/**
+		 * PolicyHideWPVersionAdmin constructor.
+		 */
+		function __construct() {
 
+			// Update footer
+			add_action( 'admin_init', [ $this, 'update_footer' ] );
 
-    /**
-     * PolicyHideWPVersionAdmin constructor.
-     */
-	function __construct(){
+		}
 
-        // Update footer
-        add_action( 'admin_init', [ $this, 'update_footer' ] );
+		/**
+		 * Update WordPress Admin Footer Version
+		 * @since  1.2.0
+		 */
+		function update_footer() {
 
-	} // __construct()
+			add_filter( 'admin_footer_text', [ $this, 'custom_footer' ], 11 );
+			add_filter( 'update_footer', '__return_false', 11 );
 
+		}
 
-    /**
-     * Update WordPress Admin Footer Version
-     * @since  1.2.0
-     * @return string
-     */ 
-    function update_footer(){
+		/**
+		 * Set a custom string value for the footer
+		 *
+		 * @return string
+		 *
+		 * @since  1.2.0
+		 */
+		function custom_footer() {
 
-        add_filter( 'admin_footer_text',    [ $this, 'custom_footer' ], 11 );
-        add_filter( 'update_footer',        '__return_false', 11 );
+			// @todo Will add the ability to customize this in the future.
 
-    } // update_footer()
+			return '';
 
-    /**
-     * Set a custom string value for the footer
-     * @since  1.2.0
-     * @return string
-     */ 
-    function custom_footer(){
+		}
 
-        // NOTE: Will add the ability to customize this in the future.
-
-        return '';
-
-    } // remove_footer()
-
-
-} // PolicyHideWPVersionAdmin()
+	}

@@ -96,7 +96,7 @@ function accordions_settings_content_general(){
 
         ?>
 
-        <textarea id="text-val" rows="4"><?php echo $post_data_exported_json; ?></textarea><br/>
+        <textarea id="text-val" rows="4"><?php echo esc_textarea($post_data_exported_json); ?></textarea><br/>
         <input type="button" class="button" id="dwn-btn" value="Download json"/>
 
         <style type="text/css">
@@ -150,7 +150,7 @@ function accordions_settings_content_general(){
         ?>
 
         <input placeholder="json file url" type="text" class="json_file" name="json_file" value="">
-        <div class="accordions-import-json button">Import</div>
+        <div class="accordions-import-json button"><?php echo __('Import', 'accordions'); ?></div>
         <?php
         $html = ob_get_clean();
         $args = array(
@@ -269,7 +269,7 @@ if(!function_exists('accordions_settings_content_help_support')) {
             $actionurl = admin_url().'edit.php?post_type=accordions&page=settings&tab=help_support';
             $actionurl = wp_nonce_url( $actionurl,  'accordions_reset_migration' );
 
-            $nonce = isset($_REQUEST['_wpnonce']) ? $_REQUEST['_wpnonce'] : '';
+            $nonce = isset($_REQUEST['_wpnonce']) ? sanitize_text_field($_REQUEST['_wpnonce']) : '';
 
             if ( wp_verify_nonce( $nonce, 'accordions_reset_migration' )  ){
 
@@ -288,11 +288,11 @@ if(!function_exists('accordions_settings_content_help_support')) {
 
                 ?>
                 <p style="color: #f00;"><i class="fas fa-spin fa-spinner"></i> Migration reset on process, please wait until complete.</p>
-                <p><a href="<?php echo $url; ?>">Refresh</a> to check Migration reset stats</p>
+                <p><a href="<?php echo esc_url_raw($url); ?>">Refresh</a> to check Migration reset stats</p>
 
                 <script>
                     setTimeout(function(){
-                        window.location.href = '<?php echo $url; ?>';
+                        window.location.href = '<?php echo esc_url_raw($url); ?>';
                     }, 1000*20);
 
                 </script>
@@ -314,7 +314,7 @@ if(!function_exists('accordions_settings_content_help_support')) {
             <p class="">Please click the button bellow to reset migration data, you can start over, Please use with caution, your new migrate data will deleted. you can use default <a href="<?php echo admin_url().'export.php'; ?>">export</a> menu to take your wcps, wcps layouts data saved.</p>
             <p>Please <a target="_blank" href="https://www.pickplugins.com/question/accordions-latest-version-data-migration-doesnt-work-here-is-the-solution/"><b>read this</b></a> if you have any issue on data migration</p>
 
-            <p class="reset-migration"><a  class="button  button-primary" href="<?php echo $actionurl; ?>">Reset migration</a> <span style="display: none; color: #f2433f; margin: 0 5px"> Click again to confirm!</span></p>
+            <p class="reset-migration"><a  class="button  button-primary" href="<?php echo esc_url_raw($actionurl); ?>">Reset migration</a> <span style="display: none; color: #f2433f; margin: 0 5px"> Click again to confirm!</span></p>
 
             <script>
                 jQuery(document).ready(function($){
@@ -424,11 +424,11 @@ if(!function_exists('accordions_settings_content_3rd_party_import')) {
             $actionurl = admin_url().'edit.php?post_type=accordions&page=settings&tab=3rd_party_import';
             $actionurl = wp_nonce_url( $actionurl,  '3rd_party_import' );
 
-            $nonce = isset($_REQUEST['_wpnonce']) ? $_REQUEST['_wpnonce'] : '';
+            $nonce = isset($_REQUEST['_wpnonce']) ? sanitize_text_field($_REQUEST['_wpnonce']) : '';
 
             if ( wp_verify_nonce( $nonce, '3rd_party_import' )  ){
 
-                $source = isset($_REQUEST['source']) ? $_REQUEST['source'] : '';
+                $source = isset($_REQUEST['source']) ? sanitize_text_field($_REQUEST['source']) : '';
 
                 $accordions_plugin_info['3rd_party_import'] = 'processing';
                 update_option('accordions_plugin_info', $accordions_plugin_info);
@@ -505,108 +505,95 @@ if(!function_exists('accordions_settings_content_3rd_party_import')) {
 
             <div class="import-source">
                 <div class="item">
-                    <img src="https://ps.w.org/easy-accordion-free/assets/banner-772x250.png?rev=2031404">
                     <div class="">Easy Accordion</span></div>
                     <div class="">By ShapedPlugin</div>
 
-                    <p class=""><a  class="button  button-primary" href="<?php echo $actionurl.'&source=easy-accordion-free'; ?>">Import data</a></p>
+                    <p class=""><a  class="button  button-primary" href="<?php echo esc_url_raw($actionurl).'&source=easy-accordion-free'; ?>">Import data</a></p>
                 </div>
                 <div class="item">
-                    <img src="https://ps.w.org/responsive-accordion-and-collapse/assets/banner-772x250.png?rev=2031404">
                     <div class="">Responsive Accordion And Collapse </div>
                     <div class="">By wpshopmart</div>
 
-                    <p class=""><a  class="button  button-primary" href="<?php echo $actionurl.'&source=responsive-accordion-and-collapse'; ?>">Import data</a></p>
+                    <p class=""><a  class="button  button-primary" href="<?php echo esc_url_raw($actionurl).'&source=responsive-accordion-and-collapse'; ?>">Import data</a></p>
 
                 </div>
 
                 <div class="item">
-                    <img src="https://ps.w.org/tabs-responsive/assets/banner-772x250.png?rev=2031404">
                     <div class="">Tabs Responsive  </div>
                     <div class="">By wpshopmart</div>
 
-                    <p class=""><a  class="button  button-primary" href="<?php echo $actionurl.'&source=tabs-responsive'; ?>">Import data</a></p>
+                    <p class=""><a  class="button  button-primary" href="<?php echo esc_url_raw($actionurl).'&source=tabs-responsive'; ?>">Import data</a></p>
 
                 </div>
 
                 <div class="item">
-                    <img src="https://ps.w.org/responsive-tabs/assets/banner-772x250.png?rev=2031404">
                     <div class="">Responsive Tabs</div>
                     <div class="">By WP Darko</div>
 
-                    <p class=""><a  class="button  button-primary" href="<?php echo $actionurl.'&source=responsive-tabs'; ?>">Import data</a></p>
+                    <p class=""><a  class="button  button-primary" href="<?php echo esc_url_raw($actionurl).'&source=responsive-tabs'; ?>">Import data</a></p>
 
                 </div>
 
                 <div class="item">
-                    <img src="https://ps.w.org/easy-responsive-tabs/assets/banner-772x250.jpg?rev=789170">
                     <div class="">Easy Responsive Tabs </div>
                     <div class="">By oscitas</div>
 
-                    <p class=""><a  class="button  button-primary" href="<?php echo $actionurl.'&source=easy-responsive-tabs'; ?>">Import data</a></p>
+                    <p class=""><a  class="button  button-primary" href="<?php echo esc_url_raw($actionurl).'&source=easy-responsive-tabs'; ?>">Import data</a></p>
 
                 </div>
 
 
                 <div class="item">
-                    <img src="https://ps.w.org/everest-tab-lite/assets/banner-772x250.png?rev=1810732">
                     <div class="">Everest Tab Lite</div>
                     <div class="">By AccessPress Themes</div>
 
-                    <p class=""><a  class="button  button-primary" href="<?php echo $actionurl.'&source=everest-tab-lite'; ?>">Import data</a></p>
+                    <p class=""><a  class="button  button-primary" href="<?php echo esc_url_raw($actionurl).'&source=everest-tab-lite'; ?>">Import data</a></p>
 
                 </div>
 
                 <div class="item">
-                    <img src="https://ps.w.org/quick-and-easy-faqs/assets/banner-772x250.png?rev=2255173">
                     <div class="">Quick and Easy FAQs</div>
                     <div class="">By Inspiry Themes</div>
 
-                    <p class=""><a  class="button  button-primary" href="<?php echo $actionurl.'&source=quick-and-easy-faqs'; ?>">Import data</a></p>
+                    <p class=""><a  class="button  button-primary" href="<?php echo esc_url_raw($actionurl).'&source=quick-and-easy-faqs'; ?>">Import data</a></p>
                 </div>
 
                 <div class="item">
-                    <img src="https://ps.w.org/shortcodes-ultimate/assets/banner-772x250.jpg?rev=1760590">
                     <div class="">Shortcodes Ultimate</div>
                     <div class="">By Vladimir Anokhin</div>
 
-                    <p class=""><a  class="button  button-primary" href="<?php echo $actionurl.'&source=shortcodes-ultimate'; ?>">Import data</a></p>
+                    <p class=""><a  class="button  button-primary" href="<?php echo esc_url_raw($actionurl).'&source=shortcodes-ultimate'; ?>">Import data</a></p>
                 </div>
 
                 <div class="item">
-                    <img src="https://ps.w.org/sp-faq/assets/banner-772x250.png?rev=1988830">
                     <div class="">WP responsive FAQ with category plugin</div>
                     <div class="">By WP OnlineSupport</div>
 
-                    <p class=""><a  class="button  button-primary" href="<?php echo $actionurl.'&source=sp-faq'; ?>">Import data</a></p>
+                    <p class=""><a  class="button  button-primary" href="<?php echo esc_url_raw($actionurl).'&source=sp-faq'; ?>">Import data</a></p>
                 </div>
 
                 <div class="item">
-                    <img src="https://ps.w.org/squelch-tabs-and-accordions-shortcodes/assets/banner-772x250.png?rev=1988830">
                     <div class="">Squelch Tabs and Accordions Shortcodes</div>
                     <div class="">By Matt Lowe</div>
 
-                    <p class=""><a  class="button  button-primary" href="<?php echo $actionurl.'&source=squelch-tabs-and-accordions-shortcodes'; ?>">Import data</a></p>
+                    <p class=""><a  class="button  button-primary" href="<?php echo esc_url_raw($actionurl).'&source=squelch-tabs-and-accordions-shortcodes'; ?>">Import data</a></p>
                 </div>
 
                 <div class="item">
-                    <img src="https://ps.w.org/tabby-responsive-tabs/assets/banner-772x250.jpg?rev=1485141">
                     <div class="">Tabby Responsive Tabs</div>
                     <div class="">By cubecolour</div>
 
-                    <p class=""><a  class="button  button-primary" href="<?php echo $actionurl.'&source=tabby-responsive-tabs'; ?>">Import data</a></p>
+                    <p class=""><a  class="button  button-primary" href="<?php echo esc_url_raw($actionurl).'&source=tabby-responsive-tabs'; ?>">Import data</a></p>
                 </div>
 
                 <div class="item">
-                    <img src="https://ps.w.org/ultimate-faqs/assets/banner-772x250.png?rev=1805913">
                     <div class="">Ultimate FAQ</div>
                     <div class="">By Etoile Web Design</div>
 
-                    <p class=""><a  class="button  button-primary" href="<?php echo $actionurl.'&source=ultimate-faqs'; ?>">Import data</a></p>
+                    <p class=""><a  class="button  button-primary" href="<?php echo esc_url_raw($actionurl).'&source=ultimate-faqs'; ?>">Import data</a></p>
                 </div>
 
 <!--                <div class="item">-->
-<!--                    <img src="https://ps.w.org/tabs-pro/assets/banner-772x250.png?rev=1570543">-->
 <!--                    <div class="">Tab</div>-->
 <!--                    <div class="">By themepoints</div>-->
 <!---->
@@ -617,12 +604,11 @@ if(!function_exists('accordions_settings_content_3rd_party_import')) {
                     <div class="">Accordion Shortcodes</div>
                     <div class="">By Phil Buchanan</div>
 
-                    <p class=""><a  class="button  button-primary" href="<?php echo $actionurl.'&source=accordion-shortcodes'; ?>">Import data</a></p>
+                    <p class=""><a  class="button  button-primary" href="<?php echo esc_url_raw($actionurl).'&source=accordion-shortcodes'; ?>">Import data</a></p>
                 </div>
 
 
 <!--                <div class="item">-->
-<!--                    <img src="https://ps.w.org/wc-shortcodes/assets/banner-772x250.jpg?rev=1585251">-->
 <!--                    <div class="">Shortcodes by Angie Makes</div>-->
 <!--                    <div class="">By Chris Baldelomar</div>-->
 <!---->
@@ -631,46 +617,41 @@ if(!function_exists('accordions_settings_content_3rd_party_import')) {
 
 
                 <div class="item">
-                    <img src="https://ps.w.org/wp-shortcode/assets/banner-772x250.png?rev=865700">
                     <div class="">WP Shortcode</div>
                     <div class="">By MyThemeShop</div>
 
-                    <p class=""><a  class="button  button-primary" href="<?php echo $actionurl.'&source=wp-shortcode'; ?>">Import data</a></p>
+                    <p class=""><a  class="button  button-primary" href="<?php echo esc_url_raw($actionurl).'&source=wp-shortcode'; ?>">Import data</a></p>
                 </div>
 
                 <div class="item">
-                    <img src="https://ps.w.org/arconix-faq/assets/banner-772x250.png?rev=1063597">
                     <div class="">Arconix FAQ</div>
                     <div class="">By Tyche Softwares</div>
 
-                    <p class=""><a  class="button  button-primary" href="<?php echo $actionurl.'&source=arconix-faq'; ?>">Import data</a></p>
+                    <p class=""><a  class="button  button-primary" href="<?php echo esc_url_raw($actionurl).'&source=arconix-faq'; ?>">Import data</a></p>
                 </div>
 
                 <div class="item">
-                    <img src="https://ps.w.org/meks-flexible-shortcodes/assets/banner-772x250.jpg?rev=1927393">
                     <div class="">Meks Flexible Shortcodes</div>
                     <div class="">By Meks</div>
 
-                    <p class=""><a  class="button  button-primary" href="<?php echo $actionurl.'&source=meks-flexible-shortcodes'; ?>">Import data</a></p>
+                    <p class=""><a  class="button  button-primary" href="<?php echo esc_url_raw($actionurl).'&source=meks-flexible-shortcodes'; ?>">Import data</a></p>
                 </div>
 
 
                 <div class="item">
-                    <img src="https://i.imgur.com/B79SCcW.png">
                     <div class="">Tabs Shortcode</div>
                     <div class="">By CTLT</div>
 
-                    <p class=""><a  class="button  button-primary" href="<?php echo $actionurl.'&source=tabs-shortcode'; ?>">Import data</a></p>
+                    <p class=""><a  class="button  button-primary" href="<?php echo esc_url_raw($actionurl).'&source=tabs-shortcode'; ?>">Import data</a></p>
                 </div>
 
 
 
                 <div class="item">
-                    <img src="https://i.imgur.com/LEUcSIV.png">
                     <div class="">Wonder Tabs Trial</div>
                     <div class="">By Magic Hills Pty Ltd</div>
 
-                    <p class=""><a  class="button  button-primary" href="<?php echo $actionurl.'&source=wonderplugin-tabs-trial'; ?>">Import data</a></p>
+                    <p class=""><a  class="button  button-primary" href="<?php echo esc_url_raw($actionurl).'&source=wonderplugin-tabs-trial'; ?>">Import data</a></p>
                 </div>
 
 
@@ -1187,6 +1168,6 @@ add_action('accordions_settings_save', 'accordions_settings_save');
 
 function accordions_settings_save(){
 
-    $accordions_settings = isset($_POST['accordions_settings']) ?  stripslashes_deep($_POST['accordions_settings']) : array();
+    $accordions_settings = isset($_POST['accordions_settings']) ?  accordions_recursive_sanitize_arr($_POST['accordions_settings']) : array();
     update_option('accordions_settings', $accordions_settings);
 }

@@ -9,7 +9,7 @@
                                   supported by Chrome and Opera */
     }
 
-} // no-select
+}
 
 @include no-select();
 
@@ -23,6 +23,6 @@ html {
 
         article { @include no-select(); }
 
-    } // body
+    }
 
-} // html
+}

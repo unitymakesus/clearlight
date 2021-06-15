@@ -26,13 +26,62 @@ class GlobalSettings extends Settings
 		
 		Settings::__construct(GlobalSettings::TABLE_NAME);
 		
-		$this->wpgmza_google_maps_api_key = get_option('wpgmza_google_maps_api_key');
+		if(!empty(get_option('wpgmza_google_maps_api_key')))
+		{
+			$this->wpgmza_google_maps_api_key = get_option('wpgmza_google_maps_api_key');
+		}
 		
 		if(!$legacy_settings_exist && !$settings_exist)
 			$this->install();
 		
+		// Defaults for directories
+		if (empty(get_option("wpgmza_xml_location")))
+		{
+			$upload_dir = wp_upload_dir();
+			add_option("wpgmza_xml_location",'{uploads_dir}/wp-google-maps/');
+		}
+		
+		if(empty(get_option("wpgmza_xml_url")))
+		{
+			$upload_dir = wp_upload_dir();
+			add_option("wpgmza_xml_url",'{uploads_url}/wp-google-maps/');
+		}
+		
+		$this->wpgmza_marker_xml_location	= $this->getXMLCacheDirPath();
+		$this->wpgmza_marker_xml_url		= $this->getXMLCacheDirURL();
+		
 		// Legacy Pro support. Users with older Pro will lose settings 
 		add_filter('pre_update_option_WPGMZA_OTHER_SETTINGS', array($this, 'onPreUpdateLegacySettings'), 10, 2);
+	}
+	
+	public function __set($name, $value)
+	{
+		switch($name)
+		{
+			case "wpgmza_google_maps_api_key":
+				// NB: Legacy support
+				update_option('wpgmza_google_maps_api_key', $value);
+				break;
+				
+			case "wpgmza_marker_xml_location":
+				
+				// NB: Dreadful hack, it seems you can either have slashes constantly doubling up, or no slashes. Suspect fighting with legacy code, no time to fix this now. This should at least stop slashes accumulating on Windows machines.
+				$value = preg_replace("#\\{2,}#", "\\", $value);
+				update_option('wpgmza_xml_location', $value);
+				
+				break;
+			
+			case "wpgmza_marker_xml_url":
+				update_option('wpgmza_xml_url', $value);
+				break;
+				
+			case "wpgmza_maps_engine":
+				// NB: Support difference in names
+				Settings::__set("engine", $value);
+				break;
+		}
+		
+		Settings::__set($name, $value);
 	}
 	
 	public function __get($name)
@@ -78,6 +127,65 @@ class GlobalSettings extends Settings
 		));
 		
 		return $settings;
+	}
+	
+	private function getXMLCacheDirPath()
+	{
+		$file = get_option("wpgmza_xml_location");
+		$content_dir = WP_CONTENT_DIR;
+		$content_dir = trim($content_dir, '/');
+		if (defined('WP_PLUGIN_DIR')) {
+			$plugin_dir = str_replace(wpgmza_get_document_root(), '', WP_PLUGIN_DIR);
+			$plugin_dir = trim($plugin_dir, '/');
+		} else {
+			$plugin_dir = str_replace(wpgmza_get_document_root(), '', WP_CONTENT_DIR . '/plugins');
+			$plugin_dir = trim($plugin_dir, '/');
+		}
+		$upload_dir = wp_upload_dir();
+		$upload_dir = $upload_dir['basedir'];
+		$upload_dir = rtrim($upload_dir, '/');
+		
+		$file = str_replace('{wp_content_dir}', $content_dir, $file);
+		$file = str_replace('{plugins_dir}', $plugin_dir, $file);
+		$file = str_replace('{uploads_dir}', $upload_dir, $file);
+		$file = trim($file);
+		
+		if (empty($file))
+			$file = $upload_dir."/wp-google-maps/";
+		
+		if (substr($file, -1) != "/") { $file = $file."/"; }
+		
+		return $file;
+	}
+	
+	private function getXMLCacheDirURL()
+	{
+		$url = get_option("wpgmza_xml_url");
+		
+		$content_url = content_url();
+		$content_url = trim($content_url, '/');
+		 
+		$plugins_url = plugins_url();
+		$plugins_url = trim($plugins_url, '/');
+		 
+		$upload_url = wp_upload_dir();
+		$upload_url = $upload_url['baseurl'];
+		$upload_url = trim($upload_url, '/');
+
+		$url = str_replace('{wp_content_url}', $content_url, $url);
+		$url = str_replace('{plugins_url}', $plugins_url, $url);
+		$url = str_replace('{uploads_url}', $upload_url, $url);
+		
+		$url = str_replace('{wp_content_dir}', $content_url, $url);
+		$url = str_replace('{plugins_dir}', $plugins_url, $url);
+		$url = str_replace('{uploads_dir}', $upload_url, $url);
+
+		if (empty($url))
+			$url = $upload_url."/wp-google-maps/";
+		
+		if (substr($url, -1) != "/") { $url = $url."/"; }
+
+		return $url;
 	}
 	
 	public function onPreUpdateLegacySettings($new_value, $old_value)

@@ -12,6 +12,12 @@ jQuery(function($) {
 		this.element = $("#wpgmza-theme-panel");
 		this.map = WPGMZA.maps[0];
 		
+		if(WPGMZA.settings.engine == "open-layers")
+		{
+			this.element.remove();
+			return;
+		}
+		
 		if(!this.element.length)
 		{
 			console.warn("No element to initialise theme panel on");
@@ -19,7 +25,7 @@ jQuery(function($) {
 		}
 		
 		$("#wpgmza-theme-presets").owlCarousel({
-			items: 5,
+			items: 6,
 			dots: true
 		});
 		

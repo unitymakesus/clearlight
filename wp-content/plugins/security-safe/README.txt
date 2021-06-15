@@ -3,7 +3,7 @@ Contributors: sovstack, stevenayers63, freemius
 Tags: wp security, security audit, disable XMLRPC, limit-login, logs
 Requires at least: 3.5
 Requires PHP: 5.6
-Tested up to: 5.5.1
+Tested up to: 5.6.2
 Stable tag: trunk
 
 This WordPress security plugin helps you quickly audit, harden, and secure your website.
@@ -12,13 +12,13 @@ This WordPress security plugin helps you quickly audit, harden, and secure your 
 
 ### WP FIREWALL
 * Detects and Logs Threats
-* Add Firewall Rules to Whitelist and Blacklist IP Addresses With Internal Notes
+* Add Firewall Rules to Allow and Deny IP Addresses With Internal Notes
 * Historical Log of Firewall Blocks With Visual Chart
 
 ### WP LOGIN SECURITY
 * Disable XML-RPC.php
 * Brute Force Protection
-* **[Pro]** Import/Export Settings
+* **[Pro]** Automatically Block IPs Based on Threat Score
 * **[Pro]** Priority Support
 
 ### WP PRIVACY
@@ -41,12 +41,14 @@ This WordPress security plugin helps you quickly audit, harden, and secure your 
 * Audit Hosting Software Versions
 * Various Logs and Charts
 * Turn On/Off All Security Policies Easily
+* Import/Export Settings
+
+Every WordPress security plugin becomes more complicated and bloated as more features are added. As a plugin's code grows, it consumes more time to load, thus slowing down your website. WP Security Safe's purpose is to protect your website from the majority of threats with minimal impact on website load time. We constantly test our load performance to ensure our features to ensure it continues to run fast and lean.
 
 > Note: [Upgrade to WP Security Safe Pro](https://checkout.freemius.com/mode/dialog/plugin/2439/plan/3762/) to unlock advanced Pro features.
 
-### WP Security Plugins Are Complicated
-
-Every WordPress security plugin becomes more complicated and bloated as more features are added. As a plugin's code grows, it consumes more time to load, thus slowing down your website. WP Security Safe's purpose is to protect your website from the majority of threats with minimal impact on website load time. We constantly test our load performance to ensure our features to ensure it continues to run fast and lean.
+Twitter: [Follow WP Security Safe](https://twitter.com/wpSecuritySafe/)
+Website: [WP Security Safe](https://wpsecuritysafe.com)
 
 ### LANGUAGE SUPPORT
 
@@ -64,11 +66,6 @@ https://player.vimeo.com/video/360060065
 2. Login Attempts
 3. Firewall Blocks
 
-### Follow Us: 
-
-Twitter: [Follow WP Security Safe](https://twitter.com/wpSecuritySafe/)
-Website: [WP Security Safe](https://wpsecuritysafe.com)
-
 == Installation ==
 
 1. Install WP Security Safe automatically or by uploading the ZIP file to your plugins folder. 
@@ -80,17 +77,46 @@ Website: [WP Security Safe](https://wpsecuritysafe.com)
 
 == Changelog ==
 
+= 2.4.1 (Low Priority) =
+*Release Date - 04 March 2021*
+* Bug Fix: Pantheon Hosting: files in the uploads directory now accept 770 permissions as secure
+* Improvement: Removed the batch permissions dropdown and the update permissions button when no files/dirs are available to modify.
+
+= 2.4.0 (Medium Priority) =
+*Release Date - 28 February 2021*
+*Release Notes: [https://wpsecuritysafe.com/changelog/version-2-4/](https://wpsecuritysafe.com/changelog/version-2-4/)*
+
+* Added Feature: Automatically blocks IP addresses temporarily after numerous failed logins
+* Added Feature: Import and Export settings are now included with the free version.
+* Added Pro Feature: Advanced Automatic IP Blocking after numerous threats are detected.
+* Improvement: Fixed some PHP warnings displayed when XML-RPC requests use poorly formatted XML. Thank you Charles Suggs for reporting this.
+* Improvement: Adjusted cleanup script to leave allow/deny table for 3 days past expiration for more advanced threat detection.
+* Improvement: Allowed IPs now get exempt from nonce checks.
+* Improvement: Adjusted upgrade script to be more efficient with load.
+* Improvement: Updated file permission statuses to be error, warning, and notice versus bad, ok, good
+* Improvement: Adjusted Login Error handling so that the user is sent back to the login screen when the login attempt is blocked and the error is displayed.
+* Improvement: Fixed various PHP Warnings: Thanks John Dorner for reporting them.
+* Improvement: Automatically group and sort bad file permissions to the top of the file permissions table.
+* Improvement: Changed the 404, login, and block charts from 7 days to 30 days of data to display.
+* Improvement: Minor code improvements.
+* Improvement: Updated SDK to version 2.4.2
+* Improvement: Updated PHPDoc notes
+* Improvement: Updated PHP version checks
+* Bug Fix: Pantheon Hosting: directories in the uploads directory now accept 770 permissions as secure
+* Pro Bug Fix: Plugins files were not getting file permissions fixed after a plugin update.
+* Tested up to: 5.6.2
+
 = 2.3.2 (Medium Priority) =
 *Release Date - 11 September 2020*
 
-* Improvement: Removed feature Local Login as it was triggering a false positive due to browser caching.
+* Improvement: Removed feature Local Login as it was triggering false potives due to browser caching issues.
 * Improvement: Updated PHP version checks
 * Tested up to: 5.5.1
 
 = 2.3.1 (High Priority) =
 *Release Date - 05 January 2020*
 
-* Bug Fix: version privacy for JS files conflicted with Google Recaptcha
+* Bug Fix: version privacy for JS files conflicted with Google Recaptcha. Thank you Lynn Appleget for reporting this bug.
 * Bug Fix: Plugin updates were not getting logged properly after an update.
 * Bug Fix: Plugin would not initialize in a multi-site network.
 * Bug Fix: Prevent caching of nonce for front-end login form
@@ -194,7 +220,7 @@ Website: [WP Security Safe](https://wpsecuritysafe.com)
 * Bug Fix: Security Safe would unintentionally recommend a lower version of PHP if the user had a newer version higher than the known versions.
 * Added Feature: Log 404 Errors
 * Added Feature: Log Successful and Failed Logins
-* Added Feature: Manage Blacklist / Whitelist IP Addresses
+* Added Feature: Manage Denied / Allowed IP Addresses
 * Added Feature: Log Blocked Access Attempts
 * Added Feature: Log Security Vulnerability Probing
 * Added Feature: Statistics and Charts

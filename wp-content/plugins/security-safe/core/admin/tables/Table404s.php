@@ -1,128 +1,80 @@
 <?php
 
-namespace SovereignStack\SecuritySafe;
+	namespace SovereignStack\SecuritySafe;
 
-// Prevent Direct Access
-if ( ! defined( 'ABSPATH' ) ) { die; }
+	// Prevent Direct Access
+	( defined( 'ABSPATH' ) ) || die;
 
-require_once( SECSAFE_DIR_ADMIN_TABLES . '/Table.php' );
+	require_once( SECSAFE_DIR_ADMIN_TABLES . '/Table.php' );
 
-/**
- * Class Table404s
- * @package SecuritySafe
- */
-final class Table404s extends Table {
+	/**
+	 * Class Table404s
+	 * @package SecuritySafe
+	 */
+	final class Table404s extends Table {
 
+		/**
+		 * Get a list of columns. The format is:
+		 * 'internal-name' => 'Title'
+		 *
+		 * @return array
+		 * @since 3.1.0
+		 * @abstract
+		 *
+		 * @package WordPress
+		 */
+		function get_columns() {
 
-    /**
-     * Set the type of data to display
-     * 
-     * @since  2.0.0
-     */
-    protected function set_type() {
+			return [
+				'date'       => __( 'Date / Time', SECSAFE_SLUG ),
+				'uri'        => __( 'URL', SECSAFE_SLUG ),
+				'user_agent' => __( 'User Agent', SECSAFE_SLUG ),
+				'referer'    => __( 'HTTP Referer', SECSAFE_SLUG ),
+				'ip'         => __( 'IP Address', SECSAFE_SLUG ),
+				'status'     => __( 'Status', SECSAFE_SLUG ),
+				'threats'    => __( 'Threat', SECSAFE_SLUG ),
+			];
 
-        $this->type = '404s';
+		}
 
-    } // set_type()
+		public function display_charts() {
 
-    /**
-     * Get a list of columns. The format is:
-     * 'internal-name' => 'Title'
-     *
-     * @package WordPress
-     * @since 3.1.0
-     * @abstract
-     *
-     * @return array
-     */
-    function get_columns() {
-        
-        return [
-            'date'          => __( 'Date / Time', SECSAFE_SLUG ),
-            'uri'           => __( 'URL', SECSAFE_SLUG ),
-            'user_agent'    => __( 'User Agent', SECSAFE_SLUG ),
-            'referer'       => __( 'HTTP Referer', SECSAFE_SLUG ),
-            'ip'            => __( 'IP Address', SECSAFE_SLUG ),
-            'status'        => __( 'Status', SECSAFE_SLUG ),
-            'threats'       => __( 'Threat', SECSAFE_SLUG )
-        ];
+			if ( $this->hide_charts() ) {
+				return;
+			}
 
+			$days     = 30;
+			$days_ago = $days - 1;
 
-    } // get_columns()
+			$charts = [];
 
+			$columns = [
+				[
+					'id'    => 'errors',
+					'label' => __( '404 Errors', SECSAFE_SLUG ),
+					'color' => '#dc3232',
+					'type'  => 'area-spline',
+					'db'    => '404s',
 
-    /**
-     * Get the array of searchable columns in the database
-     * @since  2.0.0
-     * @return  array An unassociated array.
-     */ 
-    protected function get_searchable_columns() {
-        
-        return [
-            'uri',
-            'ip',
-            'referer'
-        ];
+				],
+			];
 
-    } // get_searchable_columns()
+			$charts[] = [
+				'id'      => 'chart-line',
+				'type'    => 'line',
+				'columns' => $columns,
+				'y-label' => __( '# 404 Errors', SECSAFE_SLUG ),
+			];
 
+			$args = [
+				'date_start'    => date( 'Y-m-d 00:00:00', strtotime( '-' . $days_ago . ' days' ) ),
+				'date_end'      => date( 'Y-m-d 23:59:59', time() ),
+				'date_days'     => $days,
+				'date_days_ago' => $days_ago,
+				'charts'        => $charts,
+			];
 
-    protected function get_status() {
-
-        return [ 
-            //  'value'     => 'label'
-                'blocked'   => __( 'Blocked', SECSAFE_SLUG )
-            ];
-
-    } // get_status()
-
-
-    /**
-     * Add filters and per_page options
-     */ 
-    protected function bulk_actions( $which = '' ) {
-
-        $this->bulk_actions_load( $which );
-
-    } // bulk_actions()
-
-
-    public function display_charts() {
-
-        if ( $this->hide_charts() ) { return; }
-
-        $days = 7;
-        $days_ago = $days - 1;
-
-        $charts = [];
-
-        $columns = [
-                        [
-                            'id'            => 'errors',
-                            'label'         => __( '404 Errors', SECSAFE_SLUG ),
-                            'color'         => '#dc3232',
-                            'type'          => 'area-spline',
-                            'db'            => '404s'
-
-                        ]
-                    ];
-
-        $charts[] = [ 
-            'id'            => 'chart-line',
-            'type'          => 'line',
-            'columns'       => $columns,
-            'y-label'       => __( '# 404 Errors', SECSAFE_SLUG )
-        ];
-
-        $args = [
-            'date_start'    => date( 'Y-m-d 00:00:00', strtotime( '-' . $days_ago . ' days' ) ),
-            'date_end'      => date( 'Y-m-d 23:59:59', time() ),
-            'date_days'     => $days,
-            'date_days_ago' => $days_ago,
-            'charts'        => $charts
-        ];
-
-        echo '
+			echo '
         <div class="table">
             <div class="tr">
 
@@ -136,12 +88,54 @@ final class Table404s extends Table {
 
             </div>
         </div>';
-        
 
-        // Load Charts
-        Admin::load_charts( $args );
+			// Load Charts
+			Admin::load_charts( $args );
 
-    } // display_charts()
+		}
 
+		/**
+		 * Set the type of data to display
+		 *
+		 * @since  2.0.0
+		 */
+		protected function set_type() {
 
-} // Table404s()
+			$this->type = '404s';
+
+		}
+
+		/**
+		 * Get the array of searchable columns in the database
+		 * @return  array An unassociated array.
+		 * @since  2.0.0
+		 */
+		protected function get_searchable_columns() {
+
+			return [
+				'uri',
+				'ip',
+				'referer',
+			];
+
+		}
+
+		protected function get_status() {
+
+			return [
+				//  'value'     => 'label'
+				'blocked' => __( 'Blocked', SECSAFE_SLUG ),
+			];
+
+		}
+
+		/**
+		 * Add filters and per_page options
+		 */
+		protected function bulk_actions( $which = '' ) {
+
+			$this->bulk_actions_load( $which );
+
+		}
+
+	}

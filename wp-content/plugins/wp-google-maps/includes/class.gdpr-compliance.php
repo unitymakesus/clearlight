@@ -17,8 +17,8 @@ class GDPRCompliance
 	{
 		if(!GDPRCompliance::$filtersBound)
 		{
-			add_filter('wpgmza_global_settings_tabs', array($this, 'onGlobalSettingsTabs'));
-			add_filter('wpgmza_global_settings_tab_content', array($this, 'onGlobalSettingsTabContent'), 10, 1);
+			//add_filter('wpgmza_global_settings_tabs', array($this, 'onGlobalSettingsTabs'));
+			//add_filter('wpgmza_global_settings_tab_content', array($this, 'onGlobalSettingsTabContent'), 10, 1);
 			
 			add_filter('wpgmza_plugin_get_default_settings', array($this, 'onPluginGetDefaultSettings'));
 			
@@ -71,9 +71,10 @@ class GDPRCompliance
 	
 	/**
 	 * Called by onGlobalSettingsTabContent to add the content to our GDPR tab on the settings page, triggered by the filter wpgmza_global_settings_tab_content.
+	 * @deprecated Built into the settings page as of 8.1.0, provided for legacy support
 	 * @return DOMDocument The GDPR tab content
 	 */
-	protected function getSettingsTabContent()
+	public function getSettingsTabContent()
 	{
 		global $wpgmza;
 		
@@ -88,7 +89,7 @@ class GDPRCompliance
 		$document = apply_filters('wpgmza_gdpr_settings_tab_content', $document);
 		
 		$document->populate($settings);
-		
+
 		return $document;
 	}
 	
@@ -182,6 +183,8 @@ class GDPRCompliance
 	
 	/**
 	 * Handles POST data when the settings page saves.
+	 * NB: Deprecated as of 8.1.0. The settings page module handles this.
+	 * @deprecated
 	 * @return void
 	 */
 	public function onPOST()

@@ -23,7 +23,7 @@ $url = admin_url().'edit.php?post_type=accordions&page=upgrade_status';
 
     <script>
         setTimeout(function(){
-            window.location.href = '<?php echo $url; ?>';
+            window.location.href = '<?php echo esc_url_raw($url); ?>';
         }, 1000*50);
 
     </script>
@@ -77,7 +77,7 @@ $url = admin_url().'edit.php?post_type=accordions&page=upgrade_status';
             $accordions_id = get_the_id();
             $accordions_title = get_the_title();
             ?>
-            <li><?php echo $accordions_title; ?> - Done</li>
+            <li><?php echo esc_html($accordions_title); ?> - Done</li>
             <?php
 
         endwhile;
@@ -93,7 +93,7 @@ $url = admin_url().'edit.php?post_type=accordions&page=upgrade_status';
 
 
     if($accordions_upgrade == 'done'){
-        wp_safe_redirect(admin_url().'edit.php?post_type=accordions');
+        wp_safe_redirect(esc_url_raw(admin_url().'edit.php?post_type=accordions'));
     }
 
 
@@ -101,7 +101,7 @@ $url = admin_url().'edit.php?post_type=accordions&page=upgrade_status';
 
 
 
-    <p><a class="button" href="<?php echo admin_url().'edit.php?post_type=accordions&page=upgrade_status'; ?>">Refresh</a> to check Migration stats. <i class="fas fa-spin fa-spinner"></i></p>
+    <p><a class="button" href="<?php echo esc_url_raw(admin_url().'edit.php?post_type=accordions&page=upgrade_status'); ?>">Refresh</a> to check Migration stats. <i class="fas fa-spin fa-spinner"></i></p>
 
 
 

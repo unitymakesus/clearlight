@@ -14,15 +14,15 @@ function accordions_main_top($atts){
     $lazy_load_src = isset($accordions_options['lazy_load_src']) ? $accordions_options['lazy_load_src'] : '';
 
     if($lazy_load=='yes'):
-        ?><div id="accordions-lazy-<?php echo $post_id; ?>" class="accordions-lazy">
+        ?><div id="accordions-lazy-<?php echo esc_attr($post_id); ?>" class="accordions-lazy">
             <?php if(!empty($lazy_load_src)):?>
-                <img src="<?php echo $lazy_load_src; ?>" />
+                <img src="<?php echo esc_url_raw($lazy_load_src); ?>" />
             <?php endif; ?>
         </div>
         <script>
             jQuery(window).load(function(){
-                jQuery('#accordions-lazy-<?php echo $post_id; ?>').fadeOut();
-                jQuery('#accordions-<?php echo $post_id; ?> .items').fadeIn();
+                jQuery('#accordions-lazy-<?php echo esc_attr($post_id); ?>').fadeOut();
+                jQuery('#accordions-<?php echo esc_attr($post_id); ?> .items').fadeIn();
             });
         </script><?php
     endif;
@@ -117,31 +117,31 @@ function accordions_main_style($atts){
 
     ?><style type='text/css'>
         @media only screen and (min-width: 1024px ){
-            #accordions-<?php echo $post_id; ?> {
+            #accordions-<?php echo esc_attr($post_id); ?> {
             <?php if(!empty($width_large)):?>
-                width: <?php echo $width_large; ?>;
+                width: <?php echo esc_attr($width_large); ?>;
             <?php endif; ?>
             }
         }
         @media only screen and ( min-width: 768px ) and ( max-width: 1023px ) {
-            #accordions-<?php echo $post_id; ?> {
+            #accordions-<?php echo esc_attr($post_id); ?> {
             <?php if(!empty($width_medium)):?>
-                width: <?php echo $width_medium; ?>;
+                width: <?php echo esc_attr($width_medium); ?>;
             <?php endif; ?>
             }
         }
         @media only screen and ( min-width: 0px ) and ( max-width: 767px ){
-            #accordions-<?php echo $post_id; ?> {
+            #accordions-<?php echo esc_attr($post_id); ?> {
             <?php if(!empty($width_small)):?>
-                width: <?php echo $width_small; ?>;
+                width: <?php echo esc_attr($width_small); ?>;
             <?php endif; ?>
             }
         }
         <?php
         if($lazy_load=='yes'){
             ?>
-            #accordions-<?php echo $post_id; ?> .items {display: none;}
-            #accordions-<?php echo $post_id; ?> .accordions-lazy {
+            #accordions-<?php echo esc_attr($post_id); ?> .items {display: none;}
+            #accordions-<?php echo esc_attr($post_id); ?> .accordions-lazy {
                 text-align: center;
                 position: absolute;
                 top: 50%;
@@ -150,106 +150,106 @@ function accordions_main_style($atts){
             }
             <?php
         }
-        ?>#accordions-<?php echo $post_id; ?> {
+        ?>#accordions-<?php echo esc_attr($post_id); ?> {
             <?php if(!empty($container_text_align)):?>
-                text-align: <?php echo $container_text_align; ?>;
+                text-align: <?php echo esc_attr($container_text_align); ?>;
             <?php endif; ?>
             <?php if(!empty($container_background_color) || !empty($container_background_img)):?>
-                background:<?php echo $container_background_color; ?> url(<?php echo $container_background_img; ?>) repeat scroll 0 0;
+                background:<?php echo esc_attr($container_background_color); ?> url(<?php echo esc_url_raw($container_background_img); ?>) repeat scroll 0 0;
             <?php endif; ?>
             <?php if(!empty($container_padding)):?>
-                padding: <?php echo $container_padding; ?>;
+                padding: <?php echo esc_attr($container_padding); ?>;
             <?php endif; ?>
             position: relative;
         }
-        #accordions-<?php echo $post_id; ?> .accordions-head{
+        #accordions-<?php echo esc_attr($post_id); ?> .accordions-head{
         <?php if(!empty($header_background_color)):?>
-            background:<?php echo $header_background_color; ?> none repeat scroll 0 0;
+            background:<?php echo esc_attr($header_background_color); ?> none repeat scroll 0 0;
         <?php endif; ?>
         <?php if(!empty($header_margin)):?>
-            margin:<?php echo $header_margin; ?>;
+            margin:<?php echo esc_attr($header_margin); ?>;
         <?php endif; ?>
         <?php if(!empty($header_padding)):?>
-            padding:<?php echo $header_padding; ?>;
+            padding:<?php echo esc_attr($header_padding); ?>;
         <?php endif; ?>
             outline: none;
         }
-        #accordions-<?php echo $post_id; ?> .accordions-head-title{
+        #accordions-<?php echo esc_attr($post_id); ?> .accordions-head-title{
         <?php if(!empty($header_font_family)):?>
-            font-family:<?php echo $header_font_family; ?>;
+            font-family:<?php echo esc_attr($header_font_family); ?>;
         <?php endif; ?>
         <?php if(!empty($header_color)):?>
-            color:<?php echo $header_color; ?>;
+            color:<?php echo esc_attr($header_color); ?>;
         <?php endif; ?>
         <?php if(!empty($header_font_size)):?>
-            font-size:<?php echo $header_font_size; ?>;
+            font-size:<?php echo esc_attr($header_font_size); ?>;
         <?php endif; ?>
         }
-        #accordions-<?php echo $post_id; ?> .accordions-head-title-toggle{
+        #accordions-<?php echo esc_attr($post_id); ?> .accordions-head-title-toggle{
         <?php if(!empty($header_color)):?>
-            color:<?php echo $header_color; ?>;
+            color:<?php echo esc_attr($header_color); ?>;
         <?php endif; ?>
         <?php if(!empty($header_font_size)):?>
-            font-size:<?php echo $header_font_size; ?>;
+            font-size:<?php echo esc_attr($header_font_size); ?>;
         <?php endif; ?>
         }
-        #accordions-<?php echo $post_id; ?> .accordions-head:hover .accordions-head-title{
+        #accordions-<?php echo esc_attr($post_id); ?> .accordions-head:hover .accordions-head-title{
         <?php if(!empty($header_color_hover)):?>
-            color:<?php echo $header_color_hover; ?>;
+            color:<?php echo esc_attr($header_color_hover); ?>;
         <?php endif; ?>
         }
-        #accordions-<?php echo $post_id; ?> .ui-state-active{
+        #accordions-<?php echo esc_attr($post_id); ?> .ui-state-active{
         <?php if(!empty($header_active_background_color)):?>
-            background: <?php echo $header_active_background_color; ?>;
+            background: <?php echo esc_attr($header_active_background_color); ?>;
         <?php endif; ?>
             border: none;
         }
-        #accordions-<?php echo $post_id; ?> .accordion-content{
+        #accordions-<?php echo esc_attr($post_id); ?> .accordion-content{
         <?php if(!empty($body_font_family)):?>
-            font-family:<?php echo $body_font_family; ?>;
+            font-family:<?php echo esc_attr($body_font_family); ?>;
         <?php endif; ?>
         <?php if(!empty($body_background_color)):?>
-            background:<?php echo $body_background_color; ?> none repeat scroll 0 0;
+            background:<?php echo esc_attr($body_background_color); ?> none repeat scroll 0 0;
         <?php endif; ?>
         <?php if(!empty($body_color)):?>
-            color:<?php echo $body_color; ?>;
+            color:<?php echo esc_attr($body_color); ?>;
         <?php endif; ?>
         <?php if(!empty($body_font_size)):?>
-            font-size:<?php echo $body_font_size; ?>;
+            font-size:<?php echo esc_attr($body_font_size); ?>;
         <?php endif; ?>
         <?php if(!empty($body_margin)):?>
-            margin:<?php echo $body_margin; ?>;
+            margin:<?php echo esc_attr($body_margin); ?>;
         <?php endif; ?>
         <?php if(!empty($body_padding)):?>
-            padding:<?php echo $body_padding; ?>;
+            padding:<?php echo esc_attr($body_padding); ?>;
         <?php endif; ?>
             border: none;
         }
-        #accordions-<?php echo $post_id; ?> .accordion-icons{
+        #accordions-<?php echo esc_attr($post_id); ?> .accordion-icons{
             <?php if(!empty($icon_color)):?>
-            color:<?php echo $icon_color; ?>;
+            color:<?php echo esc_attr($icon_color); ?>;
             <?php endif; ?>
             <?php if(!empty($icon_font_size)):?>
-            font-size:<?php echo $icon_font_size; ?>;
+            font-size:<?php echo esc_attr($icon_font_size); ?>;
             <?php endif; ?>
             <?php if(!empty($icon_background_color)):?>
-            background:<?php echo $icon_background_color; ?> none repeat scroll 0 0;
+            background:<?php echo esc_attr($icon_background_color); ?> none repeat scroll 0 0;
             <?php endif; ?>
             <?php if(!empty($icon_padding)):?>
-            padding:<?php echo $icon_padding; ?>;
+            padding:<?php echo esc_attr($icon_padding); ?>;
             <?php endif; ?>
             <?php if(!empty($icon_margin)):?>
-            margin:<?php echo $icon_margin; ?>;
+            margin:<?php echo esc_attr($icon_margin); ?>;
             <?php endif; ?>
         }
-        #accordions-<?php echo $post_id; ?> .accordions-head:hover .accordion-icons span{
+        #accordions-<?php echo esc_attr($post_id); ?> .accordions-head:hover .accordion-icons span{
             <?php if(!empty($icon_color_hover)):?>
-            color:<?php echo $icon_color_hover; ?>;
+            color:<?php echo esc_attr($icon_color_hover); ?>;
             <?php endif; ?>
         }
         <?php
         if(!empty($custom_css)){
-            echo $custom_css;
+            echo esc_attr($custom_css);
         }
 
         if(!empty($accordions_content)){
@@ -262,7 +262,7 @@ function accordions_main_style($atts){
 
                 if(!empty($bg_color_css) || !empty($header_bg_img)){
                     ?>
-                    #accordions-<?php echo $post_id; ?> #header-<?php echo$index; ?>{background: <?php echo $bg_color_css; ?> <?php echo $header_bg_img; ?>;}
+                    #accordions-<?php echo esc_attr($post_id); ?> #header-<?php echo esc_attr($index); ?>{background: <?php echo esc_attr($bg_color_css); ?> <?php echo esc_url_raw($header_bg_img); ?>;}
                     <?php
                 }
             }
@@ -367,32 +367,32 @@ function accordions_main_items($atts){
                 }
 
                 ?>
-                <div post_id="<?php echo $post_id; ?>" itemcount="<?php echo $item_count; ?>" header_id="header-<?php echo $index; ?>" id="header-<?php echo $index; ?>" style="" class="accordions-head head<?php echo $index; ?> <?php echo $header_class; ?>" toggle-text="<?php echo do_shortcode(esc_attr($toggled_text)); ?>" main-text="<?php echo do_shortcode(esc_attr($accordion_header)); ?>">
+                <div post_id="<?php echo esc_attr($post_id); ?>" itemcount="<?php echo esc_attr($item_count); ?>" header_id="header-<?php echo esc_attr($index); ?>" id="header-<?php echo esc_attr($index); ?>" style="" class="accordions-head head<?php echo esc_attr($index); ?> <?php echo esc_attr($header_class); ?>" toggle-text="<?php echo do_shortcode(esc_attr($toggled_text)); ?>" main-text="<?php echo do_shortcode(esc_attr($accordion_header)); ?>">
                     <?php
                     if($icon_position == 'left'):
                         ?>
-                        <span id="accordion-icons-<?php echo $index; ?>" class="accordion-icons">
+                        <span id="accordion-icons-<?php echo esc_attr($index); ?>" class="accordion-icons">
                             <span class="accordion-icon-active accordion-plus"><?php echo $active_icon; ?></span>
                             <span class="accordion-icon-inactive accordion-minus"><?php echo $inactive_icon; ?></span>
                         </span>
-                        <span id="header-text-<?php echo $index; ?>" class="accordions-head-title"><?php echo do_shortcode($accordion_header); ?></span>
+                        <span id="header-text-<?php echo esc_attr($index); ?>" class="accordions-head-title"><?php echo do_shortcode($accordion_header); ?></span>
                         <?php
                     elseif ($icon_position == 'right'):
                         ?>
-                        <span id="header-text-<?php echo $index; ?>" class="accordions-head-title"><?php echo do_shortcode($accordion_header); ?></span>
-                        <span id="accordion-icons-<?php echo $index; ?>" class="accordion-icons">
+                        <span id="header-text-<?php echo esc_attr($index); ?>" class="accordions-head-title"><?php echo do_shortcode($accordion_header); ?></span>
+                        <span id="accordion-icons-<?php echo esc_attr($index); ?>" class="accordion-icons">
                             <span class="accordion-icon-active accordion-plus"><?php echo $active_icon; ?></span>
                             <span class="accordion-icon-inactive accordion-minus"><?php echo $inactive_icon; ?></span>
                         </span>
                         <?php
                     else:
                         ?>
-                        <span id="header-text-<?php echo $index; ?>" class="accordions-head-title"><?php echo do_shortcode($accordion_header); ?></span>
+                        <span id="header-text-<?php echo esc_attr($index); ?>" class="accordions-head-title"><?php echo do_shortcode($accordion_header); ?></span>
                     <?php
                     endif;
                     ?>
                 </div>
-                <div class="accordion-content content<?php echo $index; ?> <?php echo $body_class; ?>">
+                <div class="accordion-content content<?php echo esc_attr($index); ?> <?php echo esc_attr($body_class); ?>">
                     <?php echo $accordion_body; ?>
                 </div>
                 <?php
@@ -407,7 +407,7 @@ function accordions_main_items($atts){
     <script>
         jQuery(document).ready(function($){<?php
                 if(isset($_GET['active_index'])):
-                    $accordion_index = isset($_GET['active_index']) ? sanitize_text_field($_GET['active_index']) : '';
+                    $accordion_index = isset($_GET['active_index']) ? esc_attr($_GET['active_index']) : '';
 
                     //var_dump($accordion_index);
 
@@ -421,10 +421,10 @@ function accordions_main_items($atts){
                         foreach ($active_index as $ind){
                             $active_index_new[] = (int)$ind;
                         }
-                        ?>accordions_active_index_<?php echo $accordion_id; ?> = <?php echo json_encode($active_index_new); ?>;<?php
+                        ?>accordions_active_index_<?php echo esc_attr($accordion_id); ?> = <?php echo json_encode($active_index_new); ?>;<?php
                     }
                 else:
-                    ?>accordions_active_index_<?php echo $post_id; ?> = <?php echo json_encode($active_index); ?>;<?php
+                    ?>accordions_active_index_<?php echo esc_attr($post_id); ?> = <?php echo json_encode($active_index); ?>;<?php
                 endif;
             ?>
         })
@@ -454,15 +454,14 @@ function accordions_main_items($atts){
 
 
 
-        $accordion_body = esc_attr($accordion_body);
 
 
         ?>{
         "@type": "Question",
-        "name": "<?php echo $accordion_header; ?>",
+        "name": "<?php echo esc_html($accordion_header); ?>",
         "acceptedAnswer":{
             "@type": "Answer",
-            "text": "<?php echo $accordion_body; ?>"
+            "text": "<?php echo esc_html($accordion_body); ?>"
             }
         }<?php echo ($accordions_count > $i ) ? ',' :'';
 
@@ -474,7 +473,7 @@ function accordions_main_items($atts){
 {
     "@context": "https://schema.org",
     "@type": "FAQPage",
-    "mainEntity": [<?php echo $html; ?>]
+    "mainEntity": [<?php echo esc_html($html); ?>]
 }
 </script><?php
 
@@ -516,7 +515,7 @@ function accordions_main_edit_link($atts){
                 $accordion_edit_url = apply_filters('accordions_edit_url', ''.$admin_url.'post.php?post='.$post_id.'&action=edit', $post_id );
 
                 ?>
-                <div class="accordion-edit"><a href="<?php echo $accordion_edit_url; ?>"><?php echo __('Edit this accordion','accordions'); ?></a>, <?php echo __("Only admin can see this.",'accordions')?></div>
+                <div class="accordion-edit"><a href="<?php echo esc_url_raw($accordion_edit_url); ?>"><?php echo __('Edit this accordion','accordions'); ?></a>, <?php echo __("Only admin can see this.",'accordions')?></div>
                 <?php
 
                 return;
@@ -597,11 +596,11 @@ function accordions_main_scripts($atts){
     ?>
     <script>
         jQuery(document).ready(function($){
-            accordion_<?php echo $post_id; ?>  = $("#accordions-<?php echo $post_id; ?> .items").accordion({
-                event: "<?php echo $active_event; ?>",
-                collapsible:<?php echo $collapsible; ?>,
-                heightStyle: "<?php echo $height_style; ?>",
-                animate: ("<?php echo $animate_style; ?>", <?php echo $animate_delay; ?>),
+            accordion_<?php echo esc_attr($post_id); ?>  = $("#accordions-<?php echo esc_attr($post_id); ?> .items").accordion({
+                event: "<?php echo esc_attr($active_event); ?>",
+                collapsible:<?php echo esc_attr($collapsible); ?>,
+                heightStyle: "<?php echo esc_attr($height_style); ?>",
+                animate: ("<?php echo esc_attr($animate_style); ?>", <?php echo esc_attr($animate_delay); ?>),
                 navigation: true,
                 active: 999,
                 <?php
@@ -634,7 +633,7 @@ function accordions_main_scripts($atts){
         ?>
         <script>
             jQuery(document).ready(function($){
-                <?php echo $custom_js; ?>
+                <?php echo esc_js($custom_js); ?>
             })
         </script>
     <?php

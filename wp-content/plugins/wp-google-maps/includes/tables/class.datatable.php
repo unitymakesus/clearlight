@@ -18,7 +18,21 @@ class DataTable extends AjaxTable
 		if($datatable_options)
 			$this->setDataTableOptions($datatable_options);
 		
+		if(!$wpgmza->isProVersion() || version_compare($wpgmza->getProVersion(), '8.1.0', '>='))
+			$this->element->setAttribute('data-wpgmza-feature-type', $this->getFeatureType());
+		
 		$this->initTableDOM();
+	}
+	
+	protected function getFeatureType()
+	{
+		$class	= get_called_class();
+		$regex	= "/WPGMZA\\\\(Pro)?(Admin)?(.+?)DataTable$/";
+		
+		if(!preg_match($regex, $class, $m))
+			throw new \Exception("Failed to match feature type in $class");
+		
+		return strtolower($m[3]);
 	}
 	
 	protected function getColumns()
@@ -89,10 +103,11 @@ class DataTable extends AjaxTable
 		{
 			$th = $this->document->createElement('th');
 			$th->setAttribute('data-wpgmza-column-name', $name);
+			$th->setAttribute('id', "wpgmza_map_list_".$name);
 			$th->appendText($caption);
 			
 			$thead->appendChild($th);
-			$tfoot->appendChild($th->cloneNode(true));
+			// $tfoot->appendChild($th->cloneNode(true));
 		}
 	}
 	

@@ -11,7 +11,7 @@ require_once(plugin_dir_path(__FILE__) . '/class.crud.php');
 /**
  * This class represents a marker
  */
-class Marker extends Crud implements \JsonSerializable
+class Marker extends Feature implements \JsonSerializable
 {
 	const DEFAULT_ICON = WPGMZA_PLUGIN_DIR_URL . 'images/spotlight-poi2.png';
 	

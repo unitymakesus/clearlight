@@ -3,11 +3,13 @@ jQuery(function ($) {
 		var myLatLng = new WPGMZA.LatLng(wpgmza_legacy.lat, wpgmza_legacy.lng);
 		MYMAP.init('#wpgmza_map', myLatLng, 15);
 	}
+	
 	jQuery("#wpgmza_map").css({
 		height: 400,
 		width: 400
 	});
-	$(window).on("load", function (event) {
+
+	$(document).ready(function (event) {
 		wpgmza_InitMap();
 	});
 });

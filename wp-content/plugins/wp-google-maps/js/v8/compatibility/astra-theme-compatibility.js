@@ -6,7 +6,7 @@
  */
 jQuery(function($) {
 	
-	$(window).on("load", function(event) {
+	$(document).ready(function(event) {
 		
 		var parent = document.body.onclick;
 		

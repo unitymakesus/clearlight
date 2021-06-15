@@ -1,63 +1,83 @@
 <?php
 
-namespace SovereignStack\SecuritySafe;
+	namespace SovereignStack\SecuritySafe;
 
-// Prevent Direct Access
-if ( ! defined( 'ABSPATH' ) ) { die; }
+	// Prevent Direct Access
+	( defined( 'ABSPATH' ) ) || die;
 
+	/**
+	 * Class PolicyWordPressVersionFiles
+	 * @package SecuritySafe
+	 * @since 1.1.4
+	 */
+	class PolicyWordPressVersionFiles {
 
-/**
- * Class PolicyWordPressVersionFiles
- * @package SecuritySafe
- * @since 1.1.4
- */
-class PolicyWordPressVersionFiles {
+		/**
+		 * PolicyWordPressVersionFiles constructor.
+		 */
+		function __construct() {
 
+			add_action( 'upgrader_process_complete', [ $this, 'protect_files' ], 10, 2 );
 
-    /**
-     * PolicyWordPressVersionFiles constructor.
-     */
-	function __construct() {
+		}
 
-        add_action( 'upgrader_process_complete', [ $this, 'protect_files' ] , 10, 2 );
+		/**
+		 * Changes the permissions of each file so that the world cannot read them.
+		 *
+		 * @link   https://developer.wordpress.org/reference/hooks/upgrader_process_complete/
+		 *
+		 * @param  object $upgrader_object  WP_Upgrader instance. In other contexts, $this, might be a Theme_Upgrader, Plugin_Upgrader, Core_Upgrade, or Language_Pack_Upgrader instance.
+		 * @param  array $options Array of bulk item update data.
+		 *
+		 * @uses set_permissions() to change the permissions of files.
+		 *
+		 * @since 1.1.4
+		 */
+		public function protect_files( $upgrader_object, $options ) {
 
-	} // __construct()
+			if ( $options['action'] == 'update' && $options['type'] == 'core' ) {
 
-    
-    /**
-     * Changes the permissions of each file so that the world cannot read them.
-     */
-    public function protect_files( $upgrader_object, $options ) {
+				$files = [
+					ABSPATH . 'readme.html',
+					ABSPATH . 'license.txt',
+				];
 
-        if ( $options['action'] == 'update' && $options['type'] == 'core' ) {
-            
-            //echo 'Checking WordPress core permissions.<br />';
+				foreach ( $files as $file ) {
 
-            $this->set_permissions( ABSPATH . 'readme.html' );
-            $this->set_permissions( ABSPATH . 'license.txt' );
+					$result = Self::set_permissions( $file );
 
-        } // $options['action']
-        
-    } // protect_files()
+					if ( $result ) {
 
+						// Display Success Status
+						echo '<li>' . __( 'Fixed:', SECSAFE_SLUG ) . ' ' . $file . '</li>';
 
+					} else {
 
-    /** 
-     * Set Permissions For File or Directory
-     * @param $path Absolute path to file or directory
-     */
-    private function set_permissions( $path ) {
+						// Display Failed Status
+						echo '<li>' . __( 'Could Not Fix File:', SECSAFE_SLUG ) . ' ' . $file . '</li>';
 
-        // Cleanup Path
-        $path = str_replace( [ '/./', '////', '///', '//' ], '/', $path );
+					}
 
-        if ( file_exists( $path ) ) {
+				}
 
-            $result = chmod( $path, 0640 );
+			}
 
-        }
+		}
 
-    } // set_permissions()
+		/**
+		 * Set Permissions For File or Directory
+		 *
+		 * @param string $path Absolute path to file or directory
+		 *
+		 * @return bool
+		 */
+		private static function set_permissions( $path ) {
 
+			// Cleanup Path
+			$path = str_replace( [ '/./', '////', '///', '//' ], '/', $path );
 
-} // PolicyWordPressVersionFiles()
+			return ( file_exists( $path ) ) ? chmod( $path, 0640 ) : false;
+
+		}
+
+	}

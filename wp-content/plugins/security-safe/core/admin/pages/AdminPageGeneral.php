@@ -3,9 +3,7 @@
 namespace SovereignStack\SecuritySafe;
 
 // Prevent Direct Access
-if ( !defined( 'ABSPATH' ) ) {
-    die;
-}
+defined( 'ABSPATH' ) || die;
 /**
  * Class AdminPageGeneral
  * @package SecuritySafe
@@ -14,38 +12,9 @@ if ( !defined( 'ABSPATH' ) ) {
 class AdminPageGeneral extends AdminPage
 {
     /**
-     * This sets the variables for the page.
-     * @since  0.1.0
-     */
-    protected function set_page()
-    {
-        $plugin_name = SECSAFE_NAME;
-        $this->slug = 'security-safe';
-        $this->title = sprintf( __( 'Welcome to %s', SECSAFE_SLUG ), $plugin_name );
-        $this->description = sprintf( __( 'Thank you for choosing %s to help protect your website.', SECSAFE_SLUG ), $plugin_name );
-        $this->tabs[] = [
-            'id'               => 'settings',
-            'label'            => __( 'Settings', SECSAFE_SLUG ),
-            'title'            => __( 'Plugin Settings', SECSAFE_SLUG ),
-            'heading'          => __( 'These are the general plugin settings.', SECSAFE_SLUG ),
-            'intro'            => '',
-            'content_callback' => 'tab_general',
-        ];
-        $this->tabs[] = [
-            'id'               => 'debug',
-            'label'            => __( 'Debug', SECSAFE_SLUG ),
-            'title'            => __( 'Plugin Information', SECSAFE_SLUG ),
-            'heading'          => __( 'This information may be useful when troubleshooting compatibility issues.', SECSAFE_SLUG ),
-            'intro'            => '',
-            'content_callback' => 'tab_info',
-        ];
-    }
-    
-    // set_page()
-    /**
      * All General Tab Content
+     * @return string
      * @since  0.3.0
-     * @return html
      */
     public function tab_general()
     {
@@ -100,11 +69,10 @@ class AdminPageGeneral extends AdminPage
         return $html;
     }
     
-    // tab_general()
     /**
      * All General Tab Content
+     * @return string
      * @since  1.1.0
-     * @return html
      */
     public function tab_info()
     {
@@ -138,9 +106,7 @@ class AdminPageGeneral extends AdminPage
                 
                 }
             }
-            // foreach()
         }
-        // foreach()
         $html .= '</table>
                 <p></p>
                 <h3>' . __( 'Installed Plugin Version History', SECSAFE_SLUG ) . '</h3>
@@ -152,6 +118,75 @@ class AdminPageGeneral extends AdminPage
         $html .= '</ul>';
         return $html;
     }
+    
+    /**
+     * Export/Import Tab Content
+     * @return string
+     * @since  1.2.0
+     */
+    public function tab_export_import()
+    {
+        // Export Settings ================
+        $html = $this->form_section( __( 'Export Settings', SECSAFE_SLUG ), sprintf( __( 'Click this button to export your current %s settings into a JSON file.', SECSAFE_SLUG ), SECSAFE_NAME ) );
+        $classes = '';
+        $rows = $this->form_button(
+            __( 'Export Current Settings', SECSAFE_SLUG ),
+            'submit',
+            false,
+            '',
+            $classes,
+            false,
+            'export-settings'
+        );
+        $html .= $this->form_table( $rows );
+        // Import Settings ================
+        $html .= $this->form_section( __( 'Import Settings', SECSAFE_SLUG ), sprintf( __( 'Select the %s JSON file you would like to import.', SECSAFE_SLUG ), SECSAFE_NAME ) );
+        $rows = $this->form_file_upload( __( 'Upload Setting', SECSAFE_SLUG ), 'import-file' );
+        $html .= $this->form_table( $rows );
+        // Import Settings Button
+        $html .= $this->button(
+            __( 'Import Settings', SECSAFE_SLUG ),
+            'submit',
+            false,
+            'import-settings'
+        );
+        return $html;
+    }
+    
+    /**
+     * This sets the variables for the page.
+     * @since  0.1.0
+     */
+    protected function set_page()
+    {
+        $plugin_name = SECSAFE_NAME;
+        $this->slug = 'security-safe';
+        $this->title = sprintf( __( 'Welcome to %s', SECSAFE_SLUG ), $plugin_name );
+        $this->description = sprintf( __( 'Thank you for choosing %s to help protect your website.', SECSAFE_SLUG ), $plugin_name );
+        $this->tabs[] = [
+            'id'               => 'settings',
+            'label'            => __( 'Settings', SECSAFE_SLUG ),
+            'title'            => __( 'Plugin Settings', SECSAFE_SLUG ),
+            'heading'          => __( 'These are the general plugin settings.', SECSAFE_SLUG ),
+            'intro'            => '',
+            'content_callback' => 'tab_general',
+        ];
+        $this->tabs[] = [
+            'id'               => 'export-import',
+            'label'            => __( 'Export/Import', SECSAFE_SLUG ),
+            'title'            => __( 'Export/Import Plugin Settings', SECSAFE_SLUG ),
+            'heading'          => '',
+            'intro'            => '',
+            'content_callback' => 'tab_export_import',
+        ];
+        $this->tabs[] = [
+            'id'               => 'debug',
+            'label'            => __( 'Debug', SECSAFE_SLUG ),
+            'title'            => __( 'Plugin Information', SECSAFE_SLUG ),
+            'heading'          => __( 'This information may be useful when troubleshooting compatibility issues.', SECSAFE_SLUG ),
+            'intro'            => '',
+            'content_callback' => 'tab_info',
+        ];
+    }
 
 }
-// AdminPageGeneral()

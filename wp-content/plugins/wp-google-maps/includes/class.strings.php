@@ -26,14 +26,20 @@ class Strings
 			
 				__('You have not entered a <b>Google Maps API Key</b>.<br /><br />Please go to the your admin area, then Maps, then Settings, then the Advanced tab to <a href="%s">enter your Google Maps API key</a>.<br /><br />Alternatively, <a href="%s">choose the Open Layers engine</a> to avoid getting an API key.', 'wp-google-maps'),
 				
-				admin_url("admin.php?page=wp-google-maps-menu-settings#tabs-4"),
-				admin_url("admin.php?page=wp-google-maps-menu-settings")
+				admin_url("admin.php?page=wp-google-maps-menu-settings&highlight=wpgmza_google_maps_api_key#advanced-settings"),
+				admin_url("admin.php?page=wp-google-maps-menu-settings&highlight=wpgmza_maps_engine")
 				
 			),
 			
 			'documentation'				=> __('Documentation', 'wp-google-maps'),
 			'api_dashboard'				=> __('API Dashboard', 'wp-google-maps'),
 			'verify_project'			=> __('Verify Project', 'wp-google-maps'),
+
+
+			'no_shape_circle'			=> __('Please create the circle first.', 'wp-google-maps'),
+			'no_shape_rectangle'		=> __('Please create the rectangle first.', 'wp-google-maps'),
+			'no_shape_polygon'			=> __('Please create the polygon first.', 'wp-google-maps'),
+			'no_shape_polyline'			=> __('Please create the polyline first.', 'wp-google-maps'),
 			
 			'failed_to_get_address'		=> __('Failed to get address', 'wp-google-maps'),
 			'failed_to_create_marker'	=> __('Failed to create marker %d - this marker cannot be placed on the map.', 'wp-google-maps'),
@@ -94,6 +100,8 @@ class Strings
 			
 			'map_delete_prompt_text'		=> __('Are you sure you want to delete this map?', 'wp-google-maps'),
 			'map_bulk_delete_prompt_text'	=> __('Are you sure you want to delete these maps?', 'wp-google-maps'),
+			
+			'new_map'						=> __('New Map', 'wp-google-maps'),
 			'cloud_api_key_error_1'			=> sprintf(__('Autocomplete disabled. <a href="%s" target="_BLANK">Find out more</a>.'),"https://wpgmaps.com/documentation/autocomplete-disabled/")
 		));
 	}

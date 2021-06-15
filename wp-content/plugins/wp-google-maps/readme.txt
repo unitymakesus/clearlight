@@ -1,18 +1,20 @@
 === WP Google Maps ===
-Contributors: WPGMaps, NickDuncan, CodeCabin_, DylanAuty, PerryRylance
+Contributors: WPGMaps, NickDuncan, CodeCabin_, DylanAuty
 Donate link: https://www.wpgmaps.com
-Tags: google maps, maps, map, map markers, google map, google maps plugin, wp google maps, wp google map, map plugin, directions, google map plugin, map widget
+Tags: google maps, maps, map, map markers, google map, google maps plugin, wp google maps, wp google map, map plugin, store locator, google map plugin, map widget, open layers,
 Requires at least: 3.5
-Tested up to: 5.5
+Tested up to: 5.7
 Requires PHP: 5.3
 Stable tag: trunk
 License: GPLv2
 
-The easiest to use Google maps plugin! Create a custom Google map with high quality markers containing categories, descriptions, images and links.
+The easiest to use Google maps plugin! Create a custom Google map or Store Locator with high quality markers containing categories, descriptions, images and links.
 
 == Description ==
 
-The easiest to use Google maps plugin! Add a customized Google map to your WordPress posts and/or pages quickly and easily with the supplied shortcode. No fuss. No iFrames and super easy to use! Perfect for contact page maps, routes, maps showing delivery areas and any other use you can think of!
+The easiest to use Google Maps and Open Layers Maps plugin!
+
+Add a customized Google map or Store Locator to your WordPress posts and/or pages quickly and easily with the supplied shortcode. No fuss. No iFrames and super easy to use! Perfect for contact page maps, routes, maps showing delivery areas and any other use you can think of!
 
 While the free version of WP Google Maps allows you to create a Google map with as many markers as you like, the Pro version allows you to do so much more! 
 
@@ -20,6 +22,7 @@ The [WP Google Maps Pro Version](https://www.wpgmaps.com/purchase-professional-v
 
 = Lite Version (Free) =
 * The most popular Google Maps plugin on WordPress
+* Choose between Google Maps or Open Layers Maps
 * Super easy to use, no coding required!
 * Create as many map markers as you need by simply typing in the address
 * Responsive maps
@@ -172,9 +175,6 @@ In order to show your custom Google map on your page or post, simply copy the sh
 = How do I add a map widget to my widget area? =
 To add your map to your widgets area, simply go to Appearance->Widgets and drag the "WP Google Maps" Map Widget to your sidebar. You then edit the map widget to reflect the correct map.
 
-= I want to use this but I dont have WordPress =
-Try [Nifty Maps](http://www.niftymaps.co) - Comprehensive Map Builder for all websites
-
 == Screenshots ==
 
 1. The "Lite" version of WP Google Maps.
@@ -196,6 +196,15 @@ Try [Nifty Maps](http://www.niftymaps.co) - Comprehensive Map Builder for all we
 
 == Upgrade Notice ==
 
+= 8.1.13 =
+Please update to 8.1.13 or above to ensure you are using the latest security enhancements.
+
+= 8.1.12 =
+Please update to 8.1.12 for PHP8 compatibility.
+
+= 8.1.4 =
+Please update to 8.1.4 to ensure a smooth user experience.
+
 = 8.0.26 =
 Please update to 8.0.26 or above to ensure you are using the latest security enhancements.
 
@@ -205,13 +214,176 @@ Please update to 7.11.18 or above to ensure you are using the latest security en
 = 6.3.15 =
 Please update your WP Google Maps version to 6.3.15 to ensure you are using the latest security enhancements.
 
-= 6.3.14 =
-Please update your WP Google Maps version to 6.3.14 to ensure you are using the latest security enhancements.
-
-= 6.2.1 =
-Please update your WP Google Maps version to 6.2.1 to ensure you are using the latest security enhancements.
-
 == Changelog ==
+
+= 8.1.13 - 2021-06-15 =
+* Fixed issue where Authenticated Persistent XSS could be executed on any CRUD module. Uses wp_kses_post for cleanup. Applies to Markers, Polygons, Polylines and Shapes (Thanks to Visse) 
+* Fixed issue where Authenticated Persistent XSS could be executed on GDPR settings fields. This was resolved by adding wp_kses_post to all settings fields (Thanks to Visse) 
+* Updated security report credit for 8.1.12 withi changlog and readme files 
+
+= 8.1.12 - 2021-06-03 =
+* Fixed issue where authenticated Stored Cross-Site Scripting could be executed in the map list (Thanks to Mohammed Adam)
+* Fixed issue with translation file name for no_NO. Changed to nb_NO
+* Fixed issue where some OpenLayers tilesets were loaded via http instead of https
+* Fixed issue where legacy admin styles were force loaded in gutenberg editor. Reported for causing conflicts with SEOPress
+* Fixed issue where checboxes within the admin area would show a white tick due to issues in the legacy admin stylesheet
+* Fixed issue where 'no results' alert would show when resetting the store locator search
+* Fixed issue where 'Store' post types in WP Store Locator would break due to our API loader take preference, as reported by plugin author
+* Fixed issue where polygon info-windows would have quick edit link in map editor. This is not supported by polygons at the moment
+* Fixed issue where map click event would fire when clicking on polygons in OpenLayers. This is due to pixel interpolation issues.
+* Fixed issue where custom CSS would be added to the DOM multiple times
+* Fixed issue where custom JS would be added to the DOM multiple times
+* Fixed issue where global localized variables would be added to the DOM multiple times
+* Fixed issue where create map page link would cause a fatal error due to a non-static method definition
+* Fixed issue where included automcomplete styling would not appear as intended
+* Removed 'Delete all maps' danger zone controller from the settings area as this does not apply to basic users
+* Removed PHP8 disable functionality
+* Removed chat link
+* Added support for PHP8, this is a prelim pass but from tests works well. May be revisited in the future
+* Added link to WPML integration documentation
+* Added setting to disable tilt controls in the Google Maps option
+* Added check for the 'lnglat' column, if it is present, it will be automatically pruned from the database as it is not supported or used
+* Added general notices about features
+* Added supporting polygon info-window placement style for OpenLayers
+* Updated es_ES translation file (Thanks to Pedro Ponz)
+
+= 8.1.11 - 2021-03-08 =
+* Fixed issue with 'No results found' alert not showing in some cases
+* Fixed issue where max/min zoom levels would not be respected
+* Fixed issue with Fr translation file mi and km translations being prefixed wth '1'
+
+= 8.1.10 - 2021-02-18 =
+* Fixed issue where text JSON was not parsed with some caching solutions (Breeze for example)
+* Fixed issue with spelling of 'Autoptimize' in advanced settings tab
+* Fixed issue where compact/bare-bones/minimal user interace styles may not have an effect on some sites
+* Fixed issue where multiple jQuery identification module would cause a failure in map initialization when finding embedded scripts
+* Fixed issue where legacy store locator layout would use the JS Alert 'not found' message, instead of the message container in the DOM
+* Fixed issue with 'miles away' spacing on store locator searches
+* Fixed issue with switch styling which have inline 'notices'
+* Fixed issue where the /features/ ajax fallback would fail due to the regex comparison
+* Adjusted width of settings labels in map editor, for slightly improved interface layouts
+* Added option to show/hide store locator distances
+* Added notice to GDPR settings when Complianz is enabled, as they manage our GDPR settings internally instead. Settings are now disabled to reduce any confusion
+* Added base upgrade hook for auto backup triggers in Pro add-on
+* Added beta notice to "Only load markers within viewport"
+
+= 8.1.9 - 2021-02-04 =
+* Fixed issue where 'Hide Point of Interest' option was not available without the Pro add-on
+* Added establishment suggestions to the Google Maps Autocomplete module
+* Added basic Usercentrics integration. Thanks to the Usercentrics development team for additional technical documentation
+
+= 8.1.8 - 2021-02-01 =
+* Fixed an issue where OpenLayers Tile Server Key field would not be visible without the Pro add-on
+* Fixed an issue where OpenLayers would not allow click event bubbling for features
+* Fixed an issue with marker storage logic that would prevent the Pro add-on from removing gallery images
+* Fixed an issue where the store locator would scroll to the map element, even when modern locator style is active
+* Fixed an issue with the onApproveMarker event trigger in the marker panel
+* Added pep.js to the dependencies of the plugin to support pointer events on iOS 12 devices
+
+= 8.1.7 - 2021-01-26 =
+* Fixed issue where you could not disable FontAwesome from loading on the frontend
+* Fixed issue where FontAwesome V4 would be loaded when V5 should have been loaded
+* Fixed issue where Datatables API extension would occur before datatables is initialized 
+* Fixed issue with polygon line opacity mutator not allowing for changes to take affect
+* Fixed issue with the WPGMZA isFullscreen variable scope would resolve correctly
+* Fixed issue where OpenLayers Geocoder would not respect country restirctions
+* Fixed issue where primary stylesheets would not have a version number present, this caused issues with cache busting when updates are released
+* Fixed issue where no max-width rule was applied to icon column in marker list within the admin area
+* Added placeholder structure for owl carousel dependency settings
+* Added 'color paste' buttons next to all color fields to allow for easy hex code pasting for specific components
+* Added a failsafe for broken polydata (legacy) paths which will fail to resolve in some instances, which could break the features end point
+* Added option to set a custom OpenLayers tile server URL if you prefer to do so, API field still applies if filled
+
+= 8.1.6 - 2021-01-21 =
+* Fixed issue where polyline opacity would not be respected
+* Fixed issue where 'get_user_locale' would fail in some environments
+* Fixed issue where 'approve' button would not fire relevant events with VGM add-on in place
+* Fixed kml field storage issue
+* Added styling classes to the danger zone to match UI
+* Added a 405 DELETE fallback check to the REST API handlers
+* Added scroll to feature panel when editing a feature
+
+= 8.1.5 - 2021-01-19 =
+* Removed the external reference for the live chat image and made it local
+* Added new functionality to reset and/or delete your map, marker and shape data
+* Fixed a conflict with instant.page ('i' and 'l' variable conflict)
+* Fixed issue where modern interface style will not override the store locator styles for legacy maps
+* Fixed issue where modern store locator was not responsive
+* Fixed issue where olMarkers were attempting to access Google LatLng objects in some instances, this now uses LatLng Literals instead
+* Fixed issue where text overlays would not have a minimum width, which caused text to appear strangely on the map
+* Fixed issues with some store locator settings not being respected on the frontend
+* Fixed issue where polygon settings may not be mutated by the polygon module
+* Fixed issue with WP Rest Cache (by Acato) not caching the marker-listing end point correctly
+* Fixed issue where map click event would not bubble correctly from native event dispatcher
+* Added back marker position adjust mode and refined the functionality slightly. This was removed in an earlier version mistakenly
+* Added a fallback for servers which do not support the DELETE request method via the RestAPI
+* Added a close button to the live chat link in the map editor and map settings page
+
+= 8.1.4 - 2021-01-14 =
+* Fixed a bug that stopped the GDPR consent form to display if Open Layers was enabled
+* Fixed a bug that broke the compatibility with the ComplianZ WordPress Plugin
+* Fixed a bug with dataTables translations for Finnish
+* Fixed a bug that caused "open_basedir restriction in effect" on some servers
+* Fixed a bug that caused "Unparenthesized'a ? b : c ? d : e'is deprecated" to appear for some users
+
+= 8.1.3 - 2021-01-13 - High priority =
+* Fixed the bug where "miles away" or "km away" was not showing up on markers once a store locator search was done
+* Fixed a bug that caused markers to not load in some instances
+* Fixed an issue where the MapsEngineDialog would cause headers already sent error on some sites, causing a white screen on admin-post.php
+* Fixed an issue where settings don't get sent to the frontend, such as the starting location of the map. Only occurs on some sites 
+* Added an option to add an OpenLayers TileServer API key for server that require an 'apikey' to be sent with requests
+
+= 8.1.2 - 2021-01-11 - High priority =
+* Fixed issue where polylines would not respect their stored configuration
+* Fixed issue with V6 API dequeuer still running in V8, even though option was removed from core
+* Fixed bug with open infow windows by default only opening 1 marker, usually the last one
+* Fixed issue where bicycle, traffic and transport layers would be enabled for all users
+* Fixed issue where legcay transport layer setting name would always be true on frontend
+* Fixed issue with Finnish datatables language file being lowercase, crashing map list
+* Fixed an issue where sometimes the settings area would produce a white page instead of redirecting back to settings
+* Fixed an issue where you would not be able to edit shapes
+* Fixed an issue where you would not be able to delete shapes
+* Allowed for a one-click experience to swap over to Open Layers if you're not using a Google Maps API key in the map editor
+* Added a new "Edit" button in the marker infowindow within the map editor
+* Fixed a bug that cause "modern store locator" to not respect the setting
+
+= 8.1.1 - 2021-01-07 - High priority =
+* Fixed SVN issue
+
+= 8.1.0 - 2021-01-07 - High priority =
+* OpenLayers now fully supports shapes
+* New, easy-to-use and highly efficient shape drawing tools
+* New "batched marker loading" feature allows marker loading to be broken up into parts for a smoother loading experience with large amount of markers
+* Hide Load Maps Engine API option when you select the OpenLayers map engine
+* Fixed Store Locator Radii values not updating Default radius option
+* Fixed OpenLayers Disable Zoom Controls not working
+* New, searchable, paginated, sortable tables for polygons, polylines, heatmaps, circles and rectangles
+* New Vector render mode setting for OpenLayers - Significantly improves performance with large amount of markers
+* Map editor now "all-in-one" with all controls on a single page
+* Map editor and settings page are now fully W3C and WCAG compliant
+* Map editor and settings page are now using DOM for easy and flexible customisation
+* Map editor and settings page now handle setting serialization dynamically
+* Marker, polygon, polyline, heatmap, rectangle and circle panels now handle setting serialization dynamically
+* All backend content, logic and presentation is now separate
+* All miscellaneous JavaScript now fully modular and fully extensible
+* AJAX loading fully supported
+
+= 8.0.31 - 2020-12-22 - Medium priority =
+* Added PHP 8 compatibility notice. PHP 8 is not currently supported, and the plugin will be disabled to prevent fatal errors in these cases. Support will be added soon
+
+= 8.0.30 - 2020-12-17 - Medium priority =
+* Adds DOMElement support for PHP 8
+* Fixed GDPR message showing multiple times on some installations
+* Fixed issue with undefined variables in polygon creator panel
+* Fixed an issue with hiding POI locations in Google Maps Engine
+
+= 8.0.29 - 2020-12-10 - High priority =
+* Tested up to WordPress 5.6
+* Added support for jQuery 3
+
+= 8.0.28 - 2020-11-26 - Low priority =
+* Tested the plugin with WP5.6 RC1 - All seems in order
+* Modified the Google Places Autocomplete functionality to reduce the amount of API calls originating from basic users
 
 = 8.0.27 - 2020-10-15 - Medium priority =
 * Changes have been made to limit the amount of API calls we process for users using our API key (for new users). For more information please see https://www.wpgmaps.com/documentation/autocomplete-disabled/
@@ -221,7 +393,6 @@ Please update your WP Google Maps version to 6.2.1 to ensure you are using the l
 * Patched a vulnerability, thank you WP.org for identifying it!
 * Fixed a bug that stopped markers from being deleted on some WP installations (thank you Gary Boulter!)
 * Fixed a bug where editing a marker would cause a JS error in some instances
-
 
 = 8.0.25 :- 2020-06-12 :- Medium priority =
 * Tested up to WordPress 5.4.2
@@ -1487,97 +1658,6 @@ Please update your WP Google Maps version to 6.2.1 to ensure you are using the l
 
 
 For more, please view the WP Google Maps site
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 

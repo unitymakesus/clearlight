@@ -27,6 +27,8 @@ jQuery(function($) {
 		$(element).find("input:radio").on("change", function(event) {
 			
 			$("#wpgmza-confirm-engine").prop("disabled", false);
+
+			$("#wpgmza-confirm-engine").click();
 			
 		});
 		
@@ -60,7 +62,7 @@ jQuery(function($) {
 		});
 	}
 	
-	$(window).on("load", function(event) {
+	$(document).ready(function(event) {
 		
 		var element = $("#wpgmza-maps-engine-dialog");
 		

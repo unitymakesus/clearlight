@@ -15,7 +15,7 @@ function accordions_product_tab( $tabs ) {
 
 	if(!empty($accordions_id)):
 		$tabs['accordions_faq'] = array(
-			'title' 	=> $accordions_tab_title,
+			'title' 	=> esc_html($accordions_tab_title),
 			'priority' 	=> 50,
 			'callback' 	=> 'woo_product_tab_accordions_content'
 		);
@@ -52,7 +52,7 @@ function accordions_ajax_wc_get_accordions(){
         if(current_user_can( 'manage_options' )) {
             // you can use WP_Query, query_posts() or get_posts() here - it doesn't matter
             $search_results = new WP_Query(array(
-                's' => $_GET['q'], // the search query
+                's' => sanitize_text_field($_GET['q']), // the search query
                 'post_type' => 'accordions',
                 'post_status' => 'publish', // if you don't want drafts to be returned
                 'ignore_sticky_posts' => 1,

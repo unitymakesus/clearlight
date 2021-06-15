@@ -345,8 +345,9 @@ class AjaxTable extends Table
 		
 		// Meta
 		$meta = array();
-		foreach($rows as $key => $value)
-			$meta[$key] = $value;
+		foreach($rows as $key => $value){
+			$meta[$key] = (array) $value;
+		}
 		
 		$result = (object)array(
 			'recordsTotal'		=> $total_count,

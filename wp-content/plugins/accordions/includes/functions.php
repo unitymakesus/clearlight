@@ -456,15 +456,17 @@ function accordions_ajax_import_json(){
 
         if(current_user_can( 'manage_options' )){
 
-            $json_file = isset($_POST['json_file']) ? $_POST['json_file'] : '';
+            $json_file = isset($_POST['json_file']) ? esc_url_raw($_POST['json_file']) : '';
             $string = file_get_contents($json_file);
             $json_a = json_decode($string,true);
 
 
             foreach ($json_a as $post_id=>$post_data){
 
-                $meta_fields = $post_data['meta_fields'];
-                $title = $post_data['title'];
+                $meta_fields = accordions_recursive_sanitize_arr($post_data['meta_fields']);
+
+
+                $title = sanitize_text_field($post_data['title']);
 
                 // Create post object
                 $my_post = array(
@@ -476,7 +478,7 @@ function accordions_ajax_import_json(){
 
                 $post_inserted_id = wp_insert_post( $my_post );
 
-                foreach ($meta_fields as $meta_key=>$meta_value){
+                foreach ($meta_fields as $meta_key=> $meta_value){
                     update_post_meta( $post_inserted_id, $meta_key, $meta_value );
                 }
             }
@@ -526,7 +528,7 @@ function accordions_youtube($atts, $content = null ){
 		$height = $atts['height'];			
 		
 		$html = '';
-		$html.= '<iframe width="'.$width.'" height="'.$height.'" src="https://www.youtube.com/embed/'.$video_id.'" frameborder="0" allowfullscreen></iframe>';
+		$html.= '<iframe width="'.esc_attr($width).'" height="'.esc_attr($height).'" src="https://www.youtube.com/embed/'.esc_attr($video_id).'" frameborder="0" allowfullscreen></iframe>';
 
 		return $html;	
 	}
@@ -551,8 +553,8 @@ add_filter( 'manage_accordions_posts_columns' , 'accordions_add_shortcode_column
 function accordions_posts_shortcode_display( $column, $post_id ) {
     if ($column == 'shortcode'){
 		?>
-        <input style="background:#bfefff" type="text" onClick="this.select();" value="[accordions <?php echo 'id=&quot;'.$post_id.'&quot;';?>]" /><br />
-      <textarea cols="50" rows="1" style="background:#bfefff" onClick="this.select();" ><?php echo '<?php echo do_shortcode("[accordions id='; echo "'".$post_id."']"; echo '"); ?>'; ?></textarea>
+        <input style="background:#bfefff" type="text" onClick="this.select();" value="[accordions <?php echo 'id=&quot;'.esc_attr($post_id).'&quot;';?>]" /><br />
+      <textarea cols="50" rows="1" style="background:#bfefff" onClick="this.select();" ><?php echo '<?php echo do_shortcode("[accordions id='; echo "'".esc_attr($post_id)."']"; echo '"); ?>'; ?></textarea>
         <?php		
 		
     }
@@ -586,7 +588,19 @@ function accordions_paratheme_hex2rgb($hex) {
 
 
 
+function accordions_recursive_sanitize_arr($array) {
 
+    foreach ( $array as $key => &$value ) {
+        if ( is_array( $value ) ) {
+            $value = accordions_recursive_sanitize_arr($value);
+        }
+        else {
+            $value = wp_kses_post( $value );
+        }
+    }
+
+    return $array;
+}
 
 
 

@@ -88,7 +88,7 @@ class WPMenuEditor extends MenuEd_ShadowPluginFramework {
 	public $virtual_cap_mode = 3; //self::ALL_VIRTUAL_CAPS
 
 	/**
-	 * @var array An index of URLs relative to /wp-admin/. Any menus that match the index will be ignored.
+	 * @var array<string,true|string> An index of URLs relative to /wp-admin/. Any menus that match the index will be ignored.
 	 */
 	private $menu_url_blacklist = array();
 
@@ -106,6 +106,7 @@ class WPMenuEditor extends MenuEd_ShadowPluginFramework {
 	 * @var ameModule[] List of modules that were loaded for the current request.
 	 */
 	private $loaded_modules = array();
+	private $are_modules_loaded = false;
 
 	/**
 	 * @var array List of capabilities that are used in the default admin menu. Used to detect meta capabilities.
@@ -123,6 +124,20 @@ class WPMenuEditor extends MenuEd_ShadowPluginFramework {
 	 * @var Exception|null
 	 */
 	private $last_menu_exception = null;
+
+	private static $jquery_plugins = array(
+		//jQuery JSON plugin
+		'jquery-json'       => 'js/jquery.json.js',
+		//jQuery sort plugin
+		'jquery-sort'       => 'js/jquery.sort.js',
+		//qTip2 - jQuery tooltip plugin
+		'jquery-qtip'       => 'js/jquery.qtip.min.js',
+		//jQuery Form plugin. This is a more recent version than the one included with WP.
+		'ame-jquery-form'   => 'js/jquery.form.js',
+		//jQuery cookie plugin
+		'ame-jquery-cookie' => 'js/jquery.biscuit.js',
+	);
+	private $registered_jquery_plugins = array();
 
 	function init(){
 		$this->sitewide_options = true;
@@ -187,6 +202,9 @@ class WPMenuEditor extends MenuEd_ShadowPluginFramework {
 			//Make custom menu and page titles translatable with WPML. They will appear in the "Strings" section.
 			//This only applies to custom (i.e. changed) titles.
 			'wpml_support_enabled' => true,
+			//Prevent bbPress from resetting its own roles. This should allow the user to edit bbPress roles
+			//with any role editing plugin. Disabled by default due to risk of conflicts and the performance impact.
+			'bbpress_override_enabled' => false,
 
 			//Which modules are active or inactive. Format: ['module-id' => true/false].
 			'is_active_module' => array(
@@ -301,6 +319,12 @@ class WPMenuEditor extends MenuEd_ShadowPluginFramework {
 			'options-general.php?page=wyr-fakes-settings' => true,
 			//WP-Job-Manager 1.34.1
 			'index.php?page=job-manager-setup' => true,
+			//Simple Calendar 3.1.33
+			'index.php?page=simple-calendar_about'       => true,
+			'index.php?page=simple-calendar_credits'     => true,
+			'index.php?page=simple-calendar_translators' => true,
+			//Stripe For WooCommerce 3.2.12
+			'wc_stripe' => 'submenu',
 		);
 
 		//AJAXify screen options
@@ -323,7 +347,7 @@ class WPMenuEditor extends MenuEd_ShadowPluginFramework {
 		//to the request vars even if this PHP misfeature is disabled.
 		$this->capture_request_vars();
 
-		add_action('admin_enqueue_scripts', array($this, 'enqueue_menu_fix_script'));
+		add_action('admin_enqueue_scripts', array($this, 'enqueue_menu_fix_script'), 8);
 
 		//Enqueue miscellaneous helper scripts and styles.
 		add_action('admin_enqueue_scripts', array($this, 'enqueue_helper_scripts'));
@@ -417,6 +441,12 @@ class WPMenuEditor extends MenuEd_ShadowPluginFramework {
 		//Compatibility fix for MailPoet 3.
 		$this->apply_mailpoet_compat_fix();
 
+		//bbPress role override.
+		if ( !empty($this->options['bbpress_override_enabled']) ) {
+			require_once __DIR__ . '/bbpress-role-override.php';
+			new ameBBPressRoleOverride();
+		}
+
 		if ( did_action('plugins_loaded') ) {
 			$this->load_modules();
 		} else {
@@ -425,15 +455,22 @@ class WPMenuEditor extends MenuEd_ShadowPluginFramework {
 	}
 
 	public function load_modules() {
-		//Modules
-		foreach($this->get_active_modules() as $module) {
+		//Load any active modules that haven't been loaded yet.
+		foreach($this->get_active_modules() as $id => $module) {
+			if ( array_key_exists($id, $this->loaded_modules) ) {
+				continue;
+			}
+
 			/** @noinspection PhpIncludeInspection */
 			include ($module['path']);
 			if ( !empty($module['className']) ) {
 				$instance = new $module['className']($this);
-				$this->loaded_modules[] = $instance;
+				$this->loaded_modules[$id] = $instance;
+			} else {
+				$this->loaded_modules[$id] = true;
 			}
 		}
+		$this->are_modules_loaded = true;
 
 		//Set up the tabs for the menu editor page. Many tabs are provided by modules.
 		$firstTabs = array('editor' => 'Admin Menu');
@@ -587,6 +624,8 @@ class WPMenuEditor extends MenuEd_ShadowPluginFramework {
 
 			//Save the merged menu for later - the editor page will need it
 			$this->merged_custom_menu = $custom_menu;
+
+			do_action('admin_menu_editor-menu_merged', $custom_menu, $this->merged_custom_menu);
 
 			//Convert our custom menu to the $menu + $submenu structure used by WP.
 			//Note: This method sets up multiple internal fields and may cause side-effects.
@@ -876,18 +915,25 @@ class WPMenuEditor extends MenuEd_ShadowPluginFramework {
 
 	/**
 	 * @access private
+	 * @param string[]|null $handles
 	 */
-	public function register_jquery_plugins() {
-		//jQuery JSON plugin
-		wp_register_auto_versioned_script('jquery-json', plugins_url('js/jquery.json.js', $this->plugin_file), array('jquery'));
-		//jQuery sort plugin
-		wp_register_auto_versioned_script('jquery-sort', plugins_url('js/jquery.sort.js', $this->plugin_file), array('jquery'));
-		//qTip2 - jQuery tooltip plugin
-		wp_register_auto_versioned_script('jquery-qtip', plugins_url('js/jquery.qtip.min.js', $this->plugin_file), array('jquery'));
-		//jQuery Form plugin. This is a more recent version than the one included with WP.
-		wp_register_auto_versioned_script('ame-jquery-form', plugins_url('js/jquery.form.js', $this->plugin_file), array('jquery'));
-		//jQuery cookie plugin
-		wp_register_auto_versioned_script('ame-jquery-cookie', plugins_url('js/jquery.biscuit.js', $this->plugin_file), array('jquery'));
+	public function register_jquery_plugins($handles = null) {
+		if ( $handles === null ) {
+			$handles = array_keys(self::$jquery_plugins);
+		}
+
+		foreach ($handles as $handle) {
+			if ( !isset(self::$jquery_plugins[$handle]) || !empty($this->registered_jquery_plugins[$handle]) ) {
+				continue;
+			}
+
+			wp_register_auto_versioned_script(
+				$handle,
+				plugins_url(self::$jquery_plugins[$handle], $this->plugin_file),
+				array('jquery')
+			);
+			$this->registered_jquery_plugins[$handle] = true;
+		}
 	}
 
 	/**
@@ -1279,6 +1325,7 @@ class WPMenuEditor extends MenuEd_ShadowPluginFramework {
 	 *
 	 * @param array|null $custom_menu
 	 * @param string|null $config_id Supported values: 'network-admin', 'global' or 'site'
+	 * @return bool True if the database entry was updated, false if not.
 	 */
 	function set_custom_menu($custom_menu, $config_id = null) {
 		if ( $config_id === null ) {
@@ -1306,14 +1353,13 @@ class WPMenuEditor extends MenuEd_ShadowPluginFramework {
 				$site_specific_options = array();
 			}
 			$site_specific_options['custom_menu'] = $custom_menu;
-			update_option($this->option_name, $site_specific_options);
+			$updated = update_option($this->option_name, $site_specific_options);
 		} else if ($config_id === 'global') {
 			$this->options['custom_menu'] = $custom_menu;
-			$this->save_options();
-
+			$updated = $this->save_options();
 		} else if ($config_id === 'network-admin' ) {
 			$this->options['custom_network_menu'] = $custom_menu;
-			$this->save_options();
+			$updated = $this->save_options();
 		} else {
 			throw new LogicException(sprintf('Invalid menu configuration ID: "%s"', $config_id));
 		}
@@ -1322,6 +1368,8 @@ class WPMenuEditor extends MenuEd_ShadowPluginFramework {
 		$this->cached_custom_menu = null;
 		$this->cached_virtual_caps = null;
 		$this->cached_user_caps = array();
+
+		return $updated;
 	}
 
 	/**
@@ -1337,6 +1385,13 @@ class WPMenuEditor extends MenuEd_ShadowPluginFramework {
 
 		if ( ($this->cached_custom_menu !== null) && ($this->loaded_menu_config_id === $config_id) ) {
 			return $this->cached_custom_menu;
+		}
+
+		//Modules may include custom hooks that change how menu settings are loaded, so we need to load active modules
+		//before we load the menu configuration. Usually that happens automatically, but there are some plugins that
+		//trigger AME filters that need menu data before modules would normally be loaded.
+		if ( !$this->are_modules_loaded ) {
+			$this->load_modules();
 		}
 
 		$this->loaded_menu_config_id = $config_id;
@@ -1948,7 +2003,9 @@ class WPMenuEditor extends MenuEd_ShadowPluginFramework {
 			}
 
 			if ( !isset($this->reverse_item_lookup[$topmenu['url']]) ) { //Prefer sub-menus.
-				$this->reverse_item_lookup[$topmenu['url']] = $topmenu;
+				if ( $this->is_item_visitable($topmenu) ) {
+					$this->reverse_item_lookup[$topmenu['url']] = $topmenu;
+				}
 			}
 
 			$has_submenu_icons = false;
@@ -1972,7 +2029,9 @@ class WPMenuEditor extends MenuEd_ShadowPluginFramework {
 					}
 				}
 
-				$this->reverse_item_lookup[$item['url']] = $item;
+				if ( $this->is_item_visitable($item) ) {
+					$this->reverse_item_lookup[$item['url']] = $item;
+				}
 
 				//Skip missing and hidden items
 				if ( !empty($item['missing']) || !empty($item['hidden']) ) {
@@ -2072,6 +2131,10 @@ class WPMenuEditor extends MenuEd_ShadowPluginFramework {
 			if ( strpos($cssClass, ameMenuItem::unclickableTemplateClass) === false ) {
 				$item['css_class'] = ameMenuItem::unclickableTemplateClass . ' ' . $cssClass;
 			}
+
+			//Mark unclickable items as not visitable. The submenus (if any) can be visited,
+			//but the item itself doesn't link to anything.
+			$item['is_unvisitable'] = true;
 		}
 
 		//Make the default submenu icon the same as the parent icon.
@@ -2085,7 +2148,8 @@ class WPMenuEditor extends MenuEd_ShadowPluginFramework {
 		//Menus that have both a custom icon URL and a "menu-icon-*" class will get two overlapping icons.
 		//Fix this by automatically removing the class. The user can set a custom class attr. to override.
 		$hasCustomIconUrl = !ameMenuItem::is_default($item, 'icon_url');
-		$hasIcon = !in_array(ameMenuItem::get($item, 'icon_url'), array('', 'none', 'div'));
+		$tempIconUrl = ameMenuItem::get($item, 'icon_url', '');
+		$hasIcon = !in_array($tempIconUrl, array('', 'none', 'div'));
 		if (
 			ameMenuItem::is_default($item, 'css_class')
 			&& $hasCustomIconUrl
@@ -2097,8 +2161,14 @@ class WPMenuEditor extends MenuEd_ShadowPluginFramework {
 			}
 		}
 
-		if ( $hasCustomIconUrl && (strpos(ameMenuItem::get($item, 'icon_url'), 'dashicons-') === 0) ) {
-			$item['css_class'] = ameMenuItem::get($item, 'css_class', '') . ' ame-has-custom-dashicon';
+		if ( $hasCustomIconUrl ) {
+			//Is it a Dashicon?
+			if ( (strpos($tempIconUrl, 'dashicons-') === 0) ) {
+				$item['css_class'] = ameMenuItem::get($item, 'css_class', '') . ' ame-has-custom-dashicon';
+			//Is it a URL-looking thing and not an inline image?
+			} else if ( (strpos($tempIconUrl, '/') !== false) && (strpos($tempIconUrl, 'data:image') === false) ) {
+				$item['css_class'] = ameMenuItem::get($item, 'css_class', '') . ' ame-has-custom-image-url';
+			}
 		}
 
 		//WPML support: Translate only custom titles. See further below.
@@ -2322,6 +2392,17 @@ class WPMenuEditor extends MenuEd_ShadowPluginFramework {
 		return $item;
 	}
 
+	/**
+	 * Check if a menu item can be visited/navigated to.
+	 * Most regular items can be visited. Separators and some special item types cannot.
+	 *
+	 * @param array $item
+	 * @return bool
+	 */
+	private function is_item_visitable($item) {
+		return empty($item['separator']) && empty($item['is_unvisitable']);
+	}
+
   /**
    * Output the menu editor page
    *
@@ -2476,6 +2557,11 @@ class WPMenuEditor extends MenuEd_ShadowPluginFramework {
 				//Remember if the user has changed any menu icons to different Dashicons.
 				$menu['has_modified_dashicons'] = ameModifiedIconDetector::detect($menu);
 
+				//Add a modification timestamp to help ensure that the new menu data will be different.
+				//This way update_option() and similar functions should only return false when there is
+				//an actual error, not just because the data hasn't changed.
+				$menu['last_modified_on'] = date('c');
+
 				//Which menu configuration are we changing?
 				$config_id = isset($post['config_id']) ? $post['config_id'] : null;
 				if ( !in_array($config_id, array('site', 'global', 'network-admin')) ) {
@@ -2483,7 +2569,39 @@ class WPMenuEditor extends MenuEd_ShadowPluginFramework {
 				}
 
 				//Save the custom menu
-				$this->set_custom_menu($menu, $config_id);
+				if ( !$this->set_custom_menu($menu, $config_id) ) {
+					$messages = array('Error: Could not save menu settings.');
+
+					global $wpdb;
+					if ( !empty($wpdb->last_error) ) {
+						$messages[] = 'Last database error: "' . esc_html($wpdb->last_error) . '"';
+					}
+
+					//Check the character set of the wp_options and wp_sitemeta tables.
+					$bad_charsets = array('utf8', 'utf8mb3');
+					$tables_to_check = array(array($wpdb->options, 'option_value'));
+					if ( is_multisite() ) {
+						$tables_to_check[] = array($wpdb->sitemeta, 'meta_value');
+					}
+					foreach ($tables_to_check as $item) {
+						list($table, $column) = $item;
+						if ( empty($table) ) {
+							continue;
+						}
+						$current_charset = $wpdb->get_col_charset($table, $column);
+						if ( in_array($current_charset, $bad_charsets) ) {
+							$messages[] = sprintf(
+								'<p>Warning: The <code>%s</code> database table uses the outdated <code>%s</code> ' .
+								'character set. This can prevent you from saving settings that contain emojis, ' .
+								'certain Chinese characters, and so on. It is recommended to convert the table ' .
+								'to the <code>utf8mb4</code> character set.</p>',
+								esc_html($wpdb->options),
+								esc_html($current_charset)
+							);
+						}
+					}
+					wp_die(implode("<br>\n", $messages));
+				}
 
 				//Redirect back to the editor and display the success message.
 				$query = array('message' => 1);
@@ -2613,6 +2731,9 @@ class WPMenuEditor extends MenuEd_ShadowPluginFramework {
 
 			//WPML support.
 			$this->options['wpml_support_enabled'] = !empty($this->post['wpml_support_enabled']);
+
+			//bbPress override support.
+			$this->options['bbpress_override_enabled'] = !empty($this->post['bbpress_override_enabled']);
 
 			//Active modules.
 			$activeModules = isset($this->post['active_modules']) ? (array)$this->post['active_modules'] : array();
@@ -3141,11 +3262,20 @@ class WPMenuEditor extends MenuEd_ShadowPluginFramework {
 	 * would not be highlighted properly when the user visits them.
 	 */
 	public function enqueue_menu_fix_script() {
+		//Compatibility fix for PRO Theme 1.1.5.
+		//This custom admin theme expands the current admin menu via JavaScript by using a "ready" handler.
+		//We need to ensure that we highlight the correct current menu before that happens. This means we
+		//have to enqueue the script in the header and with a higher priority than the PRO Theme script.
+		$inFooter = true;
+		if ( class_exists('PROTheme', false) ) {
+			$inFooter = false;
+		}
+
 		wp_enqueue_auto_versioned_script(
 			'ame-menu-fix',
 			plugins_url('js/menu-highlight-fix.js', $this->plugin_file),
 			array('jquery'),
-			true
+			$inFooter
 		);
 	}
 
@@ -3204,7 +3334,20 @@ class WPMenuEditor extends MenuEd_ShadowPluginFramework {
 			return $this->cached_user_caps[$capability];
 		}
 
-		$user_can = apply_filters('admin_menu_editor-current_user_can', current_user_can($capability), $capability);
+		/*
+		 * Some meta caps require an object ID to be passed as the second argument. WordPress core will
+		 * unintentionally trigger a notice if we don't provide that argument. We use a non-existent ID
+		 * to prevent that notice.
+		 *
+		 * NULL, FALSE and 0 are not good alternatives because some WordPress APIs (e.g. get_post) take
+		 * those values as a sign to return the current post/page/taxonomy.
+		 */
+
+		$user_can = apply_filters(
+			'admin_menu_editor-current_user_can',
+			current_user_can($capability, -1),
+			$capability
+		);
 		$this->cached_user_caps[$capability] = $user_can;
 		return $user_can;
 	}
@@ -3434,9 +3577,27 @@ class WPMenuEditor extends MenuEd_ShadowPluginFramework {
 		}
 
 		// "/wp-admin/index.php" should match "/wp-admin/".
+		static $wpAdminDir = null;
+		if ( $wpAdminDir === null ) {
+			$wpAdminDir = '/wp-admin/';
+			if ( has_filter('admin_url') ) {
+				//Detect modified admin base URLs. For example, some security and branding plugins
+				//replace "wp-admin" with "something-else".
+				$suffix = 'ame-4425-admin-path-test';
+				$testUrl = self_admin_url($suffix);
+				$lastSlash = strrpos($testUrl, '/', -strlen($suffix) + 1);
+				if ( $lastSlash !== false ) {
+					$firstSlash = strrpos($testUrl, '/', -strlen($suffix) - 2);
+					if ( ($firstSlash !== false) && ($firstSlash !== $lastSlash) ) {
+						$wpAdminDir = substr($testUrl, $firstSlash, $lastSlash - $firstSlash + 1);
+					}
+				}
+			}
+		}
+
 		if (
-			($this->endsWith($path1, '/wp-admin/index.php') && $this->endsWith($path2, '/wp-admin/'))
-			|| ($this->endsWith($path2, '/wp-admin/index.php') && $this->endsWith($path1, '/wp-admin/'))
+			($this->endsWith($path1, $wpAdminDir . 'index.php') && $this->endsWith($path2, $wpAdminDir))
+			|| ($this->endsWith($path2, $wpAdminDir . 'index.php') && $this->endsWith($path1, $wpAdminDir))
 		) {
 			return true;
 		}
@@ -3591,7 +3752,7 @@ class WPMenuEditor extends MenuEd_ShadowPluginFramework {
 			'ame-helper-style',
 			plugins_url('css/admin.css', $this->plugin_file),
 			array(),
-			'20140630-3'
+			'20210413'
 		);
 
 		if ( $this->options['force_custom_dashicons'] ) {
@@ -3602,7 +3763,7 @@ class WPMenuEditor extends MenuEd_ShadowPluginFramework {
 					'ame-force-dashicons',
 					plugins_url('css/force-dashicons.css', $this->plugin_file),
 					array(),
-					'20190810'
+					'20210226'
 				);
 			}
 		}
@@ -4569,7 +4730,12 @@ class ameMenuTemplateBuilder {
 		//Skip blacklisted menus.
 		//BUG: We shouldn't skip top level menus that have non-blacklisted submenu items.
 		if ( isset($item['url'], $this->blacklist[$item['url']]) ) {
-			return;
+			$filter = $this->blacklist[$item['url']];
+			if ( $filter === true ) {
+				return;
+			} else if ( ($filter === 'submenu') && ($parent !== null) ) {
+				return;
+			}
 		}
 
 		$name = $this->sanitizeMenuTitle($item['menu_title']);

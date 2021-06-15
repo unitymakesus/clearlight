@@ -7,10 +7,10 @@ Author: Renzo Johnson
 Author URI: http://renzojohnson.com
 Text Domain: contact-form-7
 Domain Path: /languages/
-Version: 0.5.28
+Version: 0.5.39
 */
 
-/*  Copyright 2013-2020 Renzo Johnson (email: renzojohnson at gmail.com)
+/*  Copyright 2013-2022 Renzo Johnson (email: renzojohnson at gmail.com)
 
     This program is free software; you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -29,7 +29,7 @@ Version: 0.5.28
 
 if ( ! defined( 'SPARTAN_MCE_VERSION' ) ) {
 
-		define( 'SPARTAN_MCE_VERSION', '0.5.28' );
+		define( 'SPARTAN_MCE_VERSION', '0.5.39' );
 		define( 'SPARTAN_MCE_PLUGIN_BASENAME', plugin_basename( __FILE__ ) );
 		define( 'SPARTAN_MCE_PLUGIN_NAME', trim( dirname( SPARTAN_MCE_PLUGIN_BASENAME ), '/' ) );
 		define( 'SPARTAN_MCE_PLUGIN_DIR', untrailingslashit( dirname( __FILE__ ) ) );
@@ -277,25 +277,6 @@ if ( ! function_exists ( 'mce_plugin_deactivation'  ) ) {
 	}
 
 }
-
-
-
-
-// $errores = error_get_last() ;
-// $cuenta = is_array ( $errores ) ? count ($errores) : 0 ;
-
-// $chimp_db_log = new chimp_db_log( 'mce_db_issues', 6,'php' );
-// $msgerr = $errores ;
-
-// if ( $cuenta !== 0 ) {
-
-// 		if (is_array($msgerr) || is_object($msgerr)) {
-// 				$chimp_db_log->chimp_log_insert_db(1, 'Error php response :', $msgerr  ) ;
-// 		} else {
-// 				$chimp_db_log->chimp_log_insert_db(1, 'Error php response :' . $msgerr, ''  ) ;
-// 			}
-
-// }
 
 
 if (!function_exists('write_log')) {

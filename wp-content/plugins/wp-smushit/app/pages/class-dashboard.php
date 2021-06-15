@@ -63,6 +63,7 @@ class Dashboard extends Abstract_Page {
 				'integrations' => __( 'Integrations', 'wp-smushit' ),
 				'lazy_load'    => __( 'Lazy Load', 'wp-smushit' ),
 				'cdn'          => __( 'CDN', 'wp-smushit' ),
+				'webp'         => __( 'Local WebP', 'wp-smushit' ),
 				'tools'        => __( 'Tools', 'wp-smushit' ),
 				'settings'     => __( 'Settings', 'wp-smushit' ),
 				'tutorials'    => __( 'Tutorials', 'wp-smushit' ),
@@ -107,6 +108,7 @@ class Dashboard extends Abstract_Page {
 
 		// Disabled on all subsites.
 		if ( is_multisite() && ! is_network_admin() ) {
+			unset( $this->tabs['webp'] );
 			unset( $this->tabs['settings'] );
 		}
 	}
@@ -286,6 +288,52 @@ class Dashboard extends Abstract_Page {
 			}
 		}
 
+		if ( 'webp' === $this->get_current_tab() && $this->should_render() ) {
+			if ( ! WP_Smush::is_pro() ) {
+				$this->add_meta_box(
+					'webp/upsell',
+					__( 'Local WebP', 'wp-smushit' ),
+					null,
+					array( $this, 'webp_upsell_metabox_header' ),
+					null,
+					'webp'
+				);
+			} else {
+				if ( ! $this->settings->get( 'webp_mod' ) ) {
+					$this->add_meta_box(
+						'webp/disabled',
+						__( 'Local WebP', 'wp-smushit' ),
+						null,
+						array( $this, 'webp_metabox_header' ),
+						null,
+						'webp'
+					);
+				} else {
+					$this->add_meta_box(
+						'webp/webp',
+						__( 'Local WebP', 'wp-smushit' ),
+						null,
+						array( $this, 'webp_metabox_header' ),
+						null,
+						'webp'
+					);
+
+					if ( true !== WP_Smush::get_instance()->core()->mod->webp->is_configured() ) {
+						$this->add_meta_box(
+							'webp_config',
+							__( 'Configurations', 'wp-smushit' ),
+							array( $this, 'webp_config_metabox' ),
+							null,
+							null,
+							'webp'
+						);
+					}
+
+					$this->modals['webp-delete-all'] = array();
+				}
+			}
+		}
+
 		if ( 'tools' === $this->get_current_tab() && $this->should_render() ) {
 			$box_body_class = WP_Smush::is_pro() ? '' : 'sui-upsell-items';
 			$this->add_meta_box(
@@ -299,6 +347,8 @@ class Dashboard extends Abstract_Page {
 					'box_content_class' => "sui-box-body {$box_body_class}",
 				)
 			);
+
+			$this->modals['restore-images'] = array();
 		}
 
 		if ( 'settings' === $this->get_current_tab() && ( is_network_admin() || $this->should_render() ) ) {
@@ -310,17 +360,8 @@ class Dashboard extends Abstract_Page {
 				array( $this, 'common_metabox_footer' ),
 				'settings'
 			);
-		}
 
-		if ( 'tutorials' === $this->get_current_tab() && $this->should_render() ) {
-			$this->add_meta_box(
-				'tutorials',
-				__( 'Tutorials', 'wp-smushit' ),
-				array( $this, 'tutorials_metabox' ),
-				null,
-				null,
-				'tutorials'
-			);
+			$this->modals['reset-settings'] = array();
 		}
 	}
 
@@ -342,10 +383,20 @@ class Dashboard extends Abstract_Page {
 			} elseif ( 'upgrade' === $status || 'activating' === $status ) {
 				echo '<i class="sui-icon-warning-alert sui-warning" aria-hidden="true"></i>';
 			} elseif ( 'enabled' === $status ) {
-				echo '<i class="sui-icon-check-tick sui-info" aria-hidden="true"></i>';
+				echo '<i class="sui-icon-check-tick sui-success" aria-hidden="true"></i>';
 			}
 		} elseif ( 'lazy_load' === $tab && $this->settings->get( 'lazy_load' ) ) {
-			echo '<i class="sui-icon-check-tick sui-info" aria-hidden="true"></i>';
+			echo '<i class="sui-icon-check-tick sui-success" aria-hidden="true"></i>';
+		} elseif ( 'webp' === $tab ) {
+			if ( ! WP_Smush::is_pro() || ! $this->settings->get( 'webp_mod' ) ) {
+				return;
+			}
+
+			if ( true === WP_Smush::get_instance()->core()->mod->webp->is_configured() ) {
+				echo '<i id="webp-tab-icon" class="sui-icon-check-tick sui-success" aria-hidden="true"></i>';
+			} else {
+				echo '<i id="webp-tab-icon" class="sui-icon-warning-alert sui-warning" aria-hidden="true"></i>';
+			}
 		}
 	}
 
@@ -559,7 +610,7 @@ class Dashboard extends Abstract_Page {
 				$core->set_pro_savings();
 			}
 			$pro_savings      = $core->stats['pro_savings'];
-			$show_pro_savings = $pro_savings['savings'] > 0 ? true : false;
+			$show_pro_savings = $pro_savings['savings'] > 0;
 			if ( $show_pro_savings ) {
 				?>
 				<li class="smush-avg-pro-savings" id="smush-avg-pro-savings">
@@ -588,7 +639,7 @@ class Dashboard extends Abstract_Page {
 					<?php if ( ! $this->settings->get( 'lossy' ) ) { ?>
 						<p class="wp-smush-stats-label-message sui-hidden-sm sui-hidden-md sui-hidden-lg">
 							<?php
-							$link_class = 'wp-smush-lossy-enable-link';
+							$link_class = 'wp-smush-lossy-enable';
 							if ( ( is_multisite() && Settings::can_access( 'bulk' ) ) || 'bulk' !== $this->get_current_tab() ) {
 								$settings_link = $this->get_page_url() . '#enable-lossy';
 							} else {
@@ -734,7 +785,7 @@ class Dashboard extends Abstract_Page {
 								<?php
 								printf(
 									/* translators: %1$s - <strong>, %2$s - </strong> */
-									wp_kses( 'Note: Any PNGs with transparency will be ignored. Smush will only convert PNGs if it results in a smaller file size. The resulting file will have a new filename and extension (JPEG), and %1$sany hard-coded URLs on your site that contain the original PNG filename will need to be updated manually%2$s.', 'wp-smushit' ),
+									esc_html__( 'Note: Any PNGs with transparency will be ignored. Smush will only convert PNGs if it results in a smaller file size. The resulting file will have a new filename and extension (JPEG), and %1$sany hard-coded URLs on your site that contain the original PNG filename will need to be updated manually%2$s.', 'wp-smushit' ),
 									'<strong>',
 									'</strong>'
 								);
@@ -877,6 +928,31 @@ class Dashboard extends Abstract_Page {
 							<?php
 						}
 						?>
+					</div>
+				</div>
+			</div>
+		<?php endif; ?>
+		<?php if ( has_filter( 'wp_image_editors', 'photon_subsizes_override_image_editors' ) ) : ?>
+			<?php
+			$text = sprintf( /* translators: %1$s - <a>, %2$s - </a> */
+				esc_html__( "We noticed Jetpack's %1\$sSite Accelerator%2\$s is active with the “Speed up image load times” option enabled. Since Site Accelerator completely offloads intermediate thumbnail sizes (they don't exist in your Media Library), Smush can't optimize those images.", 'wp-smushit' ),
+				'<a href="https://jetpack.com/support/site-accelerator/" target="_blank">',
+				'</a>'
+			);
+
+			if ( WP_Smush::is_pro() ) {
+				$text .= ' ' . sprintf( /* translators: %1$s - <a>, %2$s - </a> */
+					esc_html__( 'You can still optimize your %1$sOriginal Images%2$s if you want to.', 'wp-smushit' ),
+					'<a href="#wp-smush-original">',
+					'</a>'
+				);
+			}
+			?>
+			<div class="sui-notice sui-notice-warning" style="margin-top: -20px">
+				<div class="sui-notice-content">
+					<div class="sui-notice-message">
+						<i class="sui-notice-icon sui-icon-info sui-md" aria-hidden="true"></i>
+						<p><?php echo wp_kses_post( $text ); ?></p>
 					</div>
 				</div>
 			</div>
@@ -1060,41 +1136,6 @@ class Dashboard extends Abstract_Page {
 	}
 
 	/**
-	 * Returns the tutorials data to display.
-	 *
-	 * @since 3.7.1
-	 * @return array
-	 */
-	protected function get_tutorials_data() {
-		return array(
-			array(
-				'title'             => __( 'How to Get the Most Out of Smush Image Optimization', 'wp-smushit' ),
-				'content'           => __( 'Set your site up for maximum success. Learn how to get the most out of Smush and streamline your images for peak site performance.', 'wp-smushit' ),
-				'thumbnail_full'    => 'tutorial-1-thumbnail.png',
-				'thumbnail_full_2x' => 'tutorial-1-thumbnail@2x.png',
-				'url'               => 'https://premium.wpmudev.org/blog/how-to-get-the-most-out-of-smush/',
-				'read_time'         => 5,
-			),
-			array(
-				'title'             => __( "How To Ace Google's Image Page Speed Recommendations", 'wp-smushit' ),
-				'content'           => __( "See how toggling specific Smush settings can easily help you resolve all 4 of Google's 'image-related' page speed recommendations.", 'wp-smushit' ),
-				'thumbnail_full'    => 'tutorial-2-thumbnail.png',
-				'thumbnail_full_2x' => 'tutorial-2-thumbnail@2x.png',
-				'url'               => 'https://premium.wpmudev.org/blog/smush-pagespeed-image-compression/',
-				'read_time'         => 6,
-			),
-			array(
-				'title'             => __( 'How To Bulk Optimize Images With Smush', 'wp-smushit' ),
-				'content'           => __( 'Skip the hassle of compressing all your images manually. Learn how Smush can easily help you do it in bulk.', 'wp-smushit' ),
-				'thumbnail_full'    => 'tutorial-3-thumbnail.png',
-				'thumbnail_full_2x' => 'tutorial-3-thumbnail@2x.png',
-				'url'               => 'https://premium.wpmudev.org/blog/smush-bulk-optimize-images/',
-				'read_time'         => 6,
-			),
-		);
-	}
-
-	/**
 	 * Bulk smush meta box.
 	 *
 	 * Container box to handle bulk smush actions. Show progress bars,
@@ -1237,7 +1278,6 @@ class Dashboard extends Abstract_Page {
 			array(
 				'errors'      => $errors,
 				'images'      => $images,
-				'root_path'   => $core->mod->dir->get_root_path(),
 				'upgrade_url' => $upgrade_url,
 			)
 		);
@@ -1337,7 +1377,7 @@ class Dashboard extends Abstract_Page {
 					"You're almost through your CDN bandwidth limit. Please contact your administrator to upgrade your Smush CDN plan to ensure you don't lose this service. %1\$sUpgrade now%2\$s",
 					'wp-smushit'
 				),
-				'<a href="https://premium.wpmudev.org/hub/account/" target="_blank">',
+				'<a href="https://wpmudev.com/hub/account/" target="_blank">',
 				'</a>'
 			),
 			'overcap'    => sprintf(
@@ -1346,13 +1386,13 @@ class Dashboard extends Abstract_Page {
 					"You've gone through your CDN bandwidth limit, so we’ve stopped serving your images via the CDN. Contact your administrator to upgrade your Smush CDN plan to reactivate this service. %1\$sUpgrade now%2\$s",
 					'wp-smushit'
 				),
-				'<a href="https://premium.wpmudev.org/hub/account/" target="_blank">',
+				'<a href="https://wpmudev.com/hub/account/" target="_blank">',
 				'</a>'
 			),
 		);
 
 		$status_color = array(
-			'enabled'    => 'info',
+			'enabled'    => 'success',
 			'disabled'   => 'error',
 			'activating' => 'warning',
 			'upgrade'    => 'warning',
@@ -1388,12 +1428,69 @@ class Dashboard extends Abstract_Page {
 	}
 
 	/**
+	 * Upsell meta box header.
+	 *
+	 * @since 3.8.0
+	 */
+	public function webp_upsell_metabox_header() {
+		$this->view( 'webp/upsell-meta-box-header' );
+	}
+
+	/**
+	 * WebP meta box header.
+	 *
+	 * @since 3.8.0
+	 */
+	public function webp_metabox_header() {
+		$this->view(
+			'webp/meta-box-header',
+			array(
+				'is_disabled'   => ! $this->settings->get( 'webp_mod' ) || ! WP_Smush::get_instance()->core()->s3->setting_status(),
+				'is_configured' => true === WP_Smush::get_instance()->core()->mod->webp->is_configured(),
+			)
+		);
+	}
+
+	/**
+	 * WebP meta box.
+	 *
+	 * @since 3.8.0
+	 */
+	public function webp_config_metabox() {
+		$webp    = WP_Smush::get_instance()->core()->mod->webp;
+		$servers = $webp->get_servers();
+		// WebP module does not support iss and cloudflare server.
+		unset( $servers['iis'], $servers['cloudflare'] );
+
+		$server_type          = strtolower( $webp->get_server_type() );
+		$detected_server      = '';
+		$detected_server_name = '';
+
+		if ( isset( $servers[ $server_type ] ) ) {
+			$detected_server      = $server_type;
+			$detected_server_name = $servers[ $server_type ];
+		}
+
+		$this->view(
+			'webp/config-meta-box',
+			array(
+				'servers'              => $servers,
+				'detected_server'      => $detected_server,
+				'detected_server_name' => $detected_server_name,
+				'nginx_config_code'    => $webp->get_nginx_code(),
+				'apache_htaccess_code' => $webp->get_apache_code_to_print(),
+				'is_htaccess_written'  => $webp->is_htaccess_written(),
+			)
+		);
+	}
+
+	/**
 	 * Settings meta box.
 	 *
 	 * @since 3.0
 	 */
 	public function settings_metabox() {
-		$link = WP_Smush::is_pro() ? 'https://premium.wpmudev.org/translate/projects/wp-smushit/' : 'https://translate.wordpress.org/projects/wp-plugins/wp-smushit';
+		$link = WP_Smush::is_pro() ? 'https://wpmudev.com/translate/projects/wp-smushit/' : 'https://translate.wordpress.org/projects/wp-plugins/wp-smushit';
 
 		$site_locale = get_locale();
 
@@ -1456,15 +1553,6 @@ class Dashboard extends Abstract_Page {
 	}
 
 	/**
-	 * Tutorials meta box.
-	 *
-	 * @since 3.7.1
-	 */
-	public function tutorials_metabox() {
-		$this->view( 'tutorials/meta-box' );
-	}
-
-	/**
 	 * Common footer meta box.
 	 *
 	 * @since 3.2.0
@@ -1510,7 +1598,12 @@ class Dashboard extends Abstract_Page {
 		// except that we don't add the re-smushed count here.
 		$unsmushed_count = WP_Smush::get_instance()->core()->total_count - WP_Smush::get_instance()->core()->smushed_count - WP_Smush::get_instance()->core()->skipped_count;
 
-		return $images_to_resmush + $unsmushed_count;
+		// Sometimes this number can be negative, if there are weird issues with meta data.
+		if ( $unsmushed_count > 0 ) {
+			return $images_to_resmush + $unsmushed_count;
+		}
+
+		return $images_to_resmush;
 	}
 
 }

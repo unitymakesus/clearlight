@@ -3,18 +3,30 @@
 namespace SovereignStack\SecuritySafe;
 
 // Prevent Direct Access
-if ( !defined( 'ABSPATH' ) ) {
-    die;
-}
+defined( 'ABSPATH' ) || die;
 /**
  * Class Admin
  * @package SecuritySafe
  */
 class Admin extends Security
 {
+    /**
+     * Is this page a settings page?
+     * @var boolean | NULL
+     * @note default value must be null
+     */
+    public  $is_settings_page = '' ;
+    /**
+     * Is this page a plugin page?
+     * @var boolean | NULL
+     * @note default value must be null
+     */
+    public  $is_plugin_page = '' ;
     protected  $page ;
     /**
      * Admin constructor.
+     *
+     * @param $session array
      */
     function __construct( $session )
     {
@@ -39,7 +51,185 @@ class Admin extends Security
         add_filter( 'plugin_action_links_security-safe/security-safe.php', [ $this, 'plugin_action_links' ] );
     }
     
-    // __construct()
+    /**
+     * Checks settings and determines whether they need to be reset to default
+     *
+     * @since  0.1.0
+     */
+    function check_settings()
+    {
+        
+        if ( isset( $_POST ) && !empty($_POST) ) {
+            
+            if ( $this->is_settings_page() ) {
+                if ( isset( $_GET['reset'] ) ) {
+                    // Remove Reset Variable
+                    unset( $_GET['reset'] );
+                }
+                // Create Page Slug
+                $page_slug = filter_var( $_GET['page'], FILTER_SANITIZE_STRING, FILTER_FLAG_STRIP_HIGH );
+                $page_slug = str_replace( [ 'security-safe-', 'security-safe' ], '', $page_slug );
+                // Compensation For Oddball Scenarios
+                $page_slug = ( $page_slug === '' ? 'general' : $page_slug );
+                $page_slug = ( $page_slug === 'user-access' ? 'access' : $page_slug );
+                $this->post_settings( $page_slug );
+            } elseif ( isset( $_GET['page'] ) && $_GET['page'] === SECSAFE_SLUG && isset( $_GET['tab'] ) && $_GET['tab'] === 'export-import' ) {
+                
+                if ( isset( $_POST['export-settings'] ) ) {
+                    $this->export_settings();
+                } elseif ( isset( $_POST['import-settings'] ) ) {
+                    $this->import_settings();
+                }
+            
+            }
+        
+        } elseif ( $this->is_settings_page() && isset( $_GET['reset'] ) && isset( $_GET['page'] ) && $_GET['page'] === SECSAFE_SLUG ) {
+            $nonce = ( isset( $_GET['_nonce_reset_settings'] ) ? $_GET['_nonce_reset_settings'] : false );
+            // Security Check
+            
+            if ( !$nonce || !wp_verify_nonce( $nonce, SECSAFE_SLUG . '-reset-settings' ) ) {
+                $this->messages[] = [ __( 'Error: Settings could not be reset. Your session expired. Please try again.', SECSAFE_SLUG ), 3 ];
+            } else {
+                // Reset On Plugin Settings Only
+                $this->reset_settings();
+            }
+        
+        }
+    
+    }
+    
+    /**
+     * Determine if the current page is a settings page
+     *
+     * @since  2.2.3
+     */
+    public function is_settings_page()
+    {
+        
+        if ( $this->is_settings_page === '' ) {
+            // Array of pages that default to the settings tab.
+            // This matters because the tab GET variable isn't in the URL.
+            $default_settings_tab = [
+                'security-safe'         => 1,
+                'security-safe-privacy' => 1,
+                'security-safe-files'   => 1,
+            ];
+            // The key matters; not the value
+            $exclude_pages = [
+                'security-safe-pricing' => 1,
+                'security-safe-account' => 1,
+            ];
+            $this->is_settings_page = ( $this->is_plugin_page() && !isset( $exclude_pages[$_GET['page']] ) && (isset( $_GET['tab'] ) && $_GET['tab'] == 'settings' || !isset( $_GET['tab'] ) && isset( $default_settings_tab[$_GET['page']] )) ? true : false );
+        }
+        
+        return $this->is_settings_page;
+    }
+    
+    /**
+     * Determines if you are on a Security Safe page
+     *
+     * @return  boolean
+     * @since  2.2.3
+     */
+    function is_plugin_page()
+    {
+        if ( $this->is_plugin_page === '' ) {
+            $this->is_plugin_page = ( isset( $_GET['page'] ) && strpos( $_GET['page'], SECSAFE_SLUG ) !== false ? true : false );
+        }
+        return $this->is_plugin_page;
+    }
+    
+    /**
+     * Export Settings as JSON file (Pro Only)
+     *
+     * @since  1.2.0
+     */
+    private function export_settings()
+    {
+        // Get domain name for filename
+        $domain_name = str_replace( [ 'http://', 'https://', '/' ], '', get_site_url() );
+        // Define headers so the file will get downloaded
+        header( "Content-type: application/json" );
+        header( 'Content-Disposition: attachment; filename=' . SECSAFE_SLUG . '-' . $domain_name . date( '-Ymd-His' ) . '.json' );
+        header( "Pragma: no-cache" );
+        header( "Expires: 0" );
+        // Display JSON version of settings
+        echo  json_encode( $this->settings ) ;
+        die;
+    }
+    
+    /**
+     * Import Settings as JSON file (Pro Only)
+     *
+     * @since  1.2.0
+     */
+    private function import_settings()
+    {
+        $import_file = $_FILES['import-file'];
+        
+        if ( $import_file['type'] == 'application/json' ) {
+            $import_content = file_get_contents( $import_file["tmp_name"] );
+            // Convert JSON to Array
+            $import_settings = json_decode( $import_content, true );
+            
+            if ( isset( $import_settings['plugin'] ) ) {
+                // Get Min Settings
+                $settings_min = Plugin::get_settings_min();
+                // Use Min Settings To Start
+                $new_settings = $settings_min;
+                // Sanitize Imported Settings
+                foreach ( $settings_min as $label => $section ) {
+                    foreach ( $section as $setting => $value ) {
+                        if ( $section != 'plugin' ) {
+                            if ( isset( $import_settings[$label][$setting] ) ) {
+                                $new_settings[$label][$setting] = filter_var( $import_settings[$label][$setting], FILTER_SANITIZE_NUMBER_INT );
+                            }
+                        }
+                    }
+                }
+                // Replace imported plugin details with current
+                $new_settings['plugin'] = $this->settings['plugin'];
+                // Compare to Current Settings
+                
+                if ( $new_settings === $this->settings ) {
+                    $this->messages[] = [ __( 'Current settings match the imported settings. No changes were made.', SECSAFE_SLUG ), 1, 1 ];
+                } else {
+                    // Update Settings
+                    $result = $this->set_settings( $new_settings );
+                    
+                    if ( $result ) {
+                        $this->messages[] = [ __( 'Your settings imported successfully.', SECSAFE_SLUG ), 0, 1 ];
+                    } else {
+                        // Import File is not the correct format
+                        $this->messages[] = [ __( 'Import Failed: File is corrupted [1].', SECSAFE_SLUG ), 3, 1 ];
+                    }
+                
+                }
+            
+            } else {
+                // Import File is not the correct format
+                $this->messages[] = [ __( 'Import Failed: File is corrupted [2].', SECSAFE_SLUG ), 3, 1 ];
+            }
+        
+        } else {
+            $this->messages[] = [ __( 'Import Failed: Please upload a JSON file.', SECSAFE_SLUG ), 3, 1 ];
+        }
+    
+    }
+    
+    /**
+     * Loads dependents for the chart.
+     *
+     * @param $args array
+     *
+     * @since 2.0.0
+     */
+    static function load_charts( $args )
+    {
+        require_once SECSAFE_DIR_ADMIN_INCLUDES . '/Charts.php';
+        Charts::display_charts( $args );
+    }
+    
     /**
      * Initializes admin scripts
      */
@@ -47,14 +237,13 @@ class Admin extends Security
     {
         $cache_buster = ( SECSAFE_DEBUG ? SECSAFE_VERSION . date( 'YmdHis' ) : SECSAFE_VERSION );
         // Load CSS
-        wp_register_style(
+        wp_enqueue_style(
             SECSAFE_SLUG . '-admin',
             SECSAFE_URL_ADMIN_ASSETS . 'css/admin.css',
             [],
             $cache_buster,
             'all'
         );
-        wp_enqueue_style( SECSAFE_SLUG . '-admin' );
         // Load JS
         wp_enqueue_script( 'common' );
         wp_enqueue_script( 'wp-lists' );
@@ -68,18 +257,19 @@ class Admin extends Security
         );
     }
     
-    //scripts()
     /**
      * Adds a class to the body tag
+     *
+     * @param $classes array
+     *
+     * @return string
      * @since  0.2.0
      */
     public function admin_body_class( $classes )
     {
-        $classes .= ' ' . SECSAFE_SLUG;
-        return $classes;
+        return $classes . ' ' . SECSAFE_SLUG;
     }
     
-    // admin_body_class()
     /**
      * Creates Admin Menus
      */
@@ -122,10 +312,12 @@ class Admin extends Security
         }
     }
     
-    //admin_menus()
     /**
      * Get Category Pages
-     * @return  $pages array
+     *
+     * @param $disabled bool
+     *
+     * @return array
      * @since  0.2.0
      */
     private function get_category_pages( $disabled = false )
@@ -146,13 +338,24 @@ class Admin extends Security
         return $pages;
     }
     
-    // get_category_pages()
+    /**
+     * Wrapper for creating Dashboard page
+     *
+     * @since  0.1.0
+     */
+    public function page_dashboard()
+    {
+        $this->get_page( 'General' );
+    }
+    
     /**
      * Gets the admin page
-     * @param  string $title The title of the submenu
+     *
+     * @param $page_slug string The title of the submenu
+     *
      * @since  0.2.0
      */
-    private function get_page( $page_slug = false )
+    private function get_page( $page_slug = '' )
     {
         
         if ( $page_slug ) {
@@ -165,168 +368,59 @@ class Admin extends Security
             $class = __NAMESPACE__ . '\\AdminPage' . $title_camel;
             $page_slug = strtolower( $page_slug );
             // Get Page Specific Settings
-            $page_settings = $this->settings[$page_slug];
-            
-            if ( is_array( $page_settings ) ) {
-                $this->page = new $class( $page_settings );
-                $this->display_page();
-            }
-            
-            // is_array()
+            $page_settings = ( isset( $this->settings[$page_slug] ) ? $this->settings[$page_slug] : false );
+            $this->page = new $class( $page_settings );
+            $this->display_page();
         } else {
             //Janitor::log( 'ERROR: Parameter title is empty.', __FILE__, __LINE__ );
         }
     
     }
     
-    // get_page()
-    /**
-     * Wrapper for creating Dashboard page
-     * @since  0.1.0
-     */
-    public function page_dashboard()
-    {
-        $this->get_page( 'General' );
-    }
-    
-    // page_dashboard()
-    /**
-     * Wrapper for creating Privacy page
-     * @since  0.2.0
-     */
-    public function page_privacy()
-    {
-        $this->get_page( 'Privacy' );
-    }
-    
-    // page_privacy()
-    /**
-     * Wrapper for creating Files page
-     * @since  0.2.0
-     */
-    public function page_files()
-    {
-        $this->get_page( 'Files' );
-    }
-    
-    // page_files()
-    /**
-     * Wrapper for creating Content page
-     * @since  0.2.0
-     */
-    public function page_content()
-    {
-        $this->get_page( 'Content' );
-    }
-    
-    // page_content()
-    /**
-     * Wrapper for creating User Access page
-     * @since  0.2.0
-     */
-    public function page_user_access()
-    {
-        $this->get_page( 'Access' );
-    }
-    
-    // page_user_access()
-    /**
-     * Wrapper for creating Firewall page
-     * @since  0.2.0
-     */
-    public function page_firewall()
-    {
-        $this->get_page( 'Firewall' );
-    }
-    
-    // page_firewall()
-    /**
-     * Wrapper for creating Backups page
-     * @since  0.2.0
-     */
-    public function page_backups()
-    {
-        $this->get_page( 'Backups' );
-    }
-    
-    // page_backups()
-    /**
-     * Determine if the current page is a settings page
-     * @since  2.2.3
-     */
-    public function is_settings_page()
-    {
-        
-        if ( $this->is_settings_page === '' ) {
-            // They key matters; not the value
-            $exclude_pages = [
-                'security-safe-pricing'  => 1,
-                'security-safe-account'  => 1,
-                'security-safe-firewall' => 1,
-            ];
-            $this->is_settings_page = ( $this->is_plugin_page() && !isset( $exclude_pages[$_GET['page']] ) && (!isset( $_GET['tab'] ) || $_GET['tab'] == 'settings') ? true : false );
-        }
-        
-        return $this->is_settings_page;
-    }
-    
-    // is_settings_page()
-    /**
-     * Determines if you are on a Security Safe page
-     * @since  2.2.3
-     * @return  boolean
-     */
-    function is_plugin_page()
-    {
-        if ( $this->is_plugin_page === '' ) {
-            $this->is_plugin_page = ( isset( $_GET['page'] ) && strpos( $_GET['page'], SECSAFE_SLUG ) !== false ? true : false );
-        }
-        return $this->is_plugin_page;
-    }
-    
-    // is_plugin_page()
     /**
      * Page template
-     * @return string
+     *
      * @since  0.2.0
      */
     protected function display_page()
     {
         $page = $this->page;
         ?>
-        <div class="wrap">
+			<div class="wrap">
 
-            <div class="intro">
-                            
-                <h1><?php 
+				<div class="intro">
+
+					<h1><?php 
         echo  $page->title ;
         // Must be sanitized and translated when set
         ?></h1>
-                
-                <p class="desc"><?php 
+
+					<p class="desc"><?php 
         echo  $page->description ;
         // Must be sanitized and translated when set
         ?></p>
-            
-                <a href="<?php 
-        echo  SECSAFE_URL_MORE_INFO ;
-        ?>" target="_blank" class="ss-logo"><img src="<?php 
+
+					<a href="<?php 
+        echo  SECSAFE_URL_ACCOUNT ;
+        ?>" target="_blank" class="ss-logo"><img
+								src="<?php 
         echo  SECSAFE_URL_ADMIN_ASSETS ;
         ?>img/logo.svg?v=<?php 
         echo  SECSAFE_VERSION ;
-        ?>" alt="<?php 
+        ?>"
+								alt="<?php 
         echo  SECSAFE_NAME ;
         ?>"><br /><span class="version"><?php 
         $version = false;
         $version_pro = sprintf( __( 'Pro Version %s', SECSAFE_SLUG ), SECSAFE_VERSION );
-        $version_pro_free = '<br />' . __( '( free features only )', SECSAFE_SLUG );
+        $version_pro_free = '<br /><span style="color:red; font-weight:bold;font-size: 13px;">' . __( 'Expired. Renew License', SECSAFE_SLUG ) . '</span>';
         $version = ( $version ? $version : sprintf( __( 'Version %s', SECSAFE_SLUG ), SECSAFE_VERSION ) );
         echo  $version ;
         ?></span></a>
 
-            </div><!-- .intro -->
+				</div><!-- .intro -->
 
-            <?php 
+				<?php 
         $this->display_heading_menu();
         $page->display_tabs();
         // Build action URL
@@ -335,15 +429,15 @@ class Admin extends Security
         $enctype = ( isset( $_GET['tab'] ) && $_GET['tab'] == 'export-import' ? ' enctype="multipart/form-data"' : '' );
         ?>
 
-            <form method="post" action="<?php 
+				<form method="post" action="<?php 
         echo  admin_url( $action_url ) ;
         ?>"<?php 
         echo  $enctype ;
         ?>>
 
-                <div class="all-tab-content">
+					<div class="all-tab-content">
 
-                    <?php 
+						<?php 
         if ( $this->is_settings_page() ) {
             wp_nonce_field( SECSAFE_SLUG . '-save-settings', '_nonce_save_settings' );
         }
@@ -351,140 +445,39 @@ class Admin extends Security
         $this->display_sidebar();
         ?>
 
-                    <div id="tab-content-footer" class="footer tab-content"></div>
+						<div id="tab-content-footer" class="footer tab-content"></div>
 
-                </div><!-- .all-tab-content -->
+					</div><!-- .all-tab-content -->
 
-            </form>
+				</form>
 
-            <div class="wrap-footer full clear">
+				<div class="wrap-footer full clear">
 
-                <hr />
-                
-                <p><?php 
+					<hr />
+
+					<p><?php 
         printf( __( 'If you like %1$s, please <a href="%2$s" target="_blank">post a review</a>.', SECSAFE_SLUG ), SECSAFE_NAME, SECSAFE_URL_WP_REVIEWS_NEW );
         ?></p>
-            
-                <p><?php 
+
+					<p><?php 
         printf( __( 'Need help? Visit the <a href="%1$s" target="_blank">support forum</a>', SECSAFE_SLUG ), SECSAFE_URL_WP );
-        ?>.</p>
-                
-                <p><?php 
+        ?>
+						.</p>
+
+					<p><?php 
         // Display
         $start = SECSAFE_TIME_START;
         $end = microtime( true );
         echo  round( ($end - $start) * 1000 ) ;
         ?>ms</p>
-            </div>
-        </div><!-- .wrap -->
-        <?php 
+				</div>
+			</div><!-- .wrap -->
+			<?php 
     }
     
-    // display_page()
-    /**
-     * Displays the sidebar depending on the class of the current tab
-     * @since  2.2.0
-     * @return  html
-     */
-    protected function display_sidebar()
-    {
-        //$tabs_with_sidebars = [ 'settings', 'export-import', 'debug' ];
-        // Get the current tab
-        
-        if ( isset( $_GET['tab'] ) ) {
-            $tabs = $this->page->tabs;
-            /**
-             * @since  2.2.0
-             * @todo  opportunity to make this faster. This loop can be avoided 
-             * if the tabs array keys are converted from numbers to strings that 
-             * match the 'id' of the tab.
-             */
-            $num = 0;
-            foreach ( $tabs as $tab ) {
-                
-                if ( $tab['id'] == $_GET['tab'] ) {
-                    $current_tab = $this->page->tabs[$num];
-                    break;
-                }
-                
-                $num++;
-            }
-            // foreach
-        }
-        
-        // isset( $_GET['tab'] )
-        $current_tab = ( !isset( $current_tab ) || !isset( $_GET['tab'] ) ? $this->page->tabs[0] : $current_tab );
-        $display_sidebar = ( isset( $current_tab['classes'] ) && in_array( 'full', $current_tab['classes'] ) ? false : true );
-        
-        if ( $display_sidebar ) {
-            ?>
-
-            <div id="sidebar" class="sidebar">
-
-                <div class="rate-us widget">
-                    <?php 
-            
-            if ( security_safe()->is_not_paying() ) {
-                $heading = __( 'Support This Plugin', SECSAFE_SLUG );
-                $message = __( 'Your review encourages ongoing maintenance of this Free version.', SECSAFE_SLUG );
-            } else {
-                $heading = sprintf( __( 'Like %s?', SECSAFE_SLUG ), SECSAFE_NAME );
-                $message = __( 'Share your positive experience!', SECSAFE_SLUG );
-            }
-            
-            ?>
-                    <h5><?php 
-            echo  $heading ;
-            ?></h5>
-                    <p><?php 
-            echo  $message ;
-            ?></p>
-                    <p class="cta ratings"><a href="<?php 
-            echo  SECSAFE_URL_WP_REVIEWS ;
-            ?>" target="_blank" class="rate-stars"><span class="icon-star"></span><span class="icon-star"></span><span class="icon-star"></span><span class="icon-star"></span><span class="icon-star"></span></a></p>
-                </div>
-
-                <div class="follow-us widget">
-                    <p><a href="<?php 
-            echo  SECSAFE_URL_TWITTER ;
-            ?>" class="icon-twitter" target="_blank"><?php 
-            printf( __( 'Follow %s', SECSAFE_SLUG ), SECSAFE_NAME );
-            ?></a></p>
-                </div>
-                
-                <?php 
-            
-            if ( security_safe()->is_not_paying() ) {
-                ?>
-                <div class="upgrade-pro widget">
-                    
-                    <h5><?php 
-                _e( 'Get More Features', SECSAFE_SLUG );
-                ?></h5>
-                    <p><?php 
-                _e( 'Pro features give you more control and save you time.', SECSAFE_SLUG );
-                ?></p>
-                    <p class="cta"><a href="<?php 
-                echo  SECSAFE_URL_MORE_INFO_PRO ;
-                ?>" target="_blank" class="icon-right-open"><?php 
-                _e( 'Upgrade to Pro!', SECSAFE_SLUG );
-                ?></a></p>
-                </div>
-                <?php 
-            }
-            
-            ?>
-                
-            </div>
-
-        <?php 
-        }
-    
-    }
-    
-    // display_sidebar()
     /**
      * Display Heading Menu
+     *
      * @since  0.2.0
      */
     protected function display_heading_menu()
@@ -495,16 +488,18 @@ class Admin extends Security
             $class = $k;
             
             if ( $k == 'plugin' ) {
-                $href = 'admin.php?page=' . SECSAFE_SLUG;
+                $href = 'admin.php?page=' . SECSAFE_SLUG . '&tab=settings';
+            } elseif ( $k == 'firewall' ) {
+                // No settings, so we must define tab
+                $href = 'admin.php?page=' . SECSAFE_SLUG . '-' . $k . '&tab=blocked';
+            } elseif ( $k == 'content' ) {
+                // No settings, so we must define tab
+                $href = 'admin.php?page=' . SECSAFE_SLUG . '-' . $k . '&tab=404s';
+            } elseif ( $k == 'user-access' ) {
+                // No settings, so we must define tab
+                $href = 'admin.php?page=' . SECSAFE_SLUG . '-' . $k . '&tab=logins';
             } else {
-                
-                if ( $k == 'firewall' ) {
-                    // No settings, so we must define tab
-                    $href = 'admin.php?page=' . SECSAFE_SLUG . '-' . $k . '&tab=blocked';
-                } else {
-                    $href = 'admin.php?page=' . SECSAFE_SLUG . '-' . $k;
-                }
-            
+                $href = 'admin.php?page=' . SECSAFE_SLUG . '-' . $k . '&tab=settings';
             }
             
             // Highlight Active Menu
@@ -520,13 +515,163 @@ class Admin extends Security
             $l = ( $l == __( 'User Access', SECSAFE_SLUG ) ? __( 'Access', SECSAFE_SLUG ) : $l );
             echo  '<li><a href="' . admin_url( $href ) . '" class="icon-' . $class . '"><span>' . $l . '</span></a></li>' ;
         }
-        // foreach
         echo  '</ul>' ;
     }
     
-    // display_heading_menu()
+    /**
+     * Displays the sidebar depending on the class of the current tab
+     *
+     * @since  2.2.0
+     */
+    protected function display_sidebar()
+    {
+        //$tabs_with_sidebars = [ 'settings', 'export-import', 'debug' ];
+        // Get the current tab
+        
+        if ( isset( $_GET['tab'] ) ) {
+            $tabs = $this->page->tabs;
+            $num = 0;
+            foreach ( $tabs as $tab ) {
+                
+                if ( $tab['id'] == $_GET['tab'] ) {
+                    $current_tab = $this->page->tabs[$num];
+                    break;
+                }
+                
+                $num++;
+            }
+        }
+        
+        $current_tab = ( !isset( $current_tab ) || !isset( $_GET['tab'] ) ? $this->page->tabs[0] : $current_tab );
+        $display_sidebar = ( isset( $current_tab['classes'] ) && in_array( 'full', $current_tab['classes'] ) ? false : true );
+        
+        if ( $display_sidebar ) {
+            ?>
+
+				<div id="sidebar" class="sidebar">
+
+					<div class="rate-us widget">
+						<?php 
+            
+            if ( security_safe()->is_not_paying() ) {
+                $heading = __( 'Support This Plugin', SECSAFE_SLUG );
+                $message = __( 'Your review encourages ongoing maintenance of this Free version.', SECSAFE_SLUG );
+            } else {
+                $heading = sprintf( __( 'Like %s?', SECSAFE_SLUG ), SECSAFE_NAME );
+                $message = __( 'Share your positive experience!', SECSAFE_SLUG );
+            }
+            
+            ?>
+						<h5><?php 
+            echo  $heading ;
+            ?></h5>
+						<p><?php 
+            echo  $message ;
+            ?></p>
+						<p class="cta ratings"><a href="<?php 
+            echo  SECSAFE_URL_WP_REVIEWS ;
+            ?>" target="_blank"
+						                          class="rate-stars"><span class="icon-star"></span><span
+										class="icon-star"></span><span class="icon-star"></span><span
+										class="icon-star"></span><span class="icon-star"></span></a></p>
+					</div>
+
+					<div class="follow-us widget">
+						<p><a href="<?php 
+            echo  SECSAFE_URL_TWITTER ;
+            ?>" class="icon-twitter"
+						      target="_blank"><?php 
+            printf( __( 'Follow %s', SECSAFE_SLUG ), SECSAFE_NAME );
+            ?></a></p>
+					</div>
+
+					<?php 
+            
+            if ( security_safe()->is_not_paying() ) {
+                ?>
+						<div class="upgrade-pro widget">
+
+							<h5><?php 
+                _e( 'Get More Features', SECSAFE_SLUG );
+                ?></h5>
+							<p><?php 
+                _e( 'Pro features give you more control and save you time.', SECSAFE_SLUG );
+                ?></p>
+							<p class="cta"><a href="<?php 
+                echo  SECSAFE_URL_MORE_INFO_PRO ;
+                ?>" target="_blank"
+							                  class="icon-right-open"><?php 
+                _e( 'Upgrade to Pro!', SECSAFE_SLUG );
+                ?></a>
+							</p>
+						</div>
+					<?php 
+            }
+            
+            ?>
+
+				</div>
+
+			<?php 
+        }
+    
+    }
+    
+    /**
+     * Wrapper for creating Privacy page
+     *
+     * @since  0.2.0
+     */
+    public function page_privacy()
+    {
+        $this->get_page( 'Privacy' );
+    }
+    
+    /**
+     * Wrapper for creating Files page
+     *
+     * @since  0.2.0
+     */
+    public function page_files()
+    {
+        $this->get_page( 'Files' );
+    }
+    
+    /**
+     * Wrapper for creating Content page
+     *
+     * @since  0.2.0
+     */
+    public function page_content()
+    {
+        $this->get_page( 'Content' );
+    }
+    
+    /**
+     * Wrapper for creating User Access page
+     *
+     * @since  0.2.0
+     */
+    public function page_user_access()
+    {
+        $this->get_page( 'Access' );
+    }
+    
+    /**
+     * Wrapper for creating Firewall page
+     *
+     * @since  0.2.0
+     */
+    public function page_firewall()
+    {
+        $this->get_page( 'Firewall' );
+    }
+    
     /**
      * Displays all messages
+     *
+     * @param $skip boolean
+     *
      * @since  0.2.0
      */
     public function display_notices( $skip = false )
@@ -545,98 +690,16 @@ class Admin extends Security
                     // Display Message
                     $this->admin_notice( $message, $status, $dismiss );
                 }
-                // $message
             }
-            // foreach ()
             // Reset Messages
             $this->messages = [];
         }
-        
-        // isset()
+    
     }
     
-    // display_notices()
-    /**
-     * Displays a message at the top of the screen.
-     * @return  html code
-     * @since  0.1.0
-     */
-    protected function admin_notice( $message, $status = 0, $dismiss = 0 )
-    {
-        // Set Classes
-        $class = 'notice-success';
-        $class = ( $status == 1 ? 'notice-info' : $class );
-        $class = ( $status == 2 ? 'notice-warning' : $class );
-        $class = ( $status == 3 ? 'notice-error' : $class );
-        $class = 'active notice ' . $class;
-        if ( $dismiss ) {
-            $class .= ' is-dismissible';
-        }
-        // Each message must be sanitized when set due to variability of message types
-        // $class is set above
-        echo  '<div class="' . $class . '"><p>' . $message . '</p></div>' ;
-    }
-    
-    //admin_notice()
-    /**
-     * Checks settings and determines whether they need to be reset to default
-     * @since  0.1.0
-     */
-    function check_settings()
-    {
-        
-        if ( isset( $_POST ) && !empty($_POST) ) {
-            
-            if ( $this->is_settings_page() ) {
-                if ( isset( $_GET['reset'] ) ) {
-                    // Remove Reset Variable
-                    unset( $_GET['reset'] );
-                }
-                // Create Page Slug
-                $page_slug = filter_var( $_GET['page'], FILTER_SANITIZE_STRING, FILTER_FLAG_STRIP_HIGH );
-                $page_slug = str_replace( [ 'security-safe-', 'security-safe' ], '', $page_slug );
-                // Compensation For Oddball Scenarios
-                $page_slug = ( $page_slug === '' ? 'general' : $page_slug );
-                $page_slug = ( $page_slug === 'user-access' ? 'access' : $page_slug );
-                $this->post_settings( $page_slug );
-            } else {
-                if ( isset( $_GET['page'] ) && $_GET['page'] === SECSAFE_SLUG && isset( $_GET['tab'] ) && $_GET['tab'] === 'export-import' ) {
-                    
-                    if ( isset( $_POST['export-settings'] ) ) {
-                        $this->export_settings__premium_only();
-                    } else {
-                        if ( isset( $_POST['import-settings'] ) ) {
-                            $this->import_settings__premium_only();
-                        }
-                    }
-                
-                }
-            }
-            
-            // $this->is_settings_page()
-        } else {
-            
-            if ( $this->is_settings_page() && isset( $_GET['reset'] ) && isset( $_GET['page'] ) && $_GET['page'] === SECSAFE_SLUG ) {
-                $nonce = ( isset( $_GET['_nonce_reset_settings'] ) ? $_GET['_nonce_reset_settings'] : false );
-                // Security Check
-                
-                if ( !$nonce || !wp_verify_nonce( $nonce, SECSAFE_SLUG . '-reset-settings' ) ) {
-                    $this->messages[] = [ __( 'Error: Settings could not be reset. Your session expired. Please try again.', SECSAFE_SLUG ), 3 ];
-                } else {
-                    // Reset On Plugin Settings Only
-                    $this->reset_settings();
-                }
-            
-            }
-        
-        }
-        
-        // isset( $_POST )
-    }
-    
-    //check_settings()
     /**
      * This registers all the notices for later display
+     *
      * @since  2.0.0
      */
     protected function all_notices()
@@ -656,12 +719,11 @@ class Admin extends Security
         if ( SECSAFE_DEBUG ) {
             $this->messages[] = [ sprintf( __( '%s: Plugin Debug Mode is on.', SECSAFE_SLUG ), SECSAFE_NAME ), 1, 0 ];
         }
-        // SECSAFE_DEBUG
     }
     
-    // all_notices()
     /**
      * Sets notices for policies that are disabled as a group.
+     *
      * @since  1.1.10
      */
     protected function policy_notices()
@@ -696,7 +758,6 @@ class Admin extends Security
                 $this->messages[] = [ $message, 2, 0 ];
             }
             
-            // privacy
             // Files Policies
             
             if ( !isset( $this->settings['files']['on'] ) || $this->settings['files']['on'] != "1" ) {
@@ -710,7 +771,6 @@ class Admin extends Security
                 $this->messages[] = [ $message, 2, 0 ];
             }
             
-            // files
             // Access Policies
             
             if ( !isset( $this->settings['access']['on'] ) || $this->settings['access']['on'] != "1" ) {
@@ -724,7 +784,6 @@ class Admin extends Security
                 $this->messages[] = [ $message, 2, 0 ];
             }
             
-            // access
             // Content Policies
             
             if ( !isset( $this->settings['content']['on'] ) || $this->settings['content']['on'] != "1" ) {
@@ -737,17 +796,41 @@ class Admin extends Security
                 
                 $this->messages[] = [ $message, 2, 0 ];
             }
-            
-            // content
-        }
         
-        // endif
+        }
+    
+    }
+    
+    /**
+     * Displays a message at the top of the screen.
+     *
+     * @param $message string
+     * @param $status int
+     * @param $dismiss int
+     *
+     * @since  0.1.0
+     */
+    protected function admin_notice( $message, $status = 0, $dismiss = 0 )
+    {
+        // Set Classes
+        $class = 'notice-success';
+        $class = ( $status == 1 ? 'notice-info' : $class );
+        $class = ( $status == 2 ? 'notice-warning' : $class );
+        $class = ( $status == 3 ? 'notice-error' : $class );
+        $class = 'active notice ' . $class;
+        if ( $dismiss ) {
+            $class .= ' is-dismissible';
+        }
+        // Each message must be sanitized when set due to variability of message types
+        // $class is set above
+        echo  '<div class="' . $class . '"><p>' . $message . '</p></div>' ;
     }
     
     /**
      * Plugin action links filter
      *
      * @param array $links Array of links for each plugin
+     *
      * @return array
      * @since  1.2.0
      */
@@ -757,18 +840,5 @@ class Admin extends Security
         array_unshift( $links, '<a style="color: #f56e28;" href="' . SECSAFE_URL_WP_REVIEWS_NEW . '">' . __( 'Rate Plugin', SECSAFE_SLUG ) . '</a>' );
         return $links;
     }
-    
-    // plugin_action_links
-    /**
-     * Loads dependents for the chart.
-     *
-     * @since 2.0.0
-     */
-    static function load_charts( $args )
-    {
-        require_once SECSAFE_DIR_ADMIN_INCLUDES . '/Charts.php';
-        Charts::display_charts( $args );
-    }
 
 }
-// Admin()

@@ -5,6 +5,46 @@ var cf7signature_resized = 0; // for compatibility with contact-form-7-signature
 var wpcf7cf_timeout;
 var wpcf7cf_change_time_ms = 100;
 
+if (window.wpcf7 && !wpcf7.setStatus) {
+    wpcf7.setStatus = ( form, status ) => {
+        form = form.length ? form[0] : form; // if form is a jQuery object, only grab te html-element
+        const defaultStatuses = new Map( [
+            // 0: Status in API response, 1: Status in HTML class
+            [ 'init', 'init' ],
+            [ 'validation_failed', 'invalid' ],
+            [ 'acceptance_missing', 'unaccepted' ],
+            [ 'spam', 'spam' ],
+            [ 'aborted', 'aborted' ],
+            [ 'mail_sent', 'sent' ],
+            [ 'mail_failed', 'failed' ],
+            [ 'submitting', 'submitting' ],
+            [ 'resetting', 'resetting' ],
+        ] );
+    
+        if ( defaultStatuses.has( status ) ) {
+            status = defaultStatuses.get( status );
+        }
+    
+        if ( ! Array.from( defaultStatuses.values() ).includes( status ) ) {
+            status = status.replace( /[^0-9a-z]+/i, ' ' ).trim();
+            status = status.replace( /\s+/, '-' );
+            status = `custom-${ status }`;
+        }
+    
+        const prevStatus = form.getAttribute( 'data-status' );
+    
+        form.wpcf7.status = status;
+        form.setAttribute( 'data-status', status );
+        form.classList.add( status );
+    
+        if ( prevStatus && prevStatus !== status ) {
+            form.classList.remove( prevStatus );
+        }
+    
+        return status;
+    };
+}
+
 if (window.wpcf7cf_running_tests) {
     jQuery('input[name="_wpcf7cf_options"]').each(function(e) {
         var $input = jQuery(this);
@@ -274,13 +314,20 @@ Wpcf7cfForm.prototype.displayFields = function() {
 
     form.$groups.each(function (index) {
         var $group = jQuery(this);
-        if ($group.is(':animated')) $group.finish(); // stop any current animations on the group
+        if ($group.is(':animated')) {
+            $group.finish(); // stop any current animations on the group
+        }
         if ($group.css('display') === 'none' && !$group.hasClass('wpcf7cf-hidden')) {
-            if ($group.prop('tagName') === 'SPAN' || $group.is(':hidden')) {
-                $group.show().trigger('wpcf7cf_show_group');
+            if ($group.prop('tagName') === 'SPAN') {
+                $group.show().trigger('wpcf7cf_show_group'); // show instantly
             } else {
-                $group.animate(wpcf7cf_show_animation, animation_intime).trigger('wpcf7cf_show_group'); // show
+                $group.animate(wpcf7cf_show_animation, animation_intime).trigger('wpcf7cf_show_group'); // show with animation
             }
+
+            if($group.attr('data-disable_on_hide') !== undefined) {
+                $group.find(':input').prop('disabled', false);
+            }
+
         } else if ($group.css('display') !== 'none' && $group.hasClass('wpcf7cf-hidden')) {
 
             if ($group.attr('data-clear_on_hide') !== undefined) {
@@ -303,8 +350,7 @@ Wpcf7cfForm.prototype.displayFields = function() {
                     }
                 });
 
-                $inputs.change();
-                //display_fields();
+                $inputs.trigger('change');
             }
 
             if ($group.prop('tagName') === 'SPAN') {
@@ -312,7 +358,6 @@ Wpcf7cfForm.prototype.displayFields = function() {
             } else {
                 $group.animate(wpcf7cf_hide_animation, animation_outtime).trigger('wpcf7cf_hide_group'); // hide
             }
-
         }
     });
 
@@ -362,16 +407,21 @@ Wpcf7cfForm.prototype.updateHiddenFields = function() {
     var hidden_fields = [];
     var hidden_groups = [];
     var visible_groups = [];
+    var disabled_fields = [];
 
     form.$groups.each(function () {
-        var $this = jQuery(this);
-        if ($this.hasClass('wpcf7cf-hidden')) {
-            hidden_groups.push($this.attr('data-id'));
-            $this.find('input,select,textarea').each(function () {
+        var $group = jQuery(this);
+        if ($group.hasClass('wpcf7cf-hidden')) {
+            hidden_groups.push($group.attr('data-id'));
+            $group.find('input,select,textarea').each(function () {
                 hidden_fields.push(jQuery(this).attr('name'));
             });
+            if($group.attr('data-disable_on_hide') !== undefined) {
+                console.log('disabling');
+                $group.find(':input').prop('disabled', true);
+            }
         } else {
-            visible_groups.push($this.attr('data-id'));
+            visible_groups.push($group.attr('data-id'));
         }
     });
 
@@ -388,7 +438,7 @@ Wpcf7cfForm.prototype.updateHiddenFields = function() {
 Wpcf7cfForm.prototype.updateGroups = function() {
     var form = this;
     form.$groups = form.$form.find('[data-class="wpcf7cf_group"]');
-
+    form.$groups.height('auto');
     form.conditions = window.wpcf7cf.get_nested_conditions(form.initial_conditions, form.$form);
 
 };
@@ -990,6 +1040,14 @@ Wpcf7cfMultistep.prototype.getFieldsInStep = function(step_index) {
  */
 window.wpcf7cf = {
 
+    hideGroup : function($group, animate) {
+
+    },
+
+    showGroup : function($group, animate) {
+
+    },
+
     updateRepeaterSubHTML : function(html, oldSuffix, newSuffix, parentRepeaters) {
         const oldIndexes = oldSuffix.split('__');
         oldIndexes.shift(); // remove first empty element
@@ -1101,7 +1159,7 @@ window.wpcf7cf = {
         const type = currentNode.classList && currentNode.classList.contains('wpcf7cf_repeater') ? 'repeater' :
             currentNode.dataset.class == 'wpcf7cf_group' ? 'group' :
             currentNode.className == 'wpcf7cf_step' ? 'step' :
-            currentNode.hasAttribute('name') ? 'input' : false;
+            currentNode.hasAttribute('name') && !currentNode.disabled ? 'input' : false;
 
         let newParentRepeaters = [...parentRepeaters];
         let newParentGroups = [...parentGroups];
@@ -1456,7 +1514,7 @@ jQuery('.wpcf7-form').each(function(){
 
 // Call displayFields again on all forms
 // Necessary in case some theme or plugin changed a form value by the time the entire page is fully loaded.
-jQuery('document').ready(function() {
+jQuery('document').on('ready',function() {
     wpcf7cf_forms.forEach(function(f){
         f.displayFields();
     });

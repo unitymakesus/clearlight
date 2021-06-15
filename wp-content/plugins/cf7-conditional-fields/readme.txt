@@ -4,10 +4,10 @@ Donate link: https://shop.bdwm.be/contact-form-7-conditional-fields-pro/
 Author: Jules Colle
 Website: http://bdwm.be
 Tags: wordpress, contact form 7, forms, conditional fields
-Requires at least: 4.1
-Tested up to: 5.5
-Stable tag: 1.9.14
-Requires PHP: 5.6
+Requires at least: 5.0
+Tested up to: 5.7.1
+Stable tag: 2.0.3
+Requires PHP: 7.0
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
 
@@ -115,7 +115,44 @@ The conditional fields javascript code is loaded during wp_footer, so a call to 
 1. Conditional fields in action
 2. Defining rules to show/hide groups of input elements in the backend interface
 
+== Upgrade Notice ==
+
+= 2.0 =
+
+Make sure to also update CF7 to the latest version! (Version 2.0 is only compatible with CF7 versions 5.4 and up. Version 1.9.16 is only compatible with CF7 version 5.3.*)
+
 == Changelog ==
+
+= 2.0.3 (2021-05-02) =
+* Fully tested with Contact Form 7 version 5.4.1
+* (dev note: fixed automated tests)
+
+= 2.0.2 (2021-04-06) =
+* Fix bug: third-party required fields not triggering validation. Thanks [@dedotombo](https://wordpress.org/support/topic/bugfix-skip_validation_for_hidden_fields-issue/)!
+
+= 2.0.1 (2021-03-31) =
+* Force height:auto on groups. (Fixes regression errors with groups inside repeaters)
+* Allow more funky characters as conditional fields values (there was a problem with less than sign <)
+* Fix bug with hidden required file and multifile fields causing validation errors
+* Implemented extra tests so these errors cannot reoccur in future updates.
+
+= 2.0 (2021-03-29) =
+* WARNING! 2.0 requires at least Contact Form 7 version 5.4 to work!
+* Make plugin compatible with CF7 5.4
+* Modify wpcf7cf_generate_summary function, so it can be used without $_POST
+* fix animaton when showing group
+
+= 1.9.16 (2021-03-09) =
+* Make notice dismissable
+
+= 1.9.15 (2021-03-03) =
+* PRO: add [disable_on_hide](https://conditional-fields-cf7.bdwm.be/disable_on_hide/) attribute, which allows using multiple fields with the same name.
+* Make plugin translatable. Big thanks to Yordan Soares for the [PR](https://github.com/pwkip/contact-form-7-conditional-fields/pull/73) 
+* Fix [PHP Error if all mails are disabled](https://github.com/pwkip/contact-form-7-conditional-fields/issues/68)
+* PRO: Fix [rename $settings to $wpcf7cf_settings](https://github.com/pwkip/contact-form-7-conditional-fields/issues/75)
+* Compatibility with [CF7 Smart-grid layout plugin](https://wordpress.org/support/topic/rule-sets-only-saving-when-in-text-mode/)
+* Added global variable WPCF7CF_CF7_MAX_VERSION to indicate latest version of CF7 that was succesfully tested with this plugin.
+* Show notice in admin if the current CF7 version is anything other than WPCF7CF_CF7_MAX_VERSION
 
 = 1.9.14 (2020-10-03) =
 * PRO:Repeater: Hide Remove button initially when repeater has min:0

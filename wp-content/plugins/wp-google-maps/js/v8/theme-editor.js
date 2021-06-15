@@ -13,15 +13,15 @@ jQuery(function($) {
 		
 		this.element = $("#wpgmza-theme-editor");
 		
-		if(!this.element.length)
-		{
-			console.warn("No element to initialise theme editor on");
-			return;
-		}
-		
 		if(WPGMZA.settings.engine == "open-layers")
 		{
 			this.element.remove();
+			return;
+		}
+		
+		if(!this.element.length)
+		{
+			console.warn("No element to initialise theme editor on");
 			return;
 		}
 		
@@ -362,6 +362,10 @@ jQuery(function($) {
 		$('.wpgmza_theme_selection').click(function(){
 			setTimeout(function(){$('textarea[name="wpgmza_theme_data"]').trigger('input');}, 1000);
 		});
+
+		$('#wpgmza-theme-editor__toggle').click(function() {
+			$('#wpgmza-theme-editor').removeClass('active');
+		})
 		
 		$('#wpgmza_theme_editor_feature').on("change", function() {
 			self.highlightElements();

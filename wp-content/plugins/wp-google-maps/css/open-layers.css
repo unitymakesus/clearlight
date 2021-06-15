@@ -11,10 +11,12 @@
 	position: relative;
 }
 
+/*
 .wpgmza-ol-modern-infowindow-container .wpgmza_modern_infowindow
 {
 	min-width: 160px;
 }
+*/
 
 @keyframes wpgmza-bounce {
   from {
@@ -58,9 +60,10 @@
 
 .ol-marker>img
 {
-	/*position: absolute;
+	/* NB: Re-added, removing this breaks marker animations */
+	position: absolute;
 	bottom: 0px;
-	transform: translateX(-50%);*/
+	transform: translateX(-50%);
 	max-width: none;
 	z-index: 2;
 }
@@ -158,12 +161,24 @@
 	z-index: 99;
 }
 
-.wpgmza-modern-store-locator
-{
+.wpgmza-modern-store-locator {
 	pointer-events: none;
+	z-index: 0;
+	position: absolute;
+	top: 0px;
+	max-width: 100% !important;
+	left: 50%;
+}
+.wpgmza-modern-store-locator .wpgmza-inner {
+	position:relative;
+	left:-50%;
 }
 
 .wpgmza-modern-store-locator>.wpgmza-inner
 {
 	pointer-events: all;
+}
+
+.ol-info-window-polygon {
+    bottom: 0 !important;
 }

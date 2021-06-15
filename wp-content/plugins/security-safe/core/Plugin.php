@@ -1,752 +1,831 @@
 <?php
 
-namespace SovereignStack\SecuritySafe;
+	namespace SovereignStack\SecuritySafe;
 
-// Prevent Direct Access
-if ( ! defined( 'ABSPATH' ) ) { die; }
+	// Prevent Direct Access
+	( defined( 'ABSPATH' ) ) || die;
 
-/**
- * Class Plugin - Main class for plugin
- * @package SecuritySafe
- */
-class Plugin {
+	/**
+	 * Class Plugin - Main class for plugin
+	 *
+	 * @package SecuritySafe
+	 */
+	class Plugin {
+
+		/**
+		 * User
+		 * @var object
+		 */
+		public $user;
+
+		/**
+		 * Contains all the admin message values.
+		 * @var array
+		 */
+		public $messages = [];
 
+		/**
+		 * local settings values array.
+		 * @var array
+		 */
+		protected $settings = [];
 
-    /**
-     * local settings values array.
-     * @var array
-     */
-    protected $settings = [];
+		/**
+		 * Plugin constructor.
+		 *
+		 * @param array $session
+		 *
+		 * @since  0.1.0
+		 */
+		function __construct( $session ) {
 
+			// Sets Session Variables
+			$this->set_session( $session );
 
-    /**
-     * Is this page a settings page?
-     * @var boolean
-     */
-    public $is_settings_page = '';
+			// Add Text Domain For Translations
+			load_plugin_textdomain( SECSAFE_SLUG, false, SECSAFE_DIR_LANG );
 
+			// Retrieve Plugin Settings
+			$this->settings = ( empty( $this->settings ) ) ? $this->get_settings() : $this->settings;
 
-    /**
-     * Is this page a plugin page?
-     * @var boolean
-     */ 
-    public $is_plugin_page = '';
+			// Check For Upgrades
+			$this->upgrade_settings();
 
+			add_action( 'login_enqueue_scripts', [ $this, 'login_scripts' ] );
+			add_filter( 'login_body_class', [ $this, 'login_body_class' ] );
+			add_action( 'login_footer', [ $this, 'login_footer' ] );
 
-    /**
-     * Logged In Status
-     * @var boolean
-     */
-    public $logged_in;
+		}
 
+		/**
+		 * Sets variables related to this session.
+		 *
+		 * @param array $session
+		 *
+		 * @since  2.1.0
+		 */
+		private function set_session( $session ) {
 
-    /**
-     * User
-     * @var object
-     */
-    public $user;
+			$this->logged_in = ( isset( $session['logged_in'] ) ) ? $session['logged_in'] : false;
+			$this->user      = ( isset( $session['user'] ) ) ? $session['user'] : false;
 
+		}
 
-    /**
-     * Contains all the admin message values.
-     * @var array
-     */
-    public $messages = [];
+		/**
+		 * Used to retrieve settings from the database.
+		 *
+		 * @return array
+		 *
+		 * @since 0.1.0
+		 */
+		protected function get_settings() {
 
+			//Janitor::log( 'running get_settings().' );
 
-    /**
-     * Plugin constructor.
-     * @since  0.1.0
-     */
-	function __construct( $session ) {
+			$settings = get_option( SECSAFE_OPTIONS );
 
-        // Sets Session Variables
-        $this->set_session( $session );
+			// Set settings initially if they do not exist
+			if ( ! isset( $settings['general'] ) ) {
 
-        // Add Text Domain For Translations
-        load_plugin_textdomain( SECSAFE_SLUG, false, SECSAFE_DIR_LANG );
+				// Initially Set Settings to Default
+				//Janitor::log( 'No version in the database. Initially set settings.' );
 
-        // Retrieve Plugin Settings
-        $this->settings = ( empty( $this->settings ) ) ? $this->get_settings() : $this->settings;
+				$this->reset_settings( true );
 
-        // Check For Upgrades
-        $this->upgrade_settings();
+				// Get New Initial Settings
+				$settings = get_option( SECSAFE_OPTIONS );
 
-        add_action( 'login_enqueue_scripts', [ $this, 'login_scripts' ] );
-        add_filter( 'login_body_class', [ $this, 'login_body_class' ] );
-        add_action( 'login_footer', [ $this, 'login_footer' ] );
+			}
 
-	} // __construct()
+			return $settings;
 
+		}
 
-    /**
-     * Sets variables related to this session.
-     * @since  2.1.0
-     */
-    private function set_session( $session ) {
+		/**
+		 * Used to update settings in the database.
+		 *
+		 * @param array $settings
+		 *
+		 * @return  boolean
+		 *
+		 * @since 0.1.0
+		 */
+		public function set_settings( $settings ) {
 
-        $this->logged_in = ( isset( $session['logged_in'] ) ) ? $session['logged_in'] : false;
-        $this->user = ( isset( $session['user'] ) ) ? $session['user'] : false;
+			//Janitor::log( 'running set_settings()' );
 
-    } // set_session()
+			if ( is_array( $settings ) && isset( $settings['plugin']['version'] ) ) {
 
+				// Clean settings against the template minimum settings
+				$clean_settings = $this->clean_settings( $settings );
 
-    /**
-     * Gets variables related to this session.
-     * @since  2.1.0
-     */
-    private static function get_session() {
+				// Update DB
+				$results = update_option( SECSAFE_OPTIONS, $clean_settings );
 
-        $session = [];
+				if ( $results ) {
 
-        // Get user once
-        $user = wp_get_current_user();
+					//Janitor::log( 'Settings have been updated.' );
 
-        $session['logged_in'] = $user->exists();
-        $session['user'] = false;
+					//Update Plugin Variable
+					$this->settings = $this->get_settings();
 
-        if ( $session['logged_in'] ) {
+					return true;
 
-            $session['user'] = [];
+				} else {
 
-            $new_roles = array_combine( $user->roles, $user->roles );
+					//Janitor::log( 'ERROR: Settings were not updated.', __FILE__, __LINE__ );
 
-            // Cache roles
-            $session['user']['roles'] = $new_roles;
+					return false;
 
-            // Make multi-site compatible
-            if ( is_super_admin( $user->ID ) ) {
+				}
 
-                $session['user']['roles']['super_admin'] = 'super_admin';
+			} else {
 
-            }
-            
-        }
+				if ( ! isset( $settings['plugin']['version'] ) ) {
 
-        return $session;
+					//Janitor::log( 'ERROR: Settings variable is not formatted properly. Settings not updated.', __FILE__, __LINE__ );
 
-    } // get_session()
+				} else {
 
+					//Janitor::log( 'ERROR: Settings variable is not an array. Settings not updated.', __FILE__, __LINE__ );
 
-    /**
-     * Used to update settings in the database.
-     * @return array
-     * @since 0.1.0
-     */
-    protected function get_settings() {
+				}
 
-        //Janitor::log( 'running get_settings().' );
+				return false;
 
-        $settings = get_option( SECSAFE_OPTIONS );
+			}
 
-        // Set settings initially if they do not exist
-        if ( ! isset( $settings['general'] ) ) {
+		}
 
-            // Initially Set Settings to Default
-            //Janitor::log( 'No version in the database. Initially set settings.' );
+		/**
+		 * Resets the plugin settings to default configuration.
+		 *
+		 * @param bool $initial Flag used to indicate the initial setup of settings.
+		 *
+		 * @since  0.2.0
+		 */
+		protected function reset_settings( $initial = false ) {
 
-            $this->reset_settings( true );
+			//Janitor::log( 'running reset_settings()' );
 
-            // Get New Initial Settings
-            $settings = get_option( SECSAFE_OPTIONS );
+			// Keep Plugin Version History
+			$plugin_history = ( isset( $this->settings['plugin']['version_history'] ) && $this->settings['plugin']['version_history'] ) ? $this->settings['plugin']['version_history'] : [ SECSAFE_VERSION ];
 
-        } 
+			if ( ! $initial ) {
 
-        return $settings;
+				$delete = $this->delete_settings();
 
-    } // get_settings()
+				if ( ! $delete ) {
 
+					$this->messages[] = [ __( 'Error: Settings could not be deleted [1].', SECSAFE_SLUG ), 3, 0 ];
 
-    /**
-     * Used to remove settings in the database.
-     * @return array
-     * @since 0.2.0
-     */
-    protected function delete_settings() {
+					return;
 
-        //Janitor::log( 'running delete_settings()' );
+				}
 
-        // Delete settings
-        return delete_option( SECSAFE_OPTIONS );
+			}
 
-    } // delete_settings()
+			// Get Minimum Settings
+			$settings = Plugin::get_settings_min( $plugin_history );
 
+			$result = $this->set_settings( $settings );
 
-    /**
-     * Used to update settings in the database.
-     * @return  boolean
-     * @since 0.1.0
-     */
-    protected function set_settings( $settings ) {
+			if ( $result && $initial ) {
 
-        //Janitor::log( 'running set_settings()' );
+				$this->messages[] = [
+					sprintf( __( '%s settings have been set to the minimum standards.', SECSAFE_SLUG ), SECSAFE_NAME ),
+					1,
+					1,
+				];
 
-        if ( is_array( $settings ) && isset( $settings['plugin']['version'] ) ) {
-            
-            // Clean settings against the template minimum settings
-            $clean_settings = $this->clean_settings( $settings );
-            
-            // Update DB
-            $results = update_option( SECSAFE_OPTIONS, $clean_settings );
+			} elseif ( $result && ! $initial ) {
 
-            if ( $results ) {
+				$this->messages[] = [ __( 'The settings have been reset to default.', SECSAFE_SLUG ), 1, 1 ];
 
-                //Janitor::log( 'Settings have been updated.' );
+			} elseif ( ! $result ) {
 
-                //Update Plugin Variable
-                $this->settings = $this->get_settings();
+				$this->messages[] = [ __( 'Error: Settings could not be reset. [2]', SECSAFE_SLUG ), 3, 0 ];
 
-                return true;
+			}
 
-            } else {
+			//Janitor::log( 'Settings changed to default.' );
 
-                //Janitor::log( 'ERROR: Settings were not updated.', __FILE__, __LINE__ );
+		}
 
-                return false;
+		/**
+		 * Used to remove settings in the database.
+		 *
+		 * @return bool
+		 *
+		 * @since 0.2.0
+		 */
+		protected function delete_settings() {
 
-            } // $results
+			//Janitor::log( 'running delete_settings()' );
 
-        } else {
+			// Delete settings
+			return delete_option( SECSAFE_OPTIONS );
 
-            if ( ! isset( $settings['plugin']['version'] ) ) {
+		}
 
-                //Janitor::log( 'ERROR: Settings variable is not formatted properly. Settings not updated.', __FILE__, __LINE__ );
-            
-            } else {
+		/**
+		 * Retrieves the minimun standard settings. Also used as a template for importing settings.
+		 *
+		 * @param array $plugin_history History of plugin versions installed.
+		 *
+		 * @return array
+		 *
+		 * @since  1.2.0
+		 */
+		static function get_settings_min( $plugin_history = [] ) {
 
-                //Janitor::log( 'ERROR: Settings variable is not an array. Settings not updated.', __FILE__, __LINE__ );
-            
-            }
+			// Privacy ---------------------------------|
+			$privacy = [
+				'on'                      => '1',           // Toggle on/off all privacy policies.
+				'wp_generator'            => '1',
+				'wp_version_admin_footer' => '0',
+				'hide_script_versions'    => '0',
+				'http_headers_useragent'  => '1',
+			];
 
-            return false;
+			// Files -----------------------------------|
+			$files = [
+				'on'                            => '1',     // Toggle on/off all file policies.
+				'allow_dev_auto_core_updates'   => '0',
+				'allow_major_auto_core_updates' => '0',
+				'allow_minor_auto_core_updates' => '1',
+				'auto_update_plugin'            => '0',
+				'auto_update_theme'             => '0',
+				'DISALLOW_FILE_EDIT'            => '1',
+				'version_files_core'            => '1',
+				'version_files_plugins'         => '0',     // Pro
+				'version_files_themes'          => '0',     // Pro
+			];
 
-        } // is_array()
+			// Content ---------------------------------|
+			$content = [
+				'on'                            => '1',     // Toggle on/off all content policies.
+				'disable_text_highlight'        => '0',
+				'disable_right_click'           => '0',
+				'hide_password_protected_posts' => '0',
+			];
 
-    } // set_settings()
+			// Access ----------------------------------|
+			$access = [
+				'on'                     => '1',            // Toggle on/off all access policies.
+				'login_errors'           => '1',
+				'login_password_reset'   => '0',
+				'login_remember_me'      => '0',
+				'autoblock'              => '1',            // Enable / Disable
+				'autoblock_method'       => '1',            // # Failed Logins / # Threats ( Pro ) / Score ( Pro )
+				'autoblock_threat_score' => '5',
+				'autoblock_timespan'     => '5',
+				'autoblock_ban_1'        => '10',           // Mins
+				'autoblock_ban_2'        => '1',            // Hrs
+				'autoblock_ban_3'        => '1',            // Days ( Pro )
+				'xml_rpc'                => '0',
+			];
 
+			// Backups ---------------------------------|
+			$backups = [
+				'on' => '1', // Toggle on/off all backup features.
+			];
 
-    /**
-     * Resets the plugin settings to default configuration.
-     * @since  0.2.0
-     */  
-    protected function reset_settings( $initial = false ) {
+			// General Settings ------------------------|
+			$general = [
+				'on'             => '1', // Toggle on/off all policies in the plugin.
+				'security_level' => '1', // This is not used yet. Intended as preset security levels for faster configurations.
+				'cleanup'        => '0', // Remove Settings When Disabled
+				'cache_busting'  => '1', // Bust cache when removing versions from JS & CSS files
+				'byline'         => '1', // Display byline below login form
+			];
 
-        //Janitor::log( 'running reset_settings()' );
+			// Plugin Version Tracking -----------------|
+			$plugin = [
+				'version'         => SECSAFE_VERSION,
+				'version_history' => $plugin_history,
+			];
 
-        // Keep Plugin Version History
-        $plugin_history = ( isset( $this->settings['plugin']['version_history'] ) && $this->settings['plugin']['version_history'] ) ? $this->settings['plugin']['version_history'] : [ SECSAFE_VERSION ];
+			// Set everything in the $settings array
+			return [
+				'privacy' => $privacy,
+				'files'   => $files,
+				'content' => $content,
+				'access'  => $access,
+				'backups' => $backups,
+				'general' => $general,
+				'plugin'  => $plugin,
+			];
 
-        if ( ! $initial ) {
-            
-            $delete = $this->delete_settings();
+		}
 
-            if ( ! $delete ) {
+		/**
+		 * Upgrade settings from an older version
+		 *
+		 * @since  1.1.0
+		 */
+		protected function upgrade_settings() {
 
-                $this->messages[] = [ __( 'Error: Settings could not be deleted [1].', SECSAFE_SLUG ), 3, 0 ];
-                return;
+			//Janitor::log( 'Running upgrade_settings()' );
 
-            } // ! $delete
+			$settings = $this->settings;
+			$upgrade  = false;
 
-        } // ! $initial
+			// Upgrade Versions
+			if ( SECSAFE_VERSION != $settings['plugin']['version'] ) {
 
-        // Get Minimum Settings
-        $settings = $this->get_settings_min( $plugin_history );
+				//Janitor::log( 'Upgrading version. ' . SECSAFE_VERSION . ' != ' . $settings['plugin']['version'] );
 
-        $result = $this->set_settings( $settings );
+				$upgrade = true;
 
-        if ( $result && $initial ) {
+				// Add old version to history
+				$settings['plugin']['version_history'][] = $settings['plugin']['version'];
+				$settings['plugin']['version_history']   = array_unique( $settings['plugin']['version_history'] );
 
-            $this->messages[] = [ sprintf( __( '%s settings have been set to the minimum standards.', SECSAFE_SLUG ), SECSAFE_NAME ), 1, 1 ];
+				// Update DB To New Version
+				$settings['plugin']['version'] = SECSAFE_VERSION;
 
-        } elseif ( $result && ! $initial ) {
+				// Upgrade to version 1.1.0
+				if ( isset( $settings['files']['auto_update_core'] ) ) {
 
-            $this->messages[] = [ __( 'The settings have been reset to default.', SECSAFE_SLUG ), 1, 1 ];
+					//Janitor::log( 'Upgrading updates for 1.1.0 upgrades.' );
 
-        } elseif ( ! $result ) {
+					// Remove old setting
+					unset( $settings['files']['auto_update_core'] );
 
-            $this->messages[] = [ __( 'Error: Settings could not be reset. [2]', SECSAFE_SLUG ), 3, 0 ];
-        
-        } // $result
+					( isset( $settings['files']['allow_dev_auto_core_updates'] ) ) || $settings['files']['allow_dev_auto_core_updates'] = '0';
+					( isset( $settings['files']['allow_major_auto_core_updates'] ) ) || $settings['files']['allow_major_auto_core_updates'] = '0';
+					( isset( $settings['files']['allow_minor_auto_core_updates'] ) ) || $settings['files']['allow_minor_auto_core_updates'] = '1';
 
-        //Janitor::log( 'Settings changed to default.' );
+				}
 
-    } // reset_settings()
+				// Upgrade to version 2.3.0
+				( isset( $settings['general']['byline'] ) ) || $settings['general']['byline'] = '1';
 
+				// Upgrade to version 2.4.0
+				if ( version_compare( end( $settings['plugin']['version_history'] ), '2.4.0', '<' ) ) {
 
-    /**
-     * Upgrade settings from an older version
-     * @since  1.2.2
-     */
-    protected function clean_settings( $dirty_settings ){
+					global $wpdb;
 
-        // Keep Plugin Version History
-        $plugin_history = ( isset( $dirty_settings['plugin']['version_history'] ) && $dirty_settings['plugin']['version_history'] ) ? $dirty_settings['plugin']['version_history'] : [ SECSAFE_VERSION ];
+					$table_name = Yoda::get_table_main();
 
-        // Get template for settings
-        $min_settings = $this->get_settings_min( $plugin_history );
+					$exist = $wpdb->query( "SELECT `score` FROM $table_name" );
 
-        // Filtered Settings
-        $filtered_settings = [];
+					if ( ! $exist ) {
 
-        // Filter all non settings values
-        foreach ( $min_settings as $key => $value ) {
+						$wpdb->query( "ALTER TABLE $table_name ADD COLUMN `score` TINYINT(3) NOT NULL default '0'" );
 
-            foreach ( $value as $k => $v ) {
+						$this->messages[] = [
+							sprintf( __( '%s: Your database has been upgraded.', SECSAFE_SLUG ), SECSAFE_NAME ),
+							0,
+							1,
+						];
 
-                if ( isset( $dirty_settings[ $key ][ $k ] ) ) {
-                    
-                    $filtered_settings[ $key ][ $k ] = $dirty_settings[ $key ][ $k ];
+					}
 
-                } else {
+				}
 
-                    $filtered_settings[ $key ][ $k ] = '';
+				// Upgrade Settings to version 2.4.0
+				( isset( $settings['access']['autoblock_threat_score'] ) ) || $settings['access']['autoblock_threat_score'] = '10';
+				( isset( $settings['access']['autoblock_timespan'] ) ) || $settings['access']['autoblock_timespan'] = '5';
+				( isset( $settings['access']['autoblock_ban_1'] ) ) || $settings['access']['autoblock_ban_1'] = '10';
+				( isset( $settings['access']['autoblock_ban_2'] ) ) || $settings['access']['autoblock_ban_2'] = '1';
+				( isset( $settings['access']['autoblock_ban_3'] ) ) || $settings['access']['autoblock_ban_3'] = '1';
 
-                }
-                
-            } // foreach()
+			}
 
-        } // foreach()
+			if ( $upgrade ) {
 
-        $clean_settings = filter_var_array( $filtered_settings, FILTER_SANITIZE_STRING );
+				$result = $this->set_settings( $settings ); // Update DB
 
-        return $clean_settings;
+				if ( $result ) {
 
-    } // clean_settings()
+					$this->messages[] = [
+						sprintf( __( '%s: Your settings have been upgraded.', SECSAFE_SLUG ), SECSAFE_NAME ),
+						0,
+						1,
+					];
+					//Janitor::log( 'Added upgrade success message.' );
 
+					// Get Settings Again
+					$this->settings = $this->get_settings();
 
-    /**
-     * Upgrade settings from an older version
-     * @since  1.1.0
-     */
-    protected function upgrade_settings(){
+				} else {
 
-        //Janitor::log( 'Running upgrade_settings()' );
+					$this->messages[] = [
+						sprintf( __( '%s: There was an error upgrading your settings. We would recommend resetting your settings to fix the issue.', SECSAFE_SLUG ), SECSAFE_NAME ),
+						3,
+					];
+					//Janitor::log( 'Added upgrade error message.' );
 
-        $settings = $this->settings;
-        $upgrade = false;
+				}
 
-        // Upgrade Versions
-        if ( SECSAFE_VERSION != $settings['plugin']['version'] ) {
+			}
 
-            //Janitor::log( 'Upgrading version. ' . SECSAFE_VERSION . ' != ' . $settings['plugin']['version'] );
+		}
 
-            $upgrade = true;
+		/**
+		 * Retrieves the default settings for a page
+		 *
+		 * @param string $page
+		 *
+		 * @return array
+		 *
+		 * @since 2.4.0
+		 */
+		static function get_page_settings_min( $page = 'false' ) {
 
-            // Add old version to history
-            $settings['plugin']['version_history'][] = $settings['plugin']['version'];
-            $settings['plugin']['version_history'] = array_unique( $settings['plugin']['version_history'] );
-            
-            // Update DB To New Version
-            $settings['plugin']['version'] = SECSAFE_VERSION;
-        
-        } // SECSAFE_VERSION
+			$default_settings = Plugin::get_settings_min();
 
-        // Upgrade to version 1.1.0
-        if ( isset( $settings['files']['auto_update_core'] ) ) {
+			return ( isset( $default_settings[ $page ] ) ) ? $default_settings[ $page ] : [];
 
-            //Janitor::log( 'Upgrading updates for 1.1.0 upgrades.' );
+		}
 
-            $upgrade = true;
+		/**
+		 * Initializes the plugin.
+		 *
+		 * @since  1.8.0
+		 */
+		static function init() {
 
-            // Remove old setting
-            unset( $settings['files']['auto_update_core'] );
+			global $SecuritySafe;
 
-            if( ! isset( $settings['files']['allow_dev_auto_core_updates'] ) ) {
-                $settings['files']['allow_dev_auto_core_updates'] = '0';
-            } 
+			// Set Session
+			$session = Plugin::get_session();
 
-            if( ! isset( $settings['files']['allow_major_auto_core_updates'] ) ) {
-                $settings['files']['allow_major_auto_core_updates'] = '0';
-            }
+			$admin_user = false;
 
-            if( ! isset( $settings['files']['allow_minor_auto_core_updates'] ) ) {
-                $settings['files']['allow_minor_auto_core_updates'] = '1';
-            } 
+			if ( is_admin() ) {
 
-        } // $settings['auto_update_core']
+				// Multisite Compatibility
+				if ( is_multisite() ) {
 
-        // Upgrade to version 2.3.0
-        if ( ! isset( $settings['general']['byline'] ) ) {
+					// Only Super Admin has the power
+					$admin_user = ( isset( $session['user']['roles']['super_admin'] ) ) ? true : false;
 
-            $upgrade = true;
+				} else {
 
-            $settings['general']['byline'] = '1';
+					$admin_user = ( isset( $session['user']['roles']['administrator'] ) || current_user_can( 'manage_options' ) ) ? true : false;
 
-        }
+				}
 
-        if ( $upgrade ) {
+			}
 
-            $result = $this->set_settings( $settings ); // Update DB
+			if ( $admin_user ) {
 
-            if ( $result ) {
+				// Load Admin
+				require_once( SECSAFE_DIR_ADMIN . '/Admin.php' );
 
-                $this->messages[] = [ sprintf( __( '%s: Your settings have been upgraded.', SECSAFE_SLUG ), SECSAFE_NAME ), 0, 1 ];
-                //Janitor::log( 'Added upgrade success message.' );
+				$SecuritySafe = new Admin( $session );
 
-                // Get Settings Again
-                $this->settings = $this->get_settings();
+			} else {
 
-            } else {
+				$SecuritySafe = new Security( $session );
 
-                $this->messages[] = [ sprintf( __( '%s: There was an error upgrading your settings. We would recommend resetting your settings to fix the issue.', SECSAFE_SLUG ), SECSAFE_NAME ), 3 ];
-                //Janitor::log( 'Added upgrade error message.' );
+			}
 
-            } // $success
+			// Start Security
+			$SecuritySafe->start_security();
 
-        } // $upgrade
+		}
 
-    } // upgrade_settings()
+		/**
+		 * Gets variables related to this session.
+		 *
+		 * @return array
+		 *
+		 * @since  2.1.0
+		 */
+		private static function get_session() {
 
+			$session = [];
 
-    /**
-     * Set settings for a particular settings page
-     * @param  $settings_page string of the page posted to
-     * @return $settings array of settings in database
-     * @since  0.1.0
-     */
-    protected function post_settings( $settings_page ) {
+			// Get user once
+			$user = wp_get_current_user();
 
-        //Janitor::log( 'Running post_settings().' );
+			$session['logged_in'] = $user->exists();
+			$session['user']      = false;
 
-        $settings_page = strtolower( $settings_page );
+			if ( $session['logged_in'] ) {
 
-        if ( isset( $_POST ) && ! empty( $_POST ) && $settings_page ) {
+				$session['user'] = [];
 
-            $nonce = ( isset( $_POST['_nonce_save_settings'] ) ) ? $_POST['_nonce_save_settings'] : false;
+				$new_roles = array_combine( $user->roles, $user->roles );
 
-            // Security Check
-            if ( ! $nonce || ! wp_verify_nonce( $nonce, SECSAFE_SLUG . '-save-settings' ) ) {
+				// Cache roles
+				$session['user']['roles'] = $new_roles;
 
-                $this->messages[] = [ __( 'Error: Settings not saved. Your session expired. Please try again.', SECSAFE_SLUG ), 3 ];
-                return; // Bail
+				// Make multi-site compatible
+				if ( is_super_admin( $user->ID ) ) {
 
-            }
+					$session['user']['roles']['super_admin'] = 'super_admin';
 
-            //Janitor::log( 'Form was submitted.' );
+				}
 
-            //This is sanitized in clean_settings()
-            $new_settings = $_POST;
+			}
 
-            // Remove submit value
-            unset( $new_settings['submit'] );
+			return $session;
 
-            // Get settings
-            $settings = $this->settings; // Get copy of settings
+		}
 
-            $options = $settings[ $settings_page ]; // Get page specific settings
+		/**
+		 * Clears Cached PHP Functions
+		 *
+		 * @since 1.1.13
+		 */
+		static function clear_php_cache() {
 
-            // Set Settings Array With New Values
-            foreach ( $options as $label => $value ) {
+			if ( version_compare( PHP_VERSION, '5.5.0', '>=' ) ) {
 
-                if ( isset( $new_settings[ $label ] ) ) {
+				if ( function_exists( 'opcache_reset' ) ) {
 
-                    if ( $options[ $label ] != $new_settings[ $label ] ) {
-                        // Set Value
-                        //echo "set " . $label . "<br>";
-                        $options[ $label ] = $new_settings[ $label ];
-                        $same = false;
-                    }
+					opcache_reset();
+				}
 
-                    unset( $new_settings[ $label ] );
+			} else {
 
-                } elseif ( ! isset( $new_settings[ $label ] ) && $options[ $label ] != '0' ) {
-                    
-                    // Set Value To Default
-                    $options[ $label ] = '0';
+				if ( function_exists( 'apc_clear_cache' ) ) {
 
-                } // isset()
+					apc_clear_cache();
+				}
 
-            } //endforeach
+			}
 
-            // Add New Settings
-            if ( ! empty( $new_settings ) ) {
+		}
 
-                foreach ( $new_settings as $label => $value ) {
+		/**
+		 * Retrieves the settings for a specific page
+		 *
+		 * @note This method is used by Firewall.php and other classes outside of the main class.
+		 *
+		 * @param string $page
+		 *
+		 * @return array
+		 *
+		 * @since  2.4.0
+		 */
+		public function get_page_settings( $page = 'false' ) {
 
-                    $options[ $label ] = $new_settings[ $label ];
+			return ( isset( $this->settings[ $page ] ) ) ? $this->settings[ $page ] : [];
 
-                } // foreach()
+		}
 
-            } // ! empty()
+		/**
+		 * Get cache_buster value from database
+		 *
+		 * @note: This is used by PolicyHideScriptVersions
+		 *
+		 * @return int
+		 *
+		 */
+		public function get_cache_busting() {
 
-            // Cleanup Settings
-            $settings[ $settings_page ] = $options; // Update page settings
+			return ( isset( $this->settings['general']['cache_busting'] ) ) ? (int) $this->settings['general']['cache_busting'] : $this->increase_cache_busting();
 
-            // Compare New / Old Settings to see if anything actually changed
-            if ( $settings == $this->settings ) {
+		}
 
-                // Tell user that they were updated, but nothing actually changed
-                $this->messages[] = [ __( 'Settings saved.', SECSAFE_SLUG ), 0, 1 ];
+		/**
+		 * Increase cache_busting value by 1
+		 *
+		 * @return string
+		 */
+		function increase_cache_busting() {
 
-            } else {
+			//Janitor::log( 'Running increase_cache_busting().' );
 
-                // Actually Update Settings
-                $success = $this->set_settings( $settings ); // Update DB
+			$settings = $this->settings;
 
-                if ( $success ) {
+			$cache_busting = ( isset( $settings['general']['cache_busting'] ) && $settings['general']['cache_busting'] > 0 ) ? (int) $settings['general']['cache_busting'] : 0;
 
-                    $this->messages[] = [ __( 'Your settings have been saved.', SECSAFE_SLUG ), 0, 1 ];
-                    //Janitor::log( 'Added success message.' );
+			// Increase Value
+			$settings['general']['cache_busting'] = ( $cache_busting > 99 ) ? 1 : $cache_busting + 1; //Increase value
 
-                } else {
+			$result = $this->set_settings( $settings );
 
-                    $this->messages[] = [ __( 'Error: Settings not saved.', SECSAFE_SLUG ), 3 ];
-                    //Janitor::log( 'Added error message.' );
+			return ( $result ) ? $settings['general']['cache_busting'] : "0";
 
-                } // $success
+		}
 
-            } // $same
+		/**
+		 * Adds scripts to login
+		 *
+		 * @todo Add @since version
+		 */
+		public function login_scripts() {
 
-        } else {
+			$cache_buster = ( SECSAFE_DEBUG ) ? SECSAFE_VERSION . date( 'YmdHis' ) : SECSAFE_VERSION;
 
-            //Janitor::log( 'Form NOT submitted.' );
+			// Load CSS
+			wp_register_style( SECSAFE_SLUG . '-login', SECSAFE_URL_ADMIN_ASSETS . 'css/admin.css', [], $cache_buster, 'all' );
+			wp_enqueue_style( SECSAFE_SLUG . '-login' );
 
-        } // $_POST
+		}
 
-        //Janitor::log( 'Finished post_settings() for ' . $settings_page );
+		/**
+		 * Adds a class to the body tag
+		 *
+		 * @param array $classes
+		 *
+		 * @return array
+		 */
+		public function login_body_class( $classes ) {
 
-    } // post_settings()
+			$classes[] = SECSAFE_SLUG;
 
+			return $classes;
 
-    /**
-     * Retrieves the minimun standard settings. Also used as a template for importing settings.
-     * @since  1.2.0
-     */ 
-    protected function get_settings_min( $plugin_history ) {
+		}
 
-        // Privacy ---------------------------------|
-        $privacy = [
-                        'on' => '1',                                // Toggle on/off all privacy policies.
-                        'wp_generator' => '1',
-                        'wp_version_admin_footer' => '0',
-                        'hide_script_versions' => '0',
-                        'http_headers_useragent' => '1',
-                    ];
+		/**
+		 * Display byline
+		 *
+		 * @todo Add @since version
+		 */
+		public function login_footer() {
 
-        // Files -----------------------------------|
-        $files = [
-                        'on' => '1',                                // Toggle on/off all file policies.
-                        'allow_dev_auto_core_updates' => '0',
-                        'allow_major_auto_core_updates' => '0',
-                        'allow_minor_auto_core_updates' => '1',
-                        'auto_update_plugin' => '0',
-                        'auto_update_theme' => '0',
-                        'DISALLOW_FILE_EDIT' => '1',
-                        'version_files_core' => '1',
-                        'version_files_plugins' => '0',             // Pro
-                        'version_files_themes' => '0',              // Pro
-                    ];
+			if ( $this->settings['general']['byline'] ) {
 
-        // Content ---------------------------------|
-        $content = [
-                        'on' => '1',                                // Toggle on/off all content policies.
-                        'disable_text_highlight' => '0',
-                        'disable_right_click' => '0',
-                        'hide_password_protected_posts' => '0',
-                    ];
+				echo '<p style="text-align:center;margin-bottom:21px"><a href="https://wordpress.org/plugins/security-safe/" target="_balnk" class="icon-lock">' . sprintf( __( 'Security by %s', SECSAFE_SLUG ), SECSAFE_NAME ) . '</a></p>';
 
-        // Access ----------------------------------|
-        $access = [
-                        'on' => '1',                                // Toggle on/off all access policies.
-                        'xml_rpc' => '1',
-                        'login_errors' => '1',
-                        'login_password_reset' => '0',
-                        'login_remember_me' => '0',
-                    ];
+			}
 
-        // Firewall --------------------------------|
-        $firewall = [
-                        'on' => '1',                                // Toggle on/off all firewall rules.
-                        'blacklist_ips' => '1',
-                        'whitelist_ips' => '1'
-                    ];
+		}
 
-        // Backups ---------------------------------|
-        $backups = [
-                        'on' => '1',                                // Toggle on/off all backup features.
-                    ];
+		/**
+		 * Upgrade settings from an older version
+		 *
+		 * @param array $dirty_settings Unsanitized settings.
+		 *
+		 * @return array
+		 *
+		 * @since  1.2.2
+		 */
+		protected function clean_settings( $dirty_settings ) {
 
-        // General Settings ------------------------|
-        $general = [
-                        'on' => '1',                                // Toggle on/off all policies in the plugin.
-                        'security_level' => '1',                    // This is not used yet. Intended as preset security levels for faster configurations.
-                        'cleanup' => '0',                           // Remove Settings When Disabled
-                        'cache_busting' => '1',                     // Bust cache when removing versions from JS & CSS files
-                        'byline' => '1',                            // Display byline below login form
-                    ];
+			// Keep Plugin Version History
+			$plugin_history = ( isset( $dirty_settings['plugin']['version_history'][0] ) ) ? $dirty_settings['plugin']['version_history'] : [ SECSAFE_VERSION ];
 
-        // Plugin Version Tracking -----------------|
-        $plugin = [
-                        'version' => SECSAFE_VERSION,
-                        'version_history' => $plugin_history,
-                    ];
+			// Get template for settings
+			$min_settings = Plugin::get_settings_min( $plugin_history );
 
-        // Set everything in the $settings array
-        return [
-                        'privacy' => $privacy,
-                        'files' => $files,
-                        'content' => $content,
-                        'access' => $access,
-                        'firewall' => $firewall,
-                        'backups' => $backups,
-                        'general' => $general,
-                        'plugin' => $plugin,
-                    ];
+			// Filtered Settings
+			$filtered_settings = [];
 
-    } // get_settings_min()
+			// Filter all non settings values
+			foreach ( $min_settings as $key => $value ) {
 
+				foreach ( $value as $k => $v ) {
 
-    /**
-     * Initializes the plugin.
-     * @since  1.8.0
-     */ 
-    static function init(){
+					if ( isset( $dirty_settings[ $key ][ $k ] ) ) {
 
-        global $SecuritySafe;
+						$filtered_settings[ $key ][ $k ] = $dirty_settings[ $key ][ $k ];
 
-        // Set Session
-        $session = Self::get_session();
+					} else {
 
-        $admin_user = false;
+						$filtered_settings[ $key ][ $k ] = '';
 
-        if ( is_admin() ) {
+					}
 
-            // Multisite Compatibility
-            if ( is_multisite() ){
+				}
 
-                // Only Super Admin has the power
-                $admin_user = ( isset( $session['user']['roles']['super_admin'] ) ) ? true : false;
+			}
 
-            } else {
+			return filter_var_array( $filtered_settings, FILTER_SANITIZE_STRING );
 
-                $admin_user = ( isset( $session['user']['roles']['administrator'] ) || current_user_can( 'manage_options' ) ) ? true : false;
+		}
 
-            }
-            
-        } // is_admin()
+		/**
+		 * Set settings for a particular settings page
+		 *
+		 * @param string $settings_page The page posted to
+		 *
+		 * @since  0.1.0
+		 */
+		protected function post_settings( $settings_page ) {
 
-        if ( $admin_user ) {
+			//Janitor::log( 'Running post_settings().' );
 
-            // Load Admin
-            require_once( SECSAFE_DIR_ADMIN . '/Admin.php' );
+			$settings_page = strtolower( $settings_page );
 
-            $SecuritySafe = new Admin( $session );
+			if ( isset( $_POST ) && ! empty( $_POST ) && $settings_page ) {
 
-        } else {
+				$nonce = ( isset( $_POST['_nonce_save_settings'] ) ) ? $_POST['_nonce_save_settings'] : false;
 
-            $SecuritySafe = new Security( $session );
+				// Security Check
+				if ( ! $nonce || ! wp_verify_nonce( $nonce, SECSAFE_SLUG . '-save-settings' ) ) {
 
-        }
+					$this->messages[] = [
+						__( 'Error: Settings not saved. Your session expired. Please try again.', SECSAFE_SLUG ),
+						3,
+					];
 
-    } // init()
+					return; // Bail
 
+				}
 
-    /**
-     * Get cache_buster value from database
-     * @return int
-     */ 
-    public function get_cache_busting() {
+				//Janitor::log( 'Form was submitted.' );
 
-        return ( isset( $this->settings['general']['cache_busting'] ) ) ? (int) $this->settings['general']['cache_busting'] : $this->increase_cache_busting( true );
+				//This is sanitized in clean_settings()
+				$new_settings = $_POST;
 
-    } // get_cache_busting()
+				// Remove unnecessary values
+				unset( $new_settings['submit'] );
+				unset( $new_settings['_nonce_save_settings'] );
+				unset( $new_settings['_wp_http_referer'] );
 
+				// Get settings
+				$settings         = $this->settings; // Get copy of settings
+				$default_settings = Plugin::get_settings_min(); // Default settings
+				$options          = $default_settings[ $settings_page ]; // Get page specific settings
 
+				// Set Settings Array With New Values
+				foreach ( $options as $label => $value ) {
 
-    /**
-     * Increase cache_busting value by 1
-     * @param  boolean $return Return cache_busting value if true
-     */
-    function increase_cache_busting( $return = false ) {
+					if ( isset( $new_settings[ $label ] ) ) {
 
-        //Janitor::log( 'Running increase_cache_busting().' );
+						if ( $options[ $label ] != $new_settings[ $label ] ) {
+							// Set Value
+							//echo "set " . $label . "<br>";
+							$options[ $label ] = $new_settings[ $label ];
+						}
 
-        $settings = $this->settings;
+						unset( $new_settings[ $label ] );
 
-        $cache_busting = ( isset( $settings['general']['cache_busting'] ) && $settings['general']['cache_busting'] > 0 ) ? (int) $settings['general']['cache_busting'] : 0;
+					} else {
 
-        // Increase Value
-        $settings['general']['cache_busting'] = ( $cache_busting > 99 ) ? 1 : $cache_busting + 1; //Increase value
+						// Turn Boolean values off (checkboxes)
+						if ( $options[ $label ] == '1' ) {
 
-        $result = $this->set_settings( $settings );
+							$options[ $label ] = '0';
 
-        if ( $return && $result ) {
+						}
 
-            return $settings['general']['cache_busting'];
+					}
 
-        } else if ( $return ) {
+				}
 
-            return "0";
-            
-        }
+				// Add New Settings
+				if ( ! empty( $new_settings ) ) {
 
-    } // increase_cache_busting()
+					foreach ( $new_settings as $label => $value ) {
 
+						$options[ $label ] = $new_settings[ $label ];
 
-    /**
-     * Adds scripts to login
-     */ 
-    public function login_scripts() {
+					}
 
-        $cache_buster = ( SECSAFE_DEBUG ) ? SECSAFE_VERSION . date('YmdHis') : SECSAFE_VERSION;
+				}
 
-        // Load CSS
-        wp_register_style( SECSAFE_SLUG . '-login', SECSAFE_URL_ADMIN_ASSETS . 'css/admin.css', [], $cache_buster, 'all' );
-        wp_enqueue_style( SECSAFE_SLUG . '-login' );
+				if ( $settings_page == 'access' ) {
 
-    } // login_scripts()
+					// Check to make sure that timespan is not greater than first lockout
+					if ( $options['autoblock_ban_1'] < $options['autoblock_timespan'] ) {
 
+						$options['autoblock_timespan'] = 5;
+						$this->messages[]              = [
+							sprintf( __( 'Warning: The lockout condition minutes cannot be greater than the first lockout minutes. The lockout condition was changed to %d minutes.', SECSAFE_SLUG ), $options['autoblock_ban_1'] ),
+							2,
+						];
 
-    /**
-     * Adds a class to the body tag
-     */
-    public function login_body_class( $classes ) {
+					}
 
-        $classes[] = SECSAFE_SLUG;
+				}
 
-        return $classes;
+				// Cleanup Settings
+				$settings[ $settings_page ] = $options; // Update page settings
 
-    } // login_body_class()
+				// Compare New / Old Settings to see if anything actually changed
+				if ( $settings == $this->settings ) {
 
+					// Tell user that they were updated, but nothing actually changed
+					$this->messages[] = [ __( 'Settings saved.', SECSAFE_SLUG ), 0, 1 ];
 
-    /** 
-     * Display byline
-     * @return html
-     */
-    public function login_footer() {
-        
-        if ( $this->settings['general']['byline'] ) {
+				} else {
 
-            echo '<p style="text-align:center;margin-bottom:21px"><a href="https://wordpress.org/plugins/security-safe/" target="_balnk" class="icon-lock">' . sprintf( __( 'Security by %s', SECSAFE_SLUG ), SECSAFE_NAME ) . '</a></p>';
+					// Actually Update Settings
+					$success = $this->set_settings( $settings ); // Update DB
 
-        }
+					if ( $success ) {
 
-    } // login_footer()
+						$this->messages[] = [ __( 'Your settings have been saved.', SECSAFE_SLUG ), 0, 1 ];
+						//Janitor::log( 'Added success message.' );
 
-    
-    /**
-     * Clears Cached PHP Functions 
-     * @since 1.1.13
-     */
-    static function clear_php_cache() {
-        
-        if ( version_compare( PHP_VERSION, '5.5.0', '>=' ) ) {
+					} else {
 
-            if ( function_exists('opcache_reset') ) { 
+						$this->messages[] = [ __( 'Error: Settings not saved.', SECSAFE_SLUG ), 3 ];
+						//Janitor::log( 'Added error message.' );
 
-                opcache_reset(); 
-            }
+					}
 
-        } else {
+				}
 
-            if ( function_exists('apc_clear_cache') ) { 
+			} else {
 
-                apc_clear_cache();
-            }
+				//Janitor::log( 'Form NOT submitted.' );
 
-        } // PHP_VERSION
+			}
 
-    } // clear_php_cache()
+			//Janitor::log( 'Finished post_settings() for ' . $settings_page );
 
+		}
 
-} // Plugin{}
+	}

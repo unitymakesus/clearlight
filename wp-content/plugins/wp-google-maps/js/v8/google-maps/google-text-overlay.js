@@ -33,7 +33,8 @@ jQuery(function($) {
 		this.element.css({
 			position: "absolute",
 			left: position.x + "px",
-			top: position.y + "px"
+			top: position.y + "px",
+			minWidth : "200px"
 		});
 
 		var panes = this.getPanes();
@@ -48,7 +49,8 @@ jQuery(function($) {
 		this.element.css({
 			position: "absolute",
 			left: position.x + "px",
-			top: position.y + "px"
+			top: position.y + "px",
+			minWidth : "200px"
 		});
 	}
 	

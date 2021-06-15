@@ -1,53 +1,58 @@
 <?php
 
-namespace SovereignStack\SecuritySafe;
+	namespace SovereignStack\SecuritySafe;
 
-// Prevent Direct Access
-if ( ! defined( 'ABSPATH' ) ) { die; }
+	// Prevent Direct Access
+	( defined( 'ABSPATH' ) ) || die;
 
+	/**
+	 * Class PolicyHidePasswordProtectedPosts
+	 * @package SecuritySafe
+	 * @since 1.1.7
+	 */
+	class PolicyHidePasswordProtectedPosts {
 
-/**
- * Class PolicyHidePasswordProtectedPosts
- * @package SecuritySafe
- * @since 1.1.7
- */
-class PolicyHidePasswordProtectedPosts {
+		/**
+		 * PolicyPasswordProtectChildren constructor.
+		 */
+		function __construct() {
 
+			add_action( 'pre_get_posts', [ $this, 'exclude' ] );
 
-    /**
-     * PolicyPasswordProtectChildren constructor.
-     */
-	function __construct() {
+		}
 
-        add_action('pre_get_posts', [ $this, 'exclude' ] );
+		/**
+		 * Add to the query to require all posts that do not have a password.
+		 *
+		 * @param $where string
+		 *
+		 * @return string
+		 */
+		function query( $where ) {
 
-	} // __construct()
+			global $wpdb;
 
+			$where .= " AND {$wpdb->posts}.post_password = '' ";
 
-    /**
-     * Add to the query to require all posts that do not have a password.
-     */
-    function query( $where ) {
+			return $where;
 
-        global $wpdb;
+		}
 
-        return $where .= " AND {$wpdb->posts}.post_password = '' ";
+		/**
+		 * Exclude the password protected pages
+		 *
+		 * @param object $query The WP_Query instance
+		 *
+		 * @link https://developer.wordpress.org/reference/hooks/pre_get_posts/
+		 */
+		function exclude( $query ) {
 
-    } // query()
- 
+			if ( ! is_single() && ! is_page() && ! is_admin() ) {
 
-    /**
-     * Exclude the password protected pages
-     */
-    function exclude( $query ) {
-        
-        if ( ! is_single() && ! is_page() && ! is_admin() ) {
+				add_filter( 'posts_where', [ $this, 'query' ] );
 
-            add_filter( 'posts_where', [ $this, 'query' ] );
+			}
 
-        }
+		}
 
-    } // exclude()
-
-
-} // PolicyHidePasswordProtectedPosts()
+	}

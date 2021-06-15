@@ -3,9 +3,7 @@
 namespace SovereignStack\SecuritySafe;
 
 // Prevent Direct Access
-if ( !defined( 'ABSPATH' ) ) {
-    die;
-}
+defined( 'ABSPATH' ) || die;
 // Do not move the following constants to Yoda
 define( 'SECSAFE_TIME_START', microtime( true ) );
 define( 'SECSAFE_DEBUG', false );
@@ -16,18 +14,18 @@ define( 'SECSAFE_DIR_INCLUDES', SECSAFE_DIR_CORE . '/includes' );
 // Load Yoda Before We Translate
 require_once SECSAFE_DIR_INCLUDES . '/Yoda.php';
 Yoda::set_constants();
-define( 'SECSAFE_VERSION', '2.3.2' );
+define( 'SECSAFE_VERSION', '2.4.1' );
 define( 'SECSAFE_DESC', __( 'Firewall, Security Hardening, Auditing & Privacy', SECSAFE_SLUG ) );
 /**
  * WP Security Safe Plugin.
  *
  * @package   SovereignStack\SecuritySafe
- * @copyright Copyright (C) 2018-2019, Sovereign Stack, LLC - support@sovstack.com
+ * @copyright Copyright (C) 2018-2021, Sovereign Stack, LLC - support@sovstack.com
  * @license   http://www.gnu.org/licenses/gpl-3.0.html GNU General Public License, version 3 or higher
  *
  * @wordpress-plugin
  * Plugin Name: WP Security Safe
- * Version:     2.3.2
+ * Version:     2.4.1
  * Plugin URI: https://sovstack.com/security-safe
  * Description: Firewall, Security Hardening, Auditing & Privacy
  * Author: Sovereign Stack, LLC
@@ -45,7 +43,7 @@ define( 'SECSAFE_DESC', __( 'Firewall, Security Hardening, Auditing & Privacy', 
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-if ( !function_exists( 'security_safe' ) ) {
+if ( !function_exists( 'SovereignStack\\SecuritySafe\\security_safe' ) ) {
     // Create a helper function for easy SDK access.
     function security_safe()
     {
@@ -54,7 +52,7 @@ if ( !function_exists( 'security_safe' ) ) {
         if ( !isset( $security_safe ) ) {
             // Include Freemius SDK.
             require_once dirname( __FILE__ ) . '/freemius/start.php';
-            $security_safe = fs_dynamic_init( array(
+            $security_safe = fs_dynamic_init( [
                 'id'             => '2439',
                 'slug'           => 'security-safe',
                 'type'           => 'plugin',
@@ -63,12 +61,12 @@ if ( !function_exists( 'security_safe' ) ) {
                 'premium_suffix' => '',
                 'has_addons'     => false,
                 'has_paid_plans' => true,
-                'menu'           => array(
+                'menu'           => [
                 'slug'    => 'security-safe',
                 'contact' => false,
-            ),
+            ],
                 'is_live'        => true,
-            ) );
+            ] );
         }
         
         return $security_safe;

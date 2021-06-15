@@ -4,7 +4,7 @@
  * @requires WPGMZA
  */
 jQuery(function($) {
-	
+
 	WPGMZA.DataTable = function(element)
 	{
 		var self = this;
@@ -18,13 +18,19 @@ jQuery(function($) {
 			return;
 		}
 		
-		if($.fn.dataTable.ext)
+		if($.fn.dataTable.ext){
 			$.fn.dataTable.ext.errMode = "throw";
-		else
-		{
+		} else {
 			var version = $.fn.dataTable.version ? $.fn.dataTable.version : "unknown";
-			
 			console.warn("You appear to be running an outdated or modified version of the dataTables library. This may cause issues with table functionality. This is usually caused by 3rd party software loading an older version of DataTables. The loaded version is " + version + ", we recommend version 1.10.12 or above.");
+		}
+
+		if($.fn.dataTable.Api){
+			$.fn.dataTable.Api.register( 'processing()', function ( show ) {
+				return this.iterator( 'table', function ( ctx ) {
+					ctx.oApi._fnProcessingDisplay( ctx, show );
+				} );
+			} );
 		}
 		
 		this.element = element;
@@ -33,37 +39,29 @@ jQuery(function($) {
 
 		var settings = this.getDataTableSettings();
 		
+		
 		this.phpClass			= $(element).attr("data-wpgmza-php-class");
+		// this.dataTable			= $(this.dataTableElement).DataTable(settings);
 		this.wpgmzaDataTable	= this;
 		
 		this.useCompressedPathVariable = (WPGMZA.restAPI.isCompressedPathVariableSupported && WPGMZA.settings.enable_compressed_path_variables);
 		this.method = (this.useCompressedPathVariable ? "GET" : "POST");
 		
-		if(this.getLanguageURL() == undefined || this.getLanguageURL() == "//cdn.datatables.net/plug-ins/1.10.12/i18n/English.json") 
-		{
-			this.dataTable			= $(this.dataTableElement).DataTable(settings);
+		if(this.getLanguageURL() == undefined || this.getLanguageURL() == "//cdn.datatables.net/plug-ins/1.10.12/i18n/English.json") {
+			this.dataTable = $(this.dataTableElement).DataTable(settings);
 			this.dataTable.ajax.reload();
 		}
-		else{
-		
+		else {
+			
 			$.ajax(this.getLanguageURL(), {
 
-				success: function(response, status, xhr)
-				{
-					self.languageJSON = response; // TODO: This doesn't appear to go anywhere
-					
-					self.dataTable = $(self.dataTableElement).DataTable(settings);
-					self.dataTable.ajax.reload();
-				},
-				
-				error: function()
-				{
-					// TODO: Use complete instead
+				success: function(response, status, xhr){
+					self.languageJSON = response;
 					self.dataTable = $(self.dataTableElement).DataTable(settings);
 					self.dataTable.ajax.reload();
 				}
 				
-			  });
+			});
 		}
 	}
 	
@@ -92,7 +90,8 @@ jQuery(function($) {
 		return $.extend(data, params);
 	}
 	
-	WPGMZA.DataTable.prototype.onDataTableAjaxRequest = function(data, callback, settings) {
+	WPGMZA.DataTable.prototype.onDataTableAjaxRequest = function(data, callback, settings)
+	{
 		var self = this;
 		var element = this.element;
 		var route = $(element).attr("data-wpgmza-rest-api-route");
@@ -118,15 +117,21 @@ jQuery(function($) {
 				
 				response.draw = draw;
 				self.lastResponse = response;
+
 				
 				callback(response);
-				self.onAJAXResponse(response);
+				
+				$("[data-marker-icon-src]").each(function(index, element) {
+					var icon = WPGMZA.MarkerIcon.createInstance(
+						$(element).attr("data-marker-icon-src")
+					);
+					
+					icon.applyToElement(element);
+				});
 				
 			}
 		};
 		
-console.log(options);
-
 		return WPGMZA.restAPI.call(route, options);
 	}
 	

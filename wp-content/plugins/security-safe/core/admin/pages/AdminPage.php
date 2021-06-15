@@ -1,493 +1,624 @@
 <?php
 
-namespace SovereignStack\SecuritySafe;
+	namespace SovereignStack\SecuritySafe;
 
-// Prevent Direct Access
-if ( ! defined( 'ABSPATH' ) ) { die; }
+	// Prevent Direct Access
+	( defined( 'ABSPATH' ) ) || die;
 
-/**
- * Class AdminPage
- * @package SecuritySafe
- */
-class AdminPage {
+	/**
+	 * Class AdminPage
+	 * @package SecuritySafe
+	 */
+	class AdminPage {
 
-    public $title = 'Page Title';
-    public $description = 'Description of page.';
-    protected $settings = [];
-    public $slug = '';
-    public $tabs = [];
+		public $title = 'Page Title';
+		public $description = 'Description of page.';
+		public $slug = '';
+		public $tabs = [];
+		/**
+		 * Contains all the admin message values for the page.
+		 * @var array
+		 */
+		public $messages = [];
+		protected $settings = [];
 
-    /**
-     * Contains all the admin message values for the page.
-     * @var array
-     */
-    public $messages = [];
+		/**
+		 * AdminPage constructor.
+		 *
+		 * @param $settings
+		 */
+		function __construct( $settings ) {
 
-    /**
-     * AdminPage constructor.
-     * @param $settings
-     */
-    function __construct( $settings ) {
+			$this->settings = $settings;
 
-        $this->settings = $settings;
+			// Prevent Caching
+			Janitor::prevent_caching();
 
-        // Prevent Caching
-        Janitor::prevent_caching();
+			// Set page variables
+			$this->set_page();
 
-        // Set page variables
-        $this->set_page();
+		}
 
-    } // __construct()
+		/**
+		 * Placeholder intended to be used by pages to override variables.
+		 * @since  0.1.0
+		 */
+		protected function set_page() {
 
+			// This is overwritten by specific page.
 
-    /**
-     * Placeholder intended to be used by pages to override variables.
-     * @since  0.1.0
-     */ 
-    protected function set_page() {
+		}
 
-        // This is overwritten by specific page.
-    
-    } // set_page()
+		/**
+		 * Displays all the tabs set by the specific page
+		 *
+		 * @since  0.2.0
+		 */
+		public function display_tabs() {
 
+			if ( ! empty( $this->tabs ) ) {
 
-    /** 
-     * Displays all the tabs set by the specific page
-     * @since  0.2.0
-     * @return html
-     */
-    public function display_tabs() {
+				$html = '<h2 class="nav-tab-wrapper">';
+				$num  = 1;
 
-        if ( ! empty( $this->tabs ) ){
+				foreach ( $this->tabs as $t ) {
 
-            $html = '<h2 class="nav-tab-wrapper">';
-            $num = 1;
+					if ( is_array( $t ) ) {
 
-            foreach ( $this->tabs as $t ){
+						$classes = 'nav-tab';
 
-                if ( is_array( $t ) ) {
+						// Add Active Class To Active Tab : Default First Tab
+						if ( ( isset( $_GET['tab'] ) && $_GET['tab'] == $t['id'] ) || ( ! isset( $_GET['tab'] ) && $num == 1 ) ) {
 
-                    $classes = 'nav-tab';
-                    
-                    // Add Active Class To Active Tab : Default First Tab
-                    if( ( isset( $_GET['tab'] ) && $_GET['tab'] == $t['id'] ) || ( ! isset( $_GET['tab'] ) && $num == 1 ) ) {
-                        
-                        $classes .= ' nav-tab-active';
+							$classes .= ' nav-tab-active';
 
-                    }
+						}
 
-                    $html .= '<a href="?page=' . esc_html( $this->slug ) . '&tab=' . esc_html( $t['id'] ) . '" class="' . esc_html( $classes ) . '">' . esc_html( $t['label'] ) . '</a>';
-                
-                    $num++;
+						$html .= '<a href="?page=' . esc_html( $this->slug ) . '&tab=' . esc_html( $t['id'] ) . '" class="' . esc_html( $classes ) . '">' . esc_html( $t['label'] ) . '</a>';
 
-                } // is_array()
+						$num ++;
 
-            } // foreach()
+					}
 
-            $html .= '</h2>';
+				}
 
-            echo $html;
+				$html .= '</h2>';
 
-        } // $this->tabs
+				echo $html;
 
-    } // display_tabs()
+			}
 
+		}
 
-    /**
-     * Display All Tabbed Content
-     * @since  0.2.0
-     * @return  html
-     */  
-    public function display_tabs_content() {
+		/**
+		 * Display All Tabbed Content
+		 *
+		 * @since  0.2.0
+		 */
+		public function display_tabs_content() {
 
-        if ( ! empty( $this->tabs ) ) {
+			if ( ! empty( $this->tabs ) ) {
 
-            $num = 1;
+				$num = 1;
 
-            $html = '';
+				$html = '';
 
-            foreach ( $this->tabs as $t ) {
+				foreach ( $this->tabs as $t ) {
 
-                if ( ( isset( $_GET['tab'] ) && $_GET['tab'] == $t['id'] ) || ( ! isset( $_GET['tab'] ) && $num == 1 ) ) {
+					if ( ( isset( $_GET['tab'] ) && $_GET['tab'] == $t['id'] ) || ( ! isset( $_GET['tab'] ) && $num == 1 ) ) {
 
-                    $classes = 'tab-content';
+						$classes = 'tab-content';
 
-                    // Add Active Class To Active Tab : Default First Tab Content
-                    if ( ( isset( $_GET['tab'] ) && $_GET['tab'] == $t['id'] ) || ( ! isset( $_GET['tab'] ) && $num == 1 ) ) {
-                        $classes .= ' active';
-                    }
+						// Add Active Class To Active Tab : Default First Tab Content
+						if ( ( isset( $_GET['tab'] ) && $_GET['tab'] == $t['id'] ) || ( ! isset( $_GET['tab'] ) && $num == 1 ) ) {
+							$classes .= ' active';
+						}
 
-                    // Adds Custom Classes
-                    if ( isset( $t['classes'] ) ) {
+						// Adds Custom Classes
+						if ( isset( $t['classes'] ) ) {
 
-                        if ( is_array( $t['classes'] ) ) {
+							if ( is_array( $t['classes'] ) ) {
 
-                            foreach ( $t['classes'] as $class ) {
+								foreach ( $t['classes'] as $class ) {
 
-                                $classes .= ' ' . $class;
+									$classes .= ' ' . $class;
 
-                            } // foreach()
+								}
 
-                        } else {
+							} else {
 
-                            $classes .= ' ' . $t['classes'];
+								$classes .= ' ' . $t['classes'];
 
-                        } // is_array()
+							}
 
-                    } // isset()
+						}
 
-                    $html .= '<div id="' . esc_html( $t['id'] ) . '" class="' . esc_html( $classes ) . '">';
-                    
-                    // Display Title
-                    if ( isset( $t['title'] ) && $t['title'] ) {
+						$html .= '<div id="' . esc_html( $t['id'] ) . '" class="' . esc_html( $classes ) . '">';
 
-                        $html .= '<h2>' . esc_html( $t['title'] ) . '</h2>';
+						// Display Title
+						if ( isset( $t['title'] ) && $t['title'] ) {
 
-                    }
+							$html .= '<h2>' . esc_html( $t['title'] ) . '</h2>';
 
-                    // Display Heading Text
-                    if ( isset( $t['heading'] ) && $t['heading'] ) {
+						}
 
-                        $html .= '<p class="new-description description">' . esc_html( $t['heading'] ) . '</p>';
+						// Display Heading Text
+						if ( isset( $t['heading'] ) && $t['heading'] ) {
 
-                    }
+							$html .= '<p class="new-description description">' . esc_html( $t['heading'] ) . '</p>';
 
-                    // Display Intro Text
-                    if ( isset( $t['intro'] ) && $t['intro'] ) {
+						}
 
-                        /**
-                         * @todo Need to sanitize this in a way that doesn't break the intro
-                         */ 
-                        $html .= '<p>' . $t['intro'] . '</p>';
+						// Display Intro Text
+						if ( isset( $t['intro'] ) && $t['intro'] ) {
 
-                    }
+							/**
+							 * @todo Need to sanitize this in a way that doesn't break the intro
+							 */
+							$html .= '<p>' . $t['intro'] . '</p>';
 
-                    // Display Page Messages As A Log
-                    $html .= $this->display_messages();
+						}
 
-                    // Run Callback Method To Display Content
-                    if ( isset( $t['content_callback'] ) && $t['content_callback'] ) {
+						// Display Page Messages As A Log
+						$html .= $this->display_messages();
 
-                        $content = $t['content_callback'];
-                        $html .= $this->$content();
-                        
-                    }
+						// Run Callback Method To Display Content
+						if ( isset( $t['content_callback'] ) && $t['content_callback'] ) {
 
-                    $html .= '</div><!-- #' . esc_html( $t['id'] ) . ' -->';
+							$content = $t['content_callback'];
+							$html    .= $this->$content();
 
-                    $num++;
+						}
 
-                } // $_GET['tab']
-                
-            } // foreach
+						$html .= '</div><!-- #' . esc_html( $t['id'] ) . ' -->';
 
-            echo $html;
+						$num ++;
 
-        } // $this->tabs
+					}
 
-    } // display_tabs_content()
+				}
 
+				echo $html;
 
-    /**
-     * Creates the opening and closing tags for the form-table
-     * @since  0.2.0
-     */
-    protected function form_table( $rows ) {
+			}
 
-        return '<table class="form-table">' . $rows . '</table>';
+		}
 
-    } // form_table()
+		/**
+		 * Displays this page's messages in a log format. Only used on file permissions page.
+		 *
+		 * @return string
+		 *
+		 * @since 1.1.0
+		 */
+		private function display_messages() {
 
-    /**
-     * Creates a new section for a form-table
-     * @since  0.2.0
-     */
-    
-    protected function form_section( $title, $desc ) {
+			$html = '';
 
-        // Create ID to allow links to specific areas of admin
-        $id = str_replace( ' ', '-', trim( strtolower( $title ) ) );
-        
-        $html = '<h3 id="' . esc_html( $id ) . '">' . esc_html( $title ) . '</h3>';
-        $html .= '<p>' . esc_html( $desc ) . '</p>';
+			if (
+				isset( $_POST ) &&
+				! empty( $_POST ) &&
+				isset( $_GET['page'] ) &&
+				$_GET['page'] == 'security-safe-files' &&
+				isset( $_GET['tab'] ) &&
+				$_GET['tab'] != 'settings'
+			) {
 
-        return $html;
+				$html = '<h3>' . __( 'Process Log', SECSAFE_SLUG ) . '</h3>
+					<p><textarea style="width: 100%; height: 120px;">';
 
-    } // form_section()
+				if ( ! empty( $this->messages ) ) {
 
-    /** 
-     * Displays form checkbox for a settings page.
-     * @since  0.1.0
-     * @param array $page_options An array of setting values specific to the particular page. This is not the full array of settings.
-     * @param string $name The name of the checkbox which corresponds with the setting name in the database.
-     * @param string $slug The value for the settings in the database.
-     * @param string $short_desc The text that is displayed to the right on the checkbox.
-     * @param string $long_desc The description text displayed below the title.
-     */
-    protected function form_checkbox( $page_options, $name, $slug, $short_desc, $long_desc, $classes = '', $disabled = false ) {
+					foreach ( $this->messages as $m ) {
 
-        $html = '<tr class="form-checkbox '. $classes .'">';
+						// Display Messages
+						$html .= ( $m[1] == 3 ) ? "\n!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! \n" : '';
+						$html .= '- ' . esc_html( $m[0] ) . "\n";
+						$html .= ( $m[1] == 3 ) ? "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! \n\n" : '';
 
-        if ( is_array( $page_options ) && $slug && $short_desc ) {
-            
-            $html .= $this->row_label( $name );
-            $html .= '<td>';
+					}
 
-            $checked = ( isset( $page_options[ $slug ] ) && $page_options[ $slug ] == '1' ) ? ' CHECKED' : '';
-            $disabled = ( $disabled ) ? ' DISABLED' : '';
-            
-            /**
-             * @todo  Fix: Had to remove esc_html for short desc
-             */
-            $html .= '<label><input name="' . esc_html( $slug ) . '" type="checkbox" value="1"' . $checked . $disabled . '/>' . $short_desc . '</label>';
-            
-            if ( $long_desc ) {
-                /**
-                 * @todo  Fix: Had to remove esc_html for long desc
-                 */
-                $html .= '<p class="description">' . $long_desc . '</p>';
+				} else {
 
-            } // $long_desc
+					$html .= __( 'No changes were made to file permissions.', SECSAFE_SLUG );
 
-            // Testing Only
-            //$html .= 'Value: ' . $page_options[ $slug ];
-            
-            $html .= '</td>';
-        
-        } else {
-            
-            $html .= '<td colspan="2"><p>' . __( 'Error: There are parameters missing to properly display checkbox.', SECSAFE_SLUG ) . '</p></td>';
-            
-        } //is_array()
+				}// ! empty()
 
-        $html .= '</tr>';
+				$html .= '</textarea></p>';
 
-        return $html;
+			}
 
-    } //form_checkbox()
+			return $html;
 
+		}
 
-    protected function form_text( $message, $class = '', $classes = '' ) {
+		/**
+		 * Creates the opening and closing tags for the form-table
+		 *
+		 * @param string $rows
+		 *
+		 * @return string
+		 *
+		 * @since  0.2.0
+		 */
+		protected function form_table( $rows ) {
 
-        $html = '<tr class="form-text '. esc_html( $classes ) .'">';
+			return '<table class="form-table">' . $rows . '</table>';
 
-        // Need to make sure message is sanitized when form_text is called
-        $html .= '<td colspan="2"><p class="' . esc_html( $class ) . '">' . $message . '</p></td>';
+		}
 
-        $html .= '</tr>';
+		/**
+		 * Creates a new section for a form-table
+		 *
+		 * @param string $title
+		 * @param string $desc
+		 *
+		 * @return string
+		 *
+		 * @since  0.2.0
+		 */
 
-        return $html;
-        
-    } // form_text();
+		protected function form_section( $title, $desc ) {
 
+			// Create ID to allow links to specific areas of admin
+			$id = str_replace( ' ', '-', trim( strtolower( $title ) ) );
 
-    protected function form_input( $page_options, $name, $slug, $placeholder, $long_desc, $styles = '', $classes = '', $required = false ) {
-    
-        $html = '<tr class="form-input '. esc_html( $classes ) .'">';
+			$html = '<h3 id="' . esc_html( $id ) . '">' . esc_html( $title ) . '</h3>';
+			$html .= '<p>' . esc_html( $desc ) . '</p>';
 
-        if ( is_array( $page_options ) && $slug ) {
+			return $html;
 
-            $value = ( isset( $page_options[ $slug ] ) ) ? $page_options[ $slug ] : '';
+		}
 
-            $html .= $this->row_label( $name );
-            
-            $html .= '<td><input type="text" name="' . esc_html( $slug ) . '" placeholder="' . esc_html( $placeholder ) . '" value="' . esc_html( $value ) . '" style="' . esc_html( $styles ) . '">';
+		/**
+		 * Displays form checkbox for a settings page.
+		 *
+		 * @param array $page_options An array of setting values specific to the particular page. This is not the full array of settings.
+		 * @param string $name The name of the checkbox which corresponds with the setting name in the database.
+		 * @param string $slug The value for the settings in the database.
+		 * @param string $short_desc The text that is displayed to the right on the checkbox.
+		 * @param string $long_desc The description text displayed below the title.
+		 * @param string $classes
+		 * @param bool $disabled
+		 *
+		 * @return string
+		 *
+		 * @since  0.1.0
+		 */
+		protected function form_checkbox( $page_options, $name, $slug, $short_desc, $long_desc, $classes = '', $disabled = false ) {
 
-            if ( $long_desc ) {
+			$html = '<tr class="form-checkbox ' . $classes . '">';
 
-                $html .= '<p class="description">' . esc_html( $long_desc ) . '</p>';
+			if ( is_array( $page_options ) && $slug && $short_desc ) {
 
-            } // $long_desc
+				$html .= $this->row_label( $name );
+				$html .= '<td>';
 
-            $html .= '</td>';
+				$checked  = ( isset( $page_options[ $slug ] ) && $page_options[ $slug ] == '1' ) ? 'CHECKED' : '';
+				$disabled = ( $disabled ) ? 'DISABLED' : '';
 
-        } else {
+				/**
+				 * @todo  Fix: Had to remove esc_html for short desc
+				 */
+				$html .= '<label><input name="' . esc_html( $slug ) . '" type="checkbox" value="1" ' . $checked . ' ' . $disabled . '/>' . $short_desc . '</label>';
 
-            $html .= '<td>' . sprintf( __( 'Error: There is an issue displaying this form field: %s.', SECSAFE_SLUG ), 'input' ) . '</td>';
+				if ( $long_desc ) {
+					/**
+					 * @todo  Fix: Had to remove esc_html for long desc
+					 */
+					$html .= '<p class="description">' . $long_desc . '</p>';
 
-        } // is_array( $options )
+				}
 
-        $html .= '</tr>';
+				// Testing Only
+				//$html .= 'Value: ' . $page_options[ $slug ];
 
-        return $html;
+				$html .= '</td>';
 
-    } // form_input()
+			} else {
 
+				$html .= '<td colspan="2"><p>' . __( 'Error: There are parameters missing to properly display checkbox.', SECSAFE_SLUG ) . '</p></td>';
 
-    protected function form_select( $page_options, $name, $slug, $options, $long_desc, $classes = '' ) {
+			}
 
-        $html = '<tr class="form-select '. esc_html( $classes ) .'">';
+			$html .= '</tr>';
 
-        if ( is_array( $page_options ) && $slug && $options ) {
-            
-            $html .= $this->row_label( $name );
-            
-            $html .= '<td><select name="' . esc_html( $slug ) . '">';
-            
-            if ( is_array( $options ) ) {
+			return $html;
 
-                foreach ( $options as $value => $label ) {
+		}
 
-                    $selected = ( isset( $page_options[ $slug ] ) && $page_options[ $slug ] == $value ) ? ' SELECTED' : '';
-        
-                    $html .= '<option value="' . esc_html( $value ) . '"' . esc_html( $selected ) . '>' . esc_html( $label ) . '</option>';
+		/**
+		 * Adds row label
+		 *
+		 * @param $name
+		 *
+		 * @return string
+		 */
+		protected function row_label( $name ) {
 
-                } // foreach()
+			$html = '<th scope="row">';
 
-            } else {
+			if ( $name ) {
 
-                $html .= '<option>' . __( 'Error: Form field "select" is not an array.', SECSAFE_SLUG ) . '</option>';
+				$html .= '<label>' . esc_html( $name ) . '</label>';
 
-            } // is_array( $options )
+			}
 
-            $html .= '</select>';
+			$html .= '</th>';
 
-            if ( $long_desc ) {
+			return $html;
 
-                $html .= '<p class="description">' . esc_html( $long_desc ) . '</p>';
+		}
 
-            } // $long_desc
+		/**
+		 * Adds custom message in a table row
+		 *
+		 * @param string $message
+		 * @param string $class
+		 * @param string $classes
+		 *
+		 * @return string
+		 */
+		protected function form_text( $message, $class = '', $classes = '' ) {
 
-            $html .= '</td>';
+			$html = '<tr class="form-text ' . esc_html( $classes ) . '">';
 
-        } else {
+			// Need to make sure message is sanitized when form_text is called
+			$html .= '<td colspan="2"><p class="' . esc_html( $class ) . '">' . $message . '</p></td>';
 
-            $html .= '<td colspan="2">' . sprintf( __( 'Error: There is an issue displaying this form field: %s.', SECSAFE_SLUG ), 'select' ) . '</td>';
+			$html .= '</tr>';
 
-        } // is_array( $options ) && $slug ...
+			return $html;
 
-        $html .= '</tr>';
+		}
 
-        return $html;
+		/**
+		 * Adds an input row
+		 *
+		 * @param $page_options
+		 * @param $name
+		 * @param $slug
+		 * @param $placeholder
+		 * @param $long_desc
+		 * @param string $styles
+		 * @param string $classes
+		 * @param bool $required
+		 *
+		 * @return string
+		 */
+		protected function form_input( $page_options, $name, $slug, $placeholder, $long_desc, $styles = '', $classes = '', $required = false ) {
 
-    } // form_select();
+			$html = '<tr class="form-input ' . esc_html( $classes ) . '">';
 
+			if ( is_array( $page_options ) && $slug ) {
 
-    protected function row_label( $name ) {
+				$value = ( isset( $page_options[ $slug ] ) ) ? $page_options[ $slug ] : '';
 
-        $html = '<th scope="row">';
+				$html .= $this->row_label( $name );
 
-        if ( $name ) {
+				$html .= '<td><input type="text" name="' . esc_html( $slug ) . '" placeholder="' . esc_html( $placeholder ) . '" value="' . esc_html( $value ) . '" style="' . esc_html( $styles ) . '">';
 
-            $html .= '<label>' . esc_html( $name ) . '</label>';
+				if ( $long_desc ) {
 
-        }
+					$html .= '<p class="description">' . esc_html( $long_desc ) . '</p>';
 
-        $html .= '</th>';
+				}
 
-        return $html;
+				$html .= '</td>';
 
-    } //row_label()
+			} else {
 
-    /** 
-     * Creates a File Upload Field
-     */
-    protected function form_file_upload( $text, $name, $long_desc = '', $classes = '' ) {
+				$html .= '<td>' . sprintf( __( 'Error: There is an issue displaying this form field: %s.', SECSAFE_SLUG ), 'input' ) . '</td>';
 
-        $html = '<tr class="form-file-upload '. esc_html( $classes ) .'">';
-        $html .= '<div class="file-upload-wrap cf"><label>' . esc_html( $text ) . '</label><input name="' . esc_html( $name ) . '" id="' . esc_html( $name ) . '" type="file" class="file-input"><input type="button" class="file-select" value="' . __( 'Choose File', SECSAFE_SLUG ) . '"><span class="file-selected">' . __( 'No File Chosen', SECSAFE_SLUG ) . '</span>';
-        $html .= '</div></tr>';
+			}
 
-        return $html;
+			$html .= '</tr>';
 
-    } // form_file_upload()
+			return $html;
 
-    /**
-     * Creates Table Row For A Button
-     * @since  0.3.0
-     */ 
-    protected function form_button( $text, $type, $value, $long_desc = false, $classes = '', $label = true, $name = false ) {
+		}
 
-        $html = '<tr class="form-button '. esc_html( $classes ) .'">';
-        
-        if ( $label ) {
+		/**
+		 * Adds a select option row
+		 *
+		 * @param $page_options
+		 * @param $name
+		 * @param $slug
+		 * @param $options
+		 * @param $long_desc
+		 * @param string $classes
+		 * @param string $default
+		 * @param false $disabled
+		 * @param false $input_only
+		 *
+		 * @return string
+		 */
+		protected function form_select( $page_options, $name, $slug, $options, $long_desc, $classes = '', $default = '', $disabled = false, $input_only = false ) {
 
-            $html .= $this->row_label( $text );
-            
-        }
+			$html = ( $input_only ) ? '' : '<tr class="form-select ' . esc_html( $classes ) . '">';
 
-        $html .= '<td>';
-        $html .= $this->button( $text, $type, $value, $name );
+			if ( is_array( $page_options ) && $slug && $options ) {
 
-        if ( $long_desc ) {
+				$use_default = ! isset( $page_options[ $slug ] ) || $page_options[ $slug ] == '' || $disabled;
 
-            $html .= '<p class="description">' . esc_html( $long_desc ) . '</p>';
+				if ( ! $input_only ) {
 
-        } // $long_desc
+					$html .= $this->row_label( $name );
+					$html .= '<td>';
 
-        $html .= '</td>';
-        $html .= '</tr>';
-        
-        return $html;
+				}
 
-    } // form_button();
+				$html .= '<select name="' . esc_html( $slug ) . '">';
 
+				if ( is_array( $options ) ) {
 
-    /**
-     * Return HTML for Submit Button
-     * @since  0.3.0
-     */ 
-    protected function button( $text = '', $type = '', $value = false, $name = false ) {
+					foreach ( $options as $value => $label ) {
 
-        // Default Values
-        $text = ( $text ) ? $text : __( 'Save Changes', SECSAFE_SLUG );
-        $type = ( $type ) ? $type : 'submit';
-        $value = ( $value ) ? $value : $text;
-        $name = ( $name ) ? $name : $type;
+						$selected       = ( $use_default && $default == $value ) ? 'SELECTED' : '';
+						$selected       = ( ! $use_default && isset( $page_options[ $slug ] ) && $page_options[ $slug ] == $value ) ? ' SELECTED' : $selected;
+						$disable_option = ( $disabled && $default != $value ) ? 'DISABLED' : '';
 
-        $html = '<p class="' . esc_html( $type ) . '">';
-        $classes = 'button ';
+						$html .= '<option value="' . esc_html( $value ) . '" ' . $selected . ' ' . $disable_option . '>' . esc_html( $label ) . '</option>';
 
-        if ( $type == 'submit' ) {
+					}
 
-            $classes .= 'button-primary';
-            $html .= '<input type="' . esc_html( $type ) . '" name="' . esc_html( $name ) . '" id="' . esc_html( $type ) . '" class="' . esc_html( $classes ) . '" value="' . esc_html( $value ) . '" />';
-        
-        } elseif ( $type == 'link' ) {
+				} else {
 
-            $classes .= 'button-secondary';
-            $html .= '<a href="' . esc_html( $value ) . '" class="' . esc_html( $classes ) . '">' . esc_html( $text ) . '</a>';
+					$html .= '<option>' . __( 'Error: Form field "select" is not an array.', SECSAFE_SLUG ) . '</option>';
 
-        } elseif ( $type == 'link-delete' ) {
+				}
 
-            $classes .= 'button-secondary button-link-delete';
-            $html .= '<a href="' . esc_html( $value ) . '" class="' . esc_html( $classes ) . '">' . esc_html( $text ) . '</a>';
+				$html .= '</select>';
 
-        } // $type
+				if ( ! $input_only ) {
 
-        $html .= '</p>';
+					if ( $long_desc ) {
 
-        return $html;
-    
-    } // button()
+						$html .= '<p class="description">' . $long_desc . '</p>';
 
-    /**
-     * Displays this page's messages in a log format.
-     * @since 1.1.0
-     */ 
-    private function display_messages() {
+					}
 
-        if ( ! empty( $this->messages ) ) {
+					$html .= '</td>';
 
-            $html = '<h3>' . __( 'Process Log', SECSAFE_SLUG ) . '</h3>
-            <p><textarea style="width: 100%; height: 120px;">';
+				}
 
-            foreach ( $this->messages as $m ) {
+			} else {
 
-                // Display Messages
-                $html .= ( $m[1] == 3 ) ? "\n!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! \n" : '';
-                $html .= '- ' . esc_html( $m[0] ) . "\n";
-                $html .= ( $m[1] == 3 ) ? "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! \n\n" : '';
+				$html .= '<td colspan="2">' . sprintf( __( 'Error: There is an issue displaying this form field: %s.', SECSAFE_SLUG ), 'select' ) . '</td>';
 
-            } // foreach()
+			}
 
-            $html .= '</textarea></p>';
+			$html .= ( $input_only ) ? '' : '</tr>';
 
-            return $html;
+			return $html;
 
-        } // ! empty()
+		}
 
-    } // display_messages()
-    
+		/**
+		 *Add a row with custom HTML
+		 *
+		 * @param string $classes
+		 * @param string $content
+		 *
+		 * @return string
+		 *
+		 * @since 2.4.0
+		 */
+		protected function row_custom( $classes, $content ) {
 
-} // Admin()
+			$html = '<tr class="' . $classes . '">';
+			$html .= ( $content ) ? $content : '';
+			$html .= '</tr>';
+
+			return $html;
+
+		}
+
+		/**
+		 * Creates a File Upload Field
+		 *
+		 * @param $text
+		 * @param $name
+		 * @param string $long_desc
+		 * @param string $classes
+		 *
+		 * @return string
+		 */
+		protected function form_file_upload( $text, $name, $long_desc = '', $classes = '' ) {
+
+			$html = '<tr class="form-file-upload ' . esc_html( $classes ) . '">';
+			$html .= '<div class="file-upload-wrap cf"><label>' . esc_html( $text ) . '</label><input name="' . esc_html( $name ) . '" id="' . esc_html( $name ) . '" type="file" class="file-input"><input type="button" class="file-select" value="' . __( 'Choose File', SECSAFE_SLUG ) . '"><span class="file-selected">' . __( 'No File Chosen', SECSAFE_SLUG ) . '</span>';
+			$html .= '</div></tr>';
+
+			return $html;
+
+		}
+
+		/**
+		 * Creates Table Row For A Button
+		 *
+		 * @param $text
+		 * @param $type
+		 * @param $value
+		 * @param false $long_desc
+		 * @param string $classes
+		 * @param bool $label
+		 * @param false $name
+		 *
+		 * @return string
+		 *
+		 * @since  0.3.0
+		 */
+		protected function form_button( $text, $type, $value, $long_desc = false, $classes = '', $label = true, $name = false ) {
+
+			$html = '<tr class="form-button ' . esc_html( $classes ) . '">';
+
+			if ( $label ) {
+
+				$html .= $this->row_label( $text );
+
+			}
+
+			$html .= '<td>';
+			$html .= $this->button( $text, $type, $value, $name );
+
+			if ( $long_desc ) {
+
+				$html .= '<p class="description">' . esc_html( $long_desc ) . '</p>';
+
+			}
+
+			$html .= '</td>';
+			$html .= '</tr>';
+
+			return $html;
+
+		}
+
+		/**
+		 * Return HTML for Submit Button
+		 *
+		 * @param string $text
+		 * @param string $type
+		 * @param string $value
+		 * @param string $name
+		 *
+		 * @return string
+		 *
+		 * @since  0.3.0
+		 */
+		protected function button( $text = '', $type = '', $value = false, $name = false ) {
+
+			// Default Values
+			$text  = ( $text ) ? $text : __( 'Save Changes', SECSAFE_SLUG );
+			$type  = ( $type ) ? $type : 'submit';
+			$value = ( $value ) ? $value : $text;
+			$name  = ( $name ) ? $name : $type;
+
+			$html    = '<p class="' . esc_html( $type ) . '">';
+			$classes = 'button ';
+
+			if ( $type == 'submit' ) {
+
+				$classes .= 'button-primary';
+				$html    .= '<input type="' . esc_html( $type ) . '" name="' . esc_html( $name ) . '" id="' . esc_html( $type ) . '" class="' . esc_html( $classes ) . '" value="' . esc_html( $value ) . '" />';
+
+			} elseif ( $type == 'link' ) {
+
+				$classes .= 'button-secondary';
+				$html    .= '<a href="' . esc_html( $value ) . '" class="' . esc_html( $classes ) . '">' . esc_html( $text ) . '</a>';
+
+			} elseif ( $type == 'link-delete' ) {
+
+				$classes .= 'button-secondary button-link-delete';
+				$html    .= '<a href="' . esc_html( $value ) . '" class="' . esc_html( $classes ) . '">' . esc_html( $text ) . '</a>';
+
+			}
+
+			$html .= '</p>';
+
+			return $html;
+
+		}
+
+	}

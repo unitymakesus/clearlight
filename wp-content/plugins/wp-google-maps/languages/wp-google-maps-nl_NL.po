@@ -4700,7 +4700,7 @@ msgstr "Aangepaste CSS"
 #, fuzzy
 #| msgid "Custom CSS"
 msgid "Custom JS"
-msgstr "Aangepaste CSS"
+msgstr "Aangepaste JS"
 
 #: ../../wp-google-maps-pro/legacy-core.php:5410
 #: ../html/settings-page.html.php:549 ../includes/legacy/settings-page.php:582

@@ -1,72 +1,68 @@
 <?php
 
-namespace SovereignStack\SecuritySafe;
+	namespace SovereignStack\SecuritySafe;
 
-// Prevent Direct Access
-if ( ! defined( 'ABSPATH' ) ) { die; }
+	// Prevent Direct Access
+	( defined( 'ABSPATH' ) ) || die;
 
-require_once( SECSAFE_DIR_ADMIN_TABLES . '/Table.php' );
+	require_once( SECSAFE_DIR_ADMIN_TABLES . '/Table.php' );
 
-/**
- * Class TableFilePerms
- * @package SecuritySafe
- */
-final class TableFilePerms extends Table {
+	/**
+	 * Class TableFilePerms
+	 * @package SecuritySafe
+	 */
+	final class TableFilePerms extends Table {
 
+		/**
+		 * Get a list of columns. The format is:
+		 * 'internal-name' => 'Title'
+		 *
+		 * @return array
+		 * @since 3.1.0
+		 * @abstract
+		 *
+		 * @package WordPress
+		 */
+		function get_columns() {
 
-    /**
-     * Set the type of data to display
-     * 
-     * @since  2.0.0
-     */
-    protected function set_type() {
+			$columns = [
+				'location' => __( 'Relative Location', SECSAFE_SLUG ),
+				'type'     => __( 'Type', SECSAFE_SLUG ),
+				'current'  => __( 'Current', SECSAFE_SLUG ),
+				'status'   => __( 'Status', SECSAFE_SLUG ),
+				'modify'   => __( 'Modify', SECSAFE_SLUG ),
+			];
 
-        $this->type = '404s';
+			return $columns;
 
-    } // set_type()
+		}
 
-    /**
-     * Get a list of columns. The format is:
-     * 'internal-name' => 'Title'
-     *
-     * @package WordPress
-     * @since 3.1.0
-     * @abstract
-     *
-     * @return array
-     */
-    function get_columns() {
-        
-        $columns = [
-            'location'      => __( 'Relative Location', SECSAFE_SLUG ),
-            'type'          => __( 'Type', SECSAFE_SLUG ),
-            'current'       => __( 'Current', SECSAFE_SLUG ),
-            'status'        => __( 'Status', SECSAFE_SLUG ),
-            'modify'        => __( 'Modify', SECSAFE_SLUG )
-        ];
-        
-        return $columns;
+		function get_sortable_columns() {
 
-    } // get_columns()
+			return [];
 
+		}
 
-    /**
-     * Get the array of searchable columns in the database
-     * @since  2.0.0
-     * @return  array An unassociated array.
-     */ 
-    protected function get_searchable_columns() {
-        
-        return [];
+		/**
+		 * Set the type of data to display
+		 *
+		 * @since  2.0.0
+		 */
+		protected function set_type() {
 
-    } // get_searchable_columns()
+			$this->type = '404s';
 
+		}
 
-    function get_sortable_columns() {
+		/**
+		 * Get the array of searchable columns in the database
+		 * @return  array An unassociated array.
+		 * @since  2.0.0
+		 */
+		protected function get_searchable_columns() {
 
-        return [];
+			return [];
 
-    } // get_sortable_columns()
+		}
 
-
-} // Table404s()
+	}

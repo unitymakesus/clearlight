@@ -42,14 +42,14 @@ class class_accordions_post_meta_product{
         <select style="width: 100%;" id="accordions_id" name="accordions_id">
             <option>Select accordion</option>
             <?php if(!empty($accordions_id)): ?>
-            <option value="<?php echo $accordions_id; ?>" selected><?php echo get_the_title($accordions_id); ?></option>
+            <option value="<?php echo esc_attr($accordions_id); ?>" selected><?php echo esc_html(get_the_title($accordions_id)); ?></option>
             <?php endif; ?>
         </select>
 
-        <span class="clear-faq-tab button">CLear</span>
+        <span class="clear-faq-tab button">Clear</span>
 
         <p>
-            <input style="width: 100%;" type="text" placeholder="Tab title" value="<?php echo $accordions_tab_title; ?>" name="accordions_tab_title">
+            <input style="width: 100%;" type="text" placeholder="Tab title" value="<?php echo esc_attr($accordions_tab_title); ?>" name="accordions_tab_title">
         </p>
 
 
@@ -123,7 +123,7 @@ class class_accordions_post_meta_product{
             if ( ! isset( $_POST['meta_boxes_accordions_wc_input_nonce'] ) )
                 return $post_id;
 
-            $nonce = $_POST['meta_boxes_accordions_wc_input_nonce'];
+            $nonce = sanitize_text_field($_POST['meta_boxes_accordions_wc_input_nonce']);
 
             // Verify that the nonce is valid.
             if ( ! wp_verify_nonce( $nonce, 'meta_boxes_accordions_wc_input' ) )

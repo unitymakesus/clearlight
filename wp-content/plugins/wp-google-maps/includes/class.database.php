@@ -13,8 +13,8 @@ class Database extends Factory
 		global $wpgmza_version;
 		
 		$this->version = get_option('wpgmza_db_version');
-		
-		if(version_compare($this->version, $wpgmza_version, '<'))
+
+		if(!$this->version || version_compare($this->version, $wpgmza_version, '<'))
 		{
 			if(!empty($this->version))
 			{
@@ -134,10 +134,6 @@ class Database extends Factory
 			) AUTO_INCREMENT=1 " . Database::getCharsetAndCollate();
 
 		dbDelta($sql);
-		
-		// TODO: Create marker first
-		
-		// $wpdb->query("ALTER TABLE `$WPGMZA_TABLE_NAME_MARKERS` ADD SPATIAL INDEX(lnglat)");
 	}
 	
 	protected function installPolygonTable()
@@ -223,5 +219,30 @@ class Database extends Factory
 	protected function setDefaults()
 	{
 		
+	}
+
+	public function onFirstRun()
+	{
+		$map = Map::createInstance(array(
+			"map_title"				=> __("My first map","wp-google-maps"),
+			"map_start_lat"			=> "45.950464398418106",
+			"map_start_lng"			=> "-109.81550500000003",
+			"map_width"				=> "100",
+			"map_height"			=> "400",
+			"map_width_type"		=> "%",
+			"map_height_type"		=> "px",
+			"map_start_location"	=> "45.950464398418106,-109.81550500000003",
+			"map_start_zoom"		=> "2",
+			"directions_enabled"	=> '0',
+			"alignment"				=> "4"
+		));
+		
+		$marker = Marker::createInstance(array(
+			"map_id"				=> $map->id,
+			"address"				=> "California",
+			"lat"					=> 36.778261,
+			"lng"					=> -119.4179323999,
+			"approved"				=> 1
+		));
 	}
 }

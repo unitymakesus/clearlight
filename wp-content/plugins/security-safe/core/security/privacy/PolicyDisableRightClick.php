@@ -1,42 +1,38 @@
 <?php
 
-namespace SovereignStack\SecuritySafe;
+	namespace SovereignStack\SecuritySafe;
 
-// Prevent Direct Access
-if ( ! defined( 'ABSPATH' ) ) { die; }
+	// Prevent Direct Access
+	( defined( 'ABSPATH' ) ) || die;
 
+	/**
+	 * Class PolicyDisableRightClick
+	 * @package SecuritySafe
+	 * @since 1.1.0
+	 */
+	class PolicyDisableRightClick {
 
-/**
- * Class PolicyDisableRightClick
- * @package SecuritySafe
- * @since 1.1.0
- */
-class PolicyDisableRightClick {
+		/**
+		 * PolicyDisableRightClick constructor.
+		 */
+		function __construct() {
 
+			if ( ! is_admin() ) {
 
-    /**
-     * PolicyDisableRightClick constructor.
-     */
-	function __construct(){
+				add_action( 'wp_enqueue_scripts', [ $this, 'scripts' ] );
 
-        if ( ! is_admin() ) {
+			}
 
-            add_action( 'wp_enqueue_scripts', [ $this, 'scripts' ] );
+		}
 
-        }
+		/**
+		 * Loads JS To Disable Right Click.
+		 */
+		function scripts() {
 
-	} // __construct()
+			// JS File
+			wp_enqueue_script( 'ss-pdrc', SECSAFE_URL_ASSETS . 'js/pdrc.js', [ 'jquery' ], SECSAFE_VERSION, true );
 
+		}
 
-    /**
-     * Loads JS To Disable Right Click.
-     */ 
-    function scripts(){
-        
-        // JS File
-        wp_enqueue_script( 'ss-pdrc', SECSAFE_URL_ASSETS . 'js/pdrc.js', [ 'jquery' ], SECSAFE_VERSION, true );
-
-    } // scripts()
-
-
-} // PolicyDisableRightClick()
+	}

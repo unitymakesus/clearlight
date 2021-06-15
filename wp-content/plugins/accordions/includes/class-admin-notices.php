@@ -18,7 +18,7 @@ class class_accordions_notices{
         $actionurl = admin_url().'edit.php?post_type=accordions&page=upgrade_status';
         $actionurl = wp_nonce_url( $actionurl,  'accordions_upgrade' );
 
-        $nonce = isset($_REQUEST['_wpnonce']) ? $_REQUEST['_wpnonce'] : '';
+        $nonce = isset($_REQUEST['_wpnonce']) ? sanitize_text_field($_REQUEST['_wpnonce']) : '';
 
         if ( wp_verify_nonce( $nonce, 'accordions_upgrade' )  ){
             $accordions_plugin_info['accordions_upgrade'] = 'processing';
@@ -34,7 +34,7 @@ class class_accordions_notices{
             ?>
             <div class="update-nag">
                 <?php
-                echo sprintf(__('Data migration required for <b>Accordions by PickPlugins</b> plugin, please <a class="button button-primary" href="%s">click to start</a> migration. Watch this <a target="_blank" href="https://www.youtube.com/watch?v=4ZGMA6hOoxs">video</a>  first', 'accordions'), $actionurl);
+                echo sprintf(__('Data migration required for <b>Accordions by PickPlugins</b> plugin, please <a class="button button-primary" href="%s">click to start</a> migration. Watch this <a target="_blank" href="https://www.youtube.com/watch?v=4ZGMA6hOoxs">video</a>  first', 'accordions'), esc_url_raw($actionurl));
                 ?>
             </div>
             <?php

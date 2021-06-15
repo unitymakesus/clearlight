@@ -1,12 +1,14 @@
 <?php
 
+// DEPRECATED: Now built into the settings page
+
 if(!defined('ABSPATH'))
 	return;
 
 ?><div id="wpgmza-gdpr-compliance">
 	
 	<div>
-		<h3><?php _e( 'GDPR Compliance', 'wpgooglemaps' ); ?></h3>
+		<h3><?php _e( 'GDPR Compliance', 'wp-google-maps' ); ?></h3>
 		<p>
 			<?php
 			_e('Our GDPR notice will be displayed whenever the agreement cookie is not set. Agreeing to the notice will set this cookie.', 'wp-google-maps');
