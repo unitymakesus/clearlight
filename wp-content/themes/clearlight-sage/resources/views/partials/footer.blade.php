@@ -47,7 +47,7 @@
               'link'  => 'https://hbaws.net/',
             ],
             [
-              'src'   => 'http://seal-nwnc.bbb.org/seals/blue-seal-200-42-clearlight-glass-mirror-inc-152800337.png',
+              'src'   => 'https://seal-nwnc.bbb.org/seals/blue-seal-200-42-clearlight-glass-mirror-inc-152800337.png',
               'alt'   => 'Better Business Bureau Review',
               'link'  => 'https://www.bbb.org/us/nc/kernersville/profile/beveled-glass/clearlight-glass-mirror-inc-0503-152800337',
             ],
